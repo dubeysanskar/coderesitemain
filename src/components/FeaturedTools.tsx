@@ -146,13 +146,13 @@ const FeaturedTools = () => {
                 section.customContent
               ) : (
                 <>
-                  {/* Signature Tool - Larger Card */}
+                  {/* Signature Tool - Cybersecurity Style */}
                   {section.signatureTool && (
                     <motion.div
                       whileHover={{ scale: 1.02 }}
                       className="max-w-2xl mx-auto mb-8"
                     >
-                      <Card className="bg-gradient-to-br from-green-500/20 to-blue-500/20 border-green-400/50 backdrop-blur-sm hover:border-green-400/70 transition-all duration-300">
+                      <Card className="bg-black/60 border-white/30 backdrop-blur-sm hover:border-green-400/50 transition-all duration-300">
                         <CardContent className="p-8 text-center">
                           <div className="text-6xl mb-4">{section.signatureTool.icon}</div>
                           <h4 className="text-2xl font-bold text-white mb-3">
@@ -161,7 +161,7 @@ const FeaturedTools = () => {
                               Signature Tool
                             </span>
                           </h4>
-                          <p className="text-gray-200 mb-6 max-w-lg mx-auto">{section.signatureTool.description}</p>
+                          <p className="text-gray-300 mb-6 max-w-lg mx-auto text-lg leading-relaxed">{section.signatureTool.description}</p>
                           <Button 
                             size="lg"
                             className="bg-green-500 hover:bg-green-600 text-black font-medium px-8 py-3 rounded-full hover:scale-105 transition-all duration-200"
