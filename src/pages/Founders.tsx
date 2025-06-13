@@ -120,58 +120,74 @@ const Founders = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: index * 0.1 }}
                 whileHover={{ scale: 1.05, y: -10 }}
+                className="group"
               >
-                <Card className="bg-black/40 border-white/20 backdrop-blur-sm hover:border-green-400/50 transition-all duration-300 h-full">
-                  <CardContent className="p-6 text-center h-full flex flex-col">
-                    <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-2 border-green-400/50">
-                      <img 
-                        src={founder.avatar} 
-                        alt={founder.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-2">{founder.name}</h3>
-                    <p className="text-green-400 font-medium mb-4">{founder.role}</p>
-                    <p className="text-gray-300 text-sm mb-6 flex-grow">{founder.description}</p>
-                    
-                    <div className="mb-6">
-                      <div className="flex flex-wrap gap-2 justify-center">
-                        {founder.skills.map((skill, skillIndex) => (
-                          <span 
-                            key={skillIndex}
-                            className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-400/30"
-                          >
-                            {skill}
-                          </span>
-                        ))}
+                <Card className="bg-gradient-to-br from-black/60 to-black/40 border-white/20 backdrop-blur-sm hover:border-green-400/50 transition-all duration-300 h-full overflow-hidden relative">
+                  <CardContent className="p-0 text-center h-full flex flex-col relative">
+                    {/* Circular container with image */}
+                    <div className="relative w-full h-64 overflow-hidden rounded-t-lg">
+                      <div className="absolute inset-4 rounded-full overflow-hidden border-4 border-green-400/50 group-hover:border-green-400 transition-all duration-300">
+                        <img 
+                          src={founder.avatar} 
+                          alt={founder.name}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                        />
                       </div>
+                      
+                      {/* Overlay on hover */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        whileHover={{ opacity: 1 }}
+                        className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col justify-center items-center p-4 rounded-t-lg"
+                      >
+                        <div className="flex justify-center space-x-4 mb-4">
+                          <motion.a
+                            href={founder.social.linkedin}
+                            whileHover={{ scale: 1.2 }}
+                            whileTap={{ scale: 0.9 }}
+                            className="text-white hover:text-green-400 transition-colors text-2xl"
+                          >
+                            💼
+                          </motion.a>
+                          <motion.a
+                            href={founder.social.github}
+                            whileHover={{ scale: 1.2 }}
+                            whileTap={{ scale: 0.9 }}
+                            className="text-white hover:text-green-400 transition-colors text-2xl"
+                          >
+                            🐙
+                          </motion.a>
+                          <motion.a
+                            href={founder.social.twitter}
+                            whileHover={{ scale: 1.2 }}
+                            whileTap={{ scale: 0.9 }}
+                            className="text-white hover:text-green-400 transition-colors text-2xl"
+                          >
+                            🐦
+                          </motion.a>
+                        </div>
+                        <p className="text-gray-200 text-sm text-center">{founder.description}</p>
+                      </motion.div>
                     </div>
-
-                    <div className="flex justify-center space-x-4">
-                      <motion.a
-                        href={founder.social.linkedin}
-                        whileHover={{ scale: 1.2 }}
-                        whileTap={{ scale: 0.9 }}
-                        className="text-white hover:text-green-400 transition-colors"
-                      >
-                        💼
-                      </motion.a>
-                      <motion.a
-                        href={founder.social.github}
-                        whileHover={{ scale: 1.2 }}
-                        whileTap={{ scale: 0.9 }}
-                        className="text-white hover:text-green-400 transition-colors"
-                      >
-                        🐙
-                      </motion.a>
-                      <motion.a
-                        href={founder.social.twitter}
-                        whileHover={{ scale: 1.2 }}
-                        whileTap={{ scale: 0.9 }}
-                        className="text-white hover:text-green-400 transition-colors"
-                      >
-                        🐦
-                      </motion.a>
+                    
+                    <div className="p-6 flex-grow flex flex-col justify-between">
+                      <div>
+                        <h3 className="text-xl font-bold text-white mb-2">{founder.name}</h3>
+                        <p className="text-green-400 font-medium mb-4">{founder.role}</p>
+                        
+                        <div className="mb-6">
+                          <div className="flex flex-wrap gap-2 justify-center">
+                            {founder.skills.map((skill, skillIndex) => (
+                              <span 
+                                key={skillIndex}
+                                className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-400/30"
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -195,7 +211,7 @@ const Founders = () => {
               <Button 
                 onClick={() => scrollToSection('featured-tools')}
                 variant="outline"
-                className="border-white text-black bg-white hover:bg-gray-100 hover:text-black hover:scale-105 transition-all duration-200"
+                className="border-white text-white bg-black hover:bg-white hover:text-black hover:scale-105 transition-all duration-200"
               >
                 View All Tools
               </Button>

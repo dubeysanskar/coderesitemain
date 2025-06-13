@@ -2,16 +2,17 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from './ui/button';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const scrollToSection = (sectionId: string) => {
     // If we're not on home page, navigate home first
-    if (window.location.pathname !== '/') {
+    if (location.pathname !== '/') {
       navigate('/');
       setTimeout(() => {
         const element = document.getElementById(sectionId);
@@ -28,8 +29,17 @@ const Navbar = () => {
     setIsMenuOpen(false);
   };
 
+  const handleHomeClick = () => {
+    if (location.pathname !== '/') {
+      navigate('/');
+    } else {
+      scrollToSection('hero');
+    }
+    setIsMenuOpen(false);
+  };
+
   const navItems = [
-    { label: 'Home', action: () => scrollToSection('hero') },
+    { label: 'Home', action: handleHomeClick },
     { label: 'About Us', action: () => scrollToSection('about') },
     { label: 'Our Services', action: () => scrollToSection('services') },
     { label: 'Founders', action: () => navigate('/founders') },
@@ -52,7 +62,7 @@ const Navbar = () => {
             <motion.div
               whileHover={{ scale: 1.05 }}
               className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500 cursor-pointer"
-              onClick={() => scrollToSection('hero')}
+              onClick={handleHomeClick}
             >
               CodeResite
             </motion.div>

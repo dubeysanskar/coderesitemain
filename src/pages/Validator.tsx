@@ -164,7 +164,7 @@ const Validator = () => {
             <Button 
               onClick={() => window.location.href = '/'}
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-black"
+              className="border-white text-white bg-black hover:bg-white hover:text-black"
             >
               Back to Home
             </Button>
