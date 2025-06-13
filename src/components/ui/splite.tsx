@@ -2,7 +2,20 @@
 'use client'
 
 import { Suspense, lazy } from 'react'
-const Spline = lazy(() => import('@splinetool/react-spline'))
+
+// Lazy load Spline with error boundary
+const Spline = lazy(() => 
+  import('@splinetool/react-spline').catch(() => ({
+    default: () => (
+      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-400/10 to-blue-500/10 rounded-lg">
+        <div className="text-center">
+          <div className="text-6xl mb-4 opacity-20">🤖</div>
+          <p className="text-white/70">3D Scene Loading...</p>
+        </div>
+      </div>
+    )
+  }))
+)
 
 interface SplineSceneProps {
   scene: string
