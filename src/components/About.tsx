@@ -71,7 +71,7 @@ const About = () => {
             </div>
           </motion.div>
 
-          {/* Robot UI - 3D Scene */}
+          {/* 3D Model - Clean with hover effects */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -79,48 +79,17 @@ const About = () => {
             viewport={{ once: true }}
             className="relative"
           >
-            <Card className="w-full h-96 bg-black/[0.96] relative overflow-hidden border border-white/10">
+            <div className="w-full h-96 relative overflow-hidden group">
               <Spotlight
-                className="-top-40 left-0 md:left-60 md:-top-20"
+                className="-top-40 left-0 md:left-60 md:-top-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden md:block"
                 fill="white"
               />
               
-              <div className="flex h-full">
-                {/* Left content */}
-                <div className="flex-1 p-8 relative z-10 flex flex-col justify-center">
-                  <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
-                    Interactive 3D
-                  </h1>
-                  <p className="mt-4 text-neutral-300 max-w-lg">
-                    Bring your UI to life with beautiful 3D scenes. Create immersive experiences 
-                    that capture attention and enhance your design.
-                  </p>
-                </div>
-
-                {/* Right content - 3D Scene */}
-                <div className="flex-1 relative">
-                  <SplineScene 
-                    scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-                    className="w-full h-full"
-                  />
-                </div>
-              </div>
-              
-              {/* Fallback for when Spline doesn't load */}
-              <div className="absolute inset-0 z-0">
-                <div className="w-full h-full bg-gradient-to-br from-green-400/10 to-blue-500/10 rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                      className="text-6xl mb-4 opacity-20"
-                    >
-                      🤖
-                    </motion.div>
-                  </div>
-                </div>
-              </div>
-            </Card>
+              <SplineScene 
+                scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                className="w-full h-full scale-75 md:scale-100"
+              />
+            </div>
           </motion.div>
         </div>
       </div>
