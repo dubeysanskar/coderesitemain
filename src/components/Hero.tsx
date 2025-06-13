@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from './ui/button';
 import DisplayCards from './ui/display-cards';
-import { Sparkles, FileText, Image } from 'lucide-react';
+import { FileText, Image, Sparkles } from 'lucide-react';
 
 const Hero = () => {
   const [currentText, setCurrentText] = useState(0);
@@ -104,14 +104,18 @@ const Hero = () => {
         </Button>
       </motion.div>
 
-      {/* Display Cards */}
+      {/* Display Cards - Now fully responsive */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.4 }}
-        className="w-full max-w-4xl"
+        className="w-full max-w-4xl px-4"
       >
-        <DisplayCards cards={displayCardsData} />
+        <div className="overflow-x-auto pb-4">
+          <div className="min-w-[800px] flex justify-center">
+            <DisplayCards cards={displayCardsData} />
+          </div>
+        </div>
       </motion.div>
 
       {/* Scroll Indicator */}

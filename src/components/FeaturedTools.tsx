@@ -3,8 +3,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const FeaturedTools = () => {
+  const navigate = useNavigate();
+
   const toolSections = [
     {
       id: 'students',
@@ -14,9 +17,15 @@ const FeaturedTools = () => {
         description: 'Create professional presentations instantly with AI-powered content generation',
         icon: '📊',
         featured: true,
+        onClick: () => navigate('/ppt-generator'),
       },
       tools: [
-        { title: 'PPT Generator', description: 'AI-powered presentation maker', icon: '📊' },
+        { 
+          title: 'PPT Generator', 
+          description: 'AI-powered presentation maker', 
+          icon: '📊',
+          onClick: () => navigate('/ppt-generator'),
+        },
         { title: 'Resume Builder', description: 'Professional resume creation', icon: '📄' },
         { title: 'Report Generator', description: 'Comprehensive report writing', icon: '📋' },
         { title: 'Learning Guide', description: 'Personalized study materials', icon: '📚' },
@@ -26,9 +35,9 @@ const FeaturedTools = () => {
       id: 'social-creators',
       title: '🎨 Social Media Creators',
       signatureTool: {
-        title: 'Face & Body Clone AI',
-        description: 'Revolutionary AI technology for content creation and digital avatars',
-        icon: '🎭',
+        title: 'Video Editing Tool',
+        description: 'Edit stunning video clips instantly with AI-powered editing features',
+        icon: '🎬',
         featured: true,
       },
       tools: [
@@ -42,14 +51,14 @@ const FeaturedTools = () => {
       id: 'marketing',
       title: '📊 Marketing',
       signatureTool: {
-        title: 'Presentation Maker',
-        description: 'Create compelling marketing presentations and pitch decks',
-        icon: '📈',
+        title: 'Lead Generation Tool',
+        description: 'Our AI-powered Lead Generation tool helps you target, engage, and convert with ease',
+        icon: '🎯',
         featured: true,
       },
       tools: [
-        { title: 'Presentation Maker', description: 'Professional marketing slides', icon: '📈' },
         { title: 'Lead Generation Tool', description: 'Automated lead discovery', icon: '🎯' },
+        { title: 'Presentation Maker', description: 'Professional marketing slides', icon: '📈' },
         { title: 'ATS Enhancer', description: 'Resume optimization for ATS', icon: '🔍' },
         { title: 'Prompt Guide', description: 'AI prompting strategies', icon: '💬' },
       ],
@@ -67,7 +76,7 @@ const FeaturedTools = () => {
           viewport={{ once: true }}
           className="text-center max-w-2xl mx-auto"
         >
-          <Card className="bg-black/40 border-white/20 backdrop-blur-sm">
+          <Card className="bg-black/60 border-white/30 backdrop-blur-sm">
             <CardContent className="p-8">
               <div className="text-6xl mb-6">🛡️</div>
               <h3 className="text-2xl font-bold text-white mb-4">Cybersecurity Solutions</h3>
@@ -143,7 +152,7 @@ const FeaturedTools = () => {
                       whileHover={{ scale: 1.02 }}
                       className="max-w-2xl mx-auto mb-8"
                     >
-                      <Card className="bg-gradient-to-br from-green-500/20 to-blue-500/20 border-green-400/50 backdrop-blur-sm">
+                      <Card className="bg-gradient-to-br from-green-500/20 to-blue-500/20 border-green-400/50 backdrop-blur-sm hover:border-green-400/70 transition-all duration-300">
                         <CardContent className="p-8 text-center">
                           <div className="text-6xl mb-4">{section.signatureTool.icon}</div>
                           <h4 className="text-2xl font-bold text-white mb-3">
@@ -152,10 +161,11 @@ const FeaturedTools = () => {
                               Signature Tool
                             </span>
                           </h4>
-                          <p className="text-gray-300 mb-6">{section.signatureTool.description}</p>
+                          <p className="text-gray-200 mb-6 max-w-lg mx-auto">{section.signatureTool.description}</p>
                           <Button 
                             size="lg"
                             className="bg-green-500 hover:bg-green-600 text-black font-medium px-8 py-3 rounded-full hover:scale-105 transition-all duration-200"
+                            onClick={section.signatureTool.onClick}
                           >
                             Try Now
                           </Button>
@@ -176,16 +186,17 @@ const FeaturedTools = () => {
                         whileHover={{ scale: 1.05, y: -5 }}
                         whileTap={{ scale: 0.95 }}
                       >
-                        <Card className="bg-black/60 border-white/20 backdrop-blur-sm hover:border-green-400/50 transition-all duration-300 h-full">
+                        <Card className="bg-black/70 border-white/30 backdrop-blur-sm hover:border-green-400/50 transition-all duration-300 h-full hover:bg-black/60">
                           <CardContent className="p-6 text-center h-full flex flex-col justify-between">
                             <div>
                               <div className="text-4xl mb-4">{tool.icon}</div>
                               <h4 className="text-lg font-bold text-white mb-3">{tool.title}</h4>
-                              <p className="text-gray-300 text-sm mb-4">{tool.description}</p>
+                              <p className="text-gray-200 text-sm mb-4">{tool.description}</p>
                             </div>
                             <Button 
                               size="sm"
                               className="bg-green-500 hover:bg-green-600 text-black font-medium rounded-full w-full hover:scale-105 transition-all duration-200"
+                              onClick={tool.onClick}
                             >
                               Try It
                             </Button>

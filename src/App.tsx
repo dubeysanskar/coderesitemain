@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Founders from "./pages/Founders";
 import Validator from "./pages/Validator";
 import ServiceGig from "./pages/ServiceGig";
+import PPTGenerator from "./pages/PPTGenerator";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/founders" element={<Founders />} />
           <Route path="/validator" element={<Validator />} />
+          <Route path="/ppt-generator" element={<PPTGenerator />} />
           <Route path="/services/:service" element={<ServiceGig />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

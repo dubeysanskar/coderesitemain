@@ -221,7 +221,7 @@ const Contact = () => {
             <Card className="bg-black/40 border-white/20 backdrop-blur-sm">
               <CardContent className="p-8">
                 <h3 className="text-2xl font-bold text-white mb-6">Quick Response</h3>
-                <div className="bg-green-500/20 border border-green-400/30 rounded-lg p-6">
+                <div className="bg-green-500/20 border border-green-400/50 rounded-lg p-6">
                   <p className="text-white font-medium mb-2">⚡ Fast Response Time</p>
                   <p className="text-gray-200 text-sm">
                     We typically respond to all inquiries within 24 hours. For urgent matters, 
