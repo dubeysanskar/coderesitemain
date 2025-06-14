@@ -123,9 +123,34 @@ export const generatePPT = (presentation: Presentation): void => {
   
   // Add each slide with proper Title + Content layout
   presentation.slides.forEach((slide: SlideContent, index: number) => {
-    // Determine if this should be a chart slide (every 4th slide for example)
-    if (index > 0 && index % 4 === 0 && slide.content && slide.content.length >= 3) {
-      createChartSlide(pptx, slide, colorScheme, presentation.slides.length, index);
+    const totalSlidesWithFinal = presentation.slides.length + 1;
+
+    // Use a dedicated layout for the first slide (Title Slide)
+    if (index === 0) {
+      const titleSlide = pptx.addSlide();
+      titleSlide.background = { color: colorScheme.background };
+      
+      // Decorative shape
+      titleSlide.addShape(pptx.ShapeType.rect, { x: 0, y: '40%', w: '100%', h: 2.5, fill: { color: colorScheme.accent, transparency: 85 } });
+      
+      // Main presentation title
+      titleSlide.addText(presentation.title, { x: 0.5, y: '42%', w: '90%', h: 1.5, align: 'center', fontSize: 48, bold: true, color: colorScheme.accent, fontFace: 'Calibri' });
+      
+      // Subtitle (from the first slide's own title)
+      titleSlide.addText(slide.title, { x: 0.5, y: '58%', w: '90%', h: 1, align: 'center', fontSize: 24, color: colorScheme.text, fontFace: 'Calibri' });
+      
+      // Branding
+      titleSlide.addText('WebMind AI', { x: 0.3, y: 0.1, fontSize: 14, color: colorScheme.text, transparency: 30, bold: true });
+      
+      // Slide number
+      titleSlide.addText(`${index + 1}/${totalSlidesWithFinal}`, { x: '90%', y: '90%', w: 0.5, h: 0.3, fontSize: 12, color: colorScheme.text, fontFace: 'Calibri', align: 'right' });
+      
+      return; // Move to the next item in the loop
+    }
+    
+    // Determine if this should be a chart slide (every 4th slide, but not the first content slide)
+    if (index > 1 && index % 4 === 0 && slide.content && slide.content.length >= 3) {
+      createChartSlide(pptx, slide, colorScheme, totalSlidesWithFinal, index);
       return;
     }
     
@@ -134,8 +159,8 @@ export const generatePPT = (presentation: Presentation): void => {
     // Set background color
     pptSlide.background = { color: colorScheme.background };
     
-    // Alternate between different layouts
-    const layoutType = index % 3;
+    // Alternate between different layouts (use index-1 to keep patterns consistent after title slide)
+    const layoutType = (index - 1) % 3;
     
     // Add title with consistent fonts and sizes
     pptSlide.addText(slide.title, {
@@ -331,7 +356,7 @@ export const generatePPT = (presentation: Presentation): void => {
     }
     
     // Add slide number
-    pptSlide.addText(`${index + 1}/${presentation.slides.length}`, {
+    pptSlide.addText(`${index + 1}/${totalSlidesWithFinal}`, {
       x: '90%', 
       y: '90%', 
       w: 0.5, 

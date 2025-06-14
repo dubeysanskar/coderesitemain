@@ -46,43 +46,44 @@ export class GeminiService {
 
   async generatePresentation(topic: string, slideCount: number): Promise<Presentation> {
     const systemPrompt = `
-      You are an expert presentation generator AI.
-      
-      Your task is to create a detailed PowerPoint presentation on the topic: "${topic}".
-      
-      Requirements:
-      1. Generate exactly ${slideCount} slides.
-      2. For each slide, provide:
-         - A clear and concise Slide Title (under 8 words)
-         - 4 to 6 bullet points that are concise (max 20 words each) and informative
-      3. Format each slide for readability: use concise bullets (under 20 words), limit to 5-6 points per slide, and structure it so it fits well on a standard 16:9 PowerPoint slide.
-      4. Avoid slide numbers and fluff.
-      5. Maintain a professional tone suitable for students, professionals, or public speaking.
-      6. Format your output as structured JSON, with each slide as an object containing "title" and "content" (array of bullet points).
-      7. Ensure the content is specific to the topic and well-organized for presentation use.
-      8. For each slide, provide a detailed and specific imagePrompt that clearly describes what should be in the image, including specific visual elements, style, and composition directly related to that slide's content.
-      
-      Output Format Expected:
-      
+      You are a world-class AI assistant for creating professional presentations, similar to tools like Gamma.ai.
+      Your task is to generate a comprehensive and visually engaging presentation on the topic: "${topic}".
+
+      The presentation must have exactly ${slideCount} slides.
+
+      **Presentation Structure:**
+      1.  **Title Slide (1 slide):** A compelling main title for the presentation and a shorter, engaging title for the slide itself.
+      2.  **Agenda/Overview Slide (1 slide):** Outline the main sections of the presentation.
+      3.  **Content Slides (${slideCount > 3 ? slideCount - 3 : 1} slides):**
+          -   Each slide should cover a specific sub-topic.
+          -   Use a clear, descriptive title (max 8 words).
+          -   Provide 3-5 concise, impactful bullet points per slide (max 15 words each).
+          -   The content should be well-researched, accurate, and flow logically.
+      4.  **Conclusion/Summary Slide (1 slide):** Summarize the key takeaways.
+
+      **For each slide, you MUST provide:**
+      -   **title:** A string for the slide title.
+      -   **content:** An array of strings, where each string is a bullet point.
+      -   **imagePrompt:** A highly detailed and descriptive prompt for an AI image generator. The prompt should describe a professional, relevant, and aesthetically pleasing image (e.g., "A photorealistic image of a futuristic cityscape at sunset, with flying vehicles and holographic billboards, in a cinematic style."). This is crucial for generating visuals.
+
+      **Output Format (Strict JSON):**
+      Your entire output must be a single, valid JSON object. Do not include any text, explanations, or markdown formatting outside of the JSON structure.
+
+      Example JSON structure:
       {
         "title": "Main Presentation Title",
         "slides": [
           {
-            "title": "Concise Slide Title",
+            "title": "Title of Slide 1",
             "content": [
-              "First concise bullet point (under 20 words)",
-              "Second concise bullet point (under 20 words)",
-              "Third concise bullet point (under 20 words)",
-              "Fourth concise bullet point (under 20 words)",
-              "Fifth concise bullet point (under 20 words)"
+              "Bullet point 1.",
+              "Bullet point 2.",
+              "Bullet point 3."
             ],
-            "imagePrompt": "Detailed description for generating a relevant, professional image that shows [specific visual elements] in [specific style] related to this slide"
-          },
-          ... more slides
+            "imagePrompt": "Detailed prompt for an image for slide 1."
+          }
         ]
       }
-      
-      Don't include any explanations or markdown formatting, just return the raw JSON object.
     `;
 
     try {
@@ -127,28 +128,27 @@ export class GeminiService {
   }
 
   async generateImage(prompt: string): Promise<string> {
-    const enhancedPrompt = `Professional, high-quality presentation visual with 16:9 ratio about: ${prompt}. The image should be clean, well-composed, and suitable for business presentations.`;
+    // A list of high-quality, professional placeholder images from Unsplash
+    const placeholderImages = [
+      'photo-1488590528505-98d2b5aba04b', // code on laptop
+      'photo-1518770660439-4636190af475', // circuit board
+      'photo-1461749280684-dccba630e2f6', // code on monitor
+      'photo-1486312338219-ce68d2c6f44d', // person using macbook
+      'photo-1485827404703-89b55fcc595e', // robot
+      'photo-1531297484001-80022131f5a1', // laptop on surface
+      'photo-1487058792275-0ad4aaf24ca7', // colorful code
+      'photo-1519389950473-47ba0277781c', // team working on laptops
+      'photo-1498050108023-c5249f4df085', // macbook with code
+      'photo-1605810230434-7631ac76ec81'  // people looking at screens
+    ];
     
-    // In a production environment, you would integrate with actual image generation APIs
-    // Generate a deterministic but varied color based on the prompt content
-    const getColorFromPrompt = (text: string): string => {
-      let hash = 0;
-      for (let i = 0; i < text.length; i++) {
-        hash = text.charCodeAt(i) + ((hash << 5) - hash);
-      }
-      const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
-      return "00000".substring(0, 6 - c.length) + c;
-    };
+    // Pick a random image from the list
+    const randomImageId = placeholderImages[Math.floor(Math.random() * placeholderImages.length)];
     
-    // Use a more relevant visual reference based on the prompt
-    const bgColor = getColorFromPrompt(prompt);
-    const contrastColor = parseInt(bgColor.substring(0, 2), 16) > 128 ? '000000' : 'FFFFFF';
-    
-    // Create a placeholder that matches 16:9 ratio exactly
-    const encodedTopic = encodeURIComponent(prompt.substring(0, 30));
-    
-    // Return a placeholder with 16:9 ratio (1600x900)
-    return `https://placehold.co/1600x900/${bgColor}/${contrastColor}?text=${encodedTopic}`;
+    // In a real application, this would call an actual image generation API using the prompt.
+    // For now, we return a high-quality, correctly-sized placeholder.
+    console.log(`Using placeholder image for prompt: "${prompt}"`);
+    return `https://images.unsplash.com/${randomImageId}?w=1600&h=900&fit=crop`;
   }
 }
 

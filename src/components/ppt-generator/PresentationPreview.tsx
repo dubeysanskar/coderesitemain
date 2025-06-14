@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { DownloadIcon, ChevronLeftIcon, ChevronRightIcon, ZapIcon } from "lucide-react";
@@ -98,7 +97,7 @@ export function PresentationPreview({ presentation, loading }: PresentationPrevi
     <div className="flex flex-col h-full">
       <div className="flex justify-between items-center p-4 border-b">
         <h2 className="text-lg font-semibold">{presentation.title}</h2>
-        <Button variant="outline" onClick={handleDownload} className="gap-2">
+        <Button onClick={handleDownload} className="gap-2 bg-green-500 hover:bg-green-600 text-primary-foreground">
           <DownloadIcon className="h-4 w-4" />
           Download PPT
         </Button>
@@ -306,4 +305,3 @@ export function PresentationPreview({ presentation, loading }: PresentationPrevi
     </div>
   );
 }
-
