@@ -34,7 +34,7 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
   const [editedContent, setEditedContent] = useState('');
   const [currentReport, setCurrentReport] = useState(report);
   const [isRegenerating, setIsRegenerating] = useState<string | null>(null);
-  const [fontStyle, setFontStyle] = useState<'serif' | 'sans'>('serif');
+  const [fontStyle, setFontStyle] = useState<'serif' | 'sans' | 'times'>('serif');
   const [layout, setLayout] = useState<'compact' | 'spacious'>('spacious');
   const { toast } = useToast();
 
@@ -135,7 +135,6 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
   };
 
   const handleDownloadDOCX = () => {
-    // For now, we'll download as RTF which can be opened by Word
     const fullReport = sections.map(section => 
       `${section.title.toUpperCase()}\n\n${section.content}\n\n`
     ).join('');
@@ -157,25 +156,41 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
     });
   };
 
+  const getFontClass = () => {
+    switch (fontStyle) {
+      case 'serif':
+        return 'font-serif';
+      case 'times':
+        return 'font-times';
+      case 'sans':
+      default:
+        return 'font-sans';
+    }
+  };
+
+  const cleanContent = (content: string) => {
+    return content.replace(/\*\*/g, '').replace(/\*/g, '');
+  };
+
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header */}
+    <div className="max-w-6xl mx-auto space-y-8 py-8">
+      {/* Header with proper spacing */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8"
       >
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-2">{formData.title}</h1>
-          <p className="text-gray-300">By {formData.author}</p>
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-white mb-4">{formData.title}</h1>
+          <p className="text-gray-300 text-lg">By {formData.author}</p>
         </div>
         
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           <Button
             onClick={onBack}
             variant="outline"
-            className="border-white/30 text-white hover:bg-white/10"
+            className="border-white/30 text-black bg-white hover:bg-gray-100"
           >
             ← Back to Form
           </Button>
@@ -189,17 +204,17 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
         transition={{ duration: 0.6, delay: 0.1 }}
       >
         <Card className="bg-black/70 border-white/30 backdrop-blur-sm">
-          <CardContent className="p-4">
-            <div className="flex flex-wrap gap-4 items-center justify-between">
+          <CardContent className="p-6">
+            <div className="flex flex-wrap gap-6 items-center justify-between">
               {/* Style Controls */}
-              <div className="flex flex-wrap gap-4">
-                <div className="flex items-center gap-2">
-                  <Type className="h-4 w-4 text-gray-400" />
+              <div className="flex flex-wrap gap-6">
+                <div className="flex items-center gap-3">
+                  <Type className="h-5 w-5 text-gray-400" />
                   <Button
                     size="sm"
                     variant={fontStyle === 'serif' ? 'default' : 'outline'}
                     onClick={() => setFontStyle('serif')}
-                    className="h-8 px-3"
+                    className="h-9 px-4 text-black bg-white border-white/30 hover:bg-gray-100"
                   >
                     Serif
                   </Button>
@@ -207,19 +222,27 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
                     size="sm"
                     variant={fontStyle === 'sans' ? 'default' : 'outline'}
                     onClick={() => setFontStyle('sans')}
-                    className="h-8 px-3"
+                    className="h-9 px-4 text-black bg-white border-white/30 hover:bg-gray-100"
                   >
                     Sans
                   </Button>
+                  <Button
+                    size="sm"
+                    variant={fontStyle === 'times' ? 'default' : 'outline'}
+                    onClick={() => setFontStyle('times')}
+                    className="h-9 px-4 text-black bg-white border-white/30 hover:bg-gray-100"
+                  >
+                    Times New Roman
+                  </Button>
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  <Layout className="h-4 w-4 text-gray-400" />
+                <div className="flex items-center gap-3">
+                  <Layout className="h-5 w-5 text-gray-400" />
                   <Button
                     size="sm"
                     variant={layout === 'compact' ? 'default' : 'outline'}
                     onClick={() => setLayout('compact')}
-                    className="h-8 px-3"
+                    className="h-9 px-4 text-black bg-white border-white/30 hover:bg-gray-100"
                   >
                     Compact
                   </Button>
@@ -227,7 +250,7 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
                     size="sm"
                     variant={layout === 'spacious' ? 'default' : 'outline'}
                     onClick={() => setLayout('spacious')}
-                    className="h-8 px-3"
+                    className="h-9 px-4 text-black bg-white border-white/30 hover:bg-gray-100"
                   >
                     Spacious
                   </Button>
@@ -235,12 +258,11 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
               </div>
 
               {/* Download Controls */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 <Button
                   onClick={handleCopyToClipboard}
                   size="sm"
-                  variant="outline"
-                  className="border-white/30 text-white hover:bg-white/10"
+                  className="text-black bg-white border-white/30 hover:bg-gray-100"
                 >
                   <Copy className="h-4 w-4 mr-2" />
                   Copy
@@ -248,8 +270,7 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
                 <Button
                   onClick={handleDownloadPDF}
                   size="sm"
-                  variant="outline"
-                  className="border-white/30 text-white hover:bg-white/10"
+                  className="text-black bg-white border-white/30 hover:bg-gray-100"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   TXT
@@ -269,7 +290,7 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
       </motion.div>
 
       {/* Report Sections */}
-      <div className="space-y-6">
+      <div className="space-y-8">
         {sections.map((section, index) => (
           <motion.div
             key={section.id}
@@ -278,26 +299,24 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
             transition={{ duration: 0.6, delay: index * 0.1 }}
           >
             <Card className="bg-black/70 border-white/30 backdrop-blur-sm">
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
-                <CardTitle className="text-xl font-semibold text-white">
+              <CardHeader className="flex flex-row items-center justify-between pb-4">
+                <CardTitle className="text-xl font-bold text-white">
                   {section.title}
                 </CardTitle>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <Button
                     size="sm"
-                    variant="outline"
                     onClick={() => handleEdit(section.id, section.content)}
                     disabled={editingSection === section.id}
-                    className="border-white/30 text-white hover:bg-white/10"
+                    className="text-black bg-white border-white/30 hover:bg-gray-100"
                   >
                     <Edit3 className="h-4 w-4" />
                   </Button>
                   <Button
                     size="sm"
-                    variant="outline"
                     onClick={() => handleRegenerate(section.id)}
                     disabled={isRegenerating === section.id || editingSection === section.id}
-                    className="border-white/30 text-white hover:bg-white/10"
+                    className="text-black bg-white border-white/30 hover:bg-gray-100"
                   >
                     {isRegenerating === section.id ? (
                       <RefreshCw className="h-4 w-4 animate-spin" />
@@ -309,14 +328,14 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
               </CardHeader>
               <CardContent>
                 {editingSection === section.id ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <Textarea
                       value={editedContent}
                       onChange={(e) => setEditedContent(e.target.value)}
                       rows={8}
                       className="bg-black/50 border-white/30 text-white resize-none"
                     />
-                    <div className="flex gap-2">
+                    <div className="flex gap-3">
                       <Button
                         size="sm"
                         onClick={handleSaveEdit}
@@ -327,9 +346,8 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
                       </Button>
                       <Button
                         size="sm"
-                        variant="outline"
                         onClick={handleCancelEdit}
-                        className="border-white/30 text-white hover:bg-white/10"
+                        className="text-black bg-white border-white/30 hover:bg-gray-100"
                       >
                         <X className="h-4 w-4 mr-2" />
                         Cancel
@@ -338,15 +356,15 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
                   </div>
                 ) : (
                   <div
-                    className={`text-gray-200 whitespace-pre-wrap leading-relaxed ${
-                      fontStyle === 'serif' ? 'font-serif' : 'font-sans'
-                    } ${layout === 'compact' ? 'space-y-2' : 'space-y-4'}`}
+                    className={`text-gray-200 whitespace-pre-wrap leading-relaxed ${getFontClass()} ${
+                      layout === 'compact' ? 'space-y-3' : 'space-y-5'
+                    }`}
                     style={{ 
-                      lineHeight: layout === 'compact' ? '1.4' : '1.6',
-                      fontSize: layout === 'compact' ? '14px' : '16px'
+                      lineHeight: layout === 'compact' ? '1.5' : '1.7',
+                      fontSize: '12px'
                     }}
                   >
-                    {section.content || 'No content generated for this section.'}
+                    {cleanContent(section.content) || 'No content generated for this section.'}
                   </div>
                 )}
               </CardContent>
