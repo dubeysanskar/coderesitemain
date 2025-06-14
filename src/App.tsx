@@ -10,6 +10,7 @@ import Validator from "./pages/Validator";
 import ServiceGig from "./pages/ServiceGig";
 import PPTGenerator from "./pages/PPTGenerator";
 import ResumeBuilder from "./pages/ResumeBuilder";
+import ReportGenerator from "./pages/ReportGenerator";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/validator" element={<Validator />} />
           <Route path="/ppt-generator" element={<PPTGenerator />} />
           <Route path="/resume-builder" element={<ResumeBuilder />} />
+          <Route path="/report-generator" element={<ReportGenerator />} />
           <Route path="/services/:service" element={<ServiceGig />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
