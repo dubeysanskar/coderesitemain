@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownIcon, SendIcon, Loader2Icon } from "lucide-react";
@@ -81,8 +80,8 @@ export function ChatInterface({ onSubmit, loading, onThemeChange, currentTheme =
   }, [messages]);
   
   return (
-    <div className="flex flex-col h-full bg-gray-50">
-      <div className="flex items-center gap-4 p-4 border-b bg-white">
+    <div className="flex flex-col h-full bg-white">
+      <div className="flex items-center gap-4 p-4 border-b bg-white shadow-sm">
         <div className="flex-grow">
           <label htmlFor="slide-count" className="block text-sm font-medium text-gray-700 mb-1">
             Number of Slides
@@ -92,12 +91,12 @@ export function ChatInterface({ onSubmit, loading, onThemeChange, currentTheme =
             onValueChange={(value) => setSlideCount(parseInt(value))}
             disabled={loading}
           >
-            <SelectTrigger id="slide-count" className="w-full bg-white border-gray-300 text-gray-900">
+            <SelectTrigger id="slide-count" className="w-full bg-white border-gray-300 text-gray-900 shadow-sm">
               <SelectValue placeholder="Select slides" />
             </SelectTrigger>
-            <SelectContent className="bg-white border-gray-300">
+            <SelectContent className="bg-white border-gray-300 shadow-lg z-50">
               {[4, 5, 6, 7, 8, 9, 10].map((num) => (
-                <SelectItem key={num} value={num.toString()} className="text-gray-900 hover:bg-gray-100">
+                <SelectItem key={num} value={num.toString()} className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100">
                   {num} slides
                 </SelectItem>
               ))}
@@ -115,19 +114,19 @@ export function ChatInterface({ onSubmit, loading, onThemeChange, currentTheme =
               onValueChange={(value) => onThemeChange(value as 'light' | 'dark' | 'midnight' | 'skywave' | 'mint' | 'sunset' | 'ocean' | 'forest' | 'royal')}
               disabled={loading}
             >
-              <SelectTrigger id="theme-select" className="w-full bg-white border-gray-300 text-gray-900">
+              <SelectTrigger id="theme-select" className="w-full bg-white border-gray-300 text-gray-900 shadow-sm">
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>
-              <SelectContent className="bg-white border-gray-300">
-                <SelectItem value="light" className="text-gray-900 hover:bg-gray-100">Light</SelectItem>
-                <SelectItem value="dark" className="text-gray-900 hover:bg-gray-100">Dark</SelectItem>
-                <SelectItem value="midnight" className="text-gray-900 hover:bg-gray-100">Midnight</SelectItem>
-                <SelectItem value="skywave" className="text-gray-900 hover:bg-gray-100">Skywave</SelectItem>
-                <SelectItem value="mint" className="text-gray-900 hover:bg-gray-100">Mint</SelectItem>
-                <SelectItem value="sunset" className="text-gray-900 hover:bg-gray-100">Sunset</SelectItem>
-                <SelectItem value="ocean" className="text-gray-900 hover:bg-gray-100">Ocean</SelectItem>
-                <SelectItem value="forest" className="text-gray-900 hover:bg-gray-100">Forest</SelectItem>
-                <SelectItem value="royal" className="text-gray-900 hover:bg-gray-100">Royal</SelectItem>
+              <SelectContent className="bg-white border-gray-300 shadow-lg z-50">
+                <SelectItem value="light" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100">Light</SelectItem>
+                <SelectItem value="dark" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100">Dark</SelectItem>
+                <SelectItem value="midnight" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100">Midnight</SelectItem>
+                <SelectItem value="skywave" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100">Skywave</SelectItem>
+                <SelectItem value="mint" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100">Mint</SelectItem>
+                <SelectItem value="sunset" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100">Sunset</SelectItem>
+                <SelectItem value="ocean" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100">Ocean</SelectItem>
+                <SelectItem value="forest" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100">Forest</SelectItem>
+                <SelectItem value="royal" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100">Royal</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -177,7 +176,7 @@ export function ChatInterface({ onSubmit, loading, onThemeChange, currentTheme =
         </motion.div>
       )}
       
-      <div className="p-4 border-t bg-white">
+      <div className="p-4 border-t bg-white shadow-sm">
         <form 
           onSubmit={(e) => {
             e.preventDefault();
@@ -190,13 +189,13 @@ export function ChatInterface({ onSubmit, loading, onThemeChange, currentTheme =
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Describe your presentation topic..."
             disabled={loading}
-            className="flex-grow bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
+            className="flex-grow bg-white border-gray-300 text-gray-900 placeholder:text-gray-500 shadow-sm focus:border-green-500 focus:ring-green-500"
           />
           <Button 
             type="submit" 
             size="icon" 
             disabled={!prompt.trim() || loading}
-            className="bg-green-500 hover:bg-green-600 text-white"
+            className="bg-green-500 hover:bg-green-600 text-white shadow-sm"
           >
             {loading ? (
               <Loader2Icon className="h-4 w-4 animate-spin" />
