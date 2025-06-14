@@ -3,18 +3,19 @@
 
 import { Suspense, lazy, memo } from 'react'
 
-// Lazy load Spline with better error handling
+// Simple type-safe lazy loading
 const Spline = lazy(() => 
-  import('@splinetool/react-spline').catch(() => ({
-    default: () => (
-      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-400/10 to-blue-500/10 rounded-lg">
-        <div className="text-center">
-          <div className="text-6xl mb-4 opacity-20">🤖</div>
-          <p className="text-white/70">3D Scene Unavailable</p>
+  import('@splinetool/react-spline').then(module => ({ default: module.default }))
+    .catch(() => import('./SplineFallback').then(() => ({ 
+      default: () => (
+        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-400/10 to-blue-500/10 rounded-lg">
+          <div className="text-center">
+            <div className="text-6xl mb-4 opacity-20">🤖</div>
+            <p className="text-white/70">3D Scene Unavailable</p>
+          </div>
         </div>
-      </div>
-    )
-  }))
+      )
+    })))
 )
 
 interface SplineSceneProps {
@@ -22,7 +23,6 @@ interface SplineSceneProps {
   className?: string
 }
 
-// Memoize the component to prevent unnecessary re-renders
 export const SplineScene = memo(function SplineScene({ scene, className }: SplineSceneProps) {
   return (
     <Suspense 
@@ -30,7 +30,7 @@ export const SplineScene = memo(function SplineScene({ scene, className }: Splin
         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-400/10 to-blue-500/10 rounded-lg">
           <div className="text-center">
             <div className="text-6xl mb-4 opacity-20">🤖</div>
-            <p className="text-white/70">3D Scene Loading...</p>
+            <p className="text-white/70">Loading 3D Scene...</p>
           </div>
         </div>
       }
@@ -40,7 +40,7 @@ export const SplineScene = memo(function SplineScene({ scene, className }: Splin
         className={className}
         style={{ 
           pointerEvents: 'auto',
-          willChange: 'transform' // Optimize for animations
+          willChange: 'transform'
         }}
       />
     </Suspense>

@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { DownloadIcon, ChevronLeftIcon, ChevronRightIcon, ZapIcon } from "lucide-react";
@@ -95,10 +94,14 @@ export function PresentationPreview({ presentation, loading }: PresentationPrevi
   const layoutType = currentSlide % 3;
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center p-4 border-b">
-        <h2 className="text-lg font-semibold">{presentation.title}</h2>
-        <Button variant="outline" onClick={handleDownload} className="gap-2">
+    <div className="flex flex-col h-full bg-white">
+      <div className="flex justify-between items-center p-4 border-b bg-white shadow-sm">
+        <h2 className="text-lg font-semibold text-gray-900">{presentation.title}</h2>
+        <Button 
+          variant="outline" 
+          onClick={handleDownload} 
+          className="gap-2 bg-green-500 hover:bg-green-600 text-white border-green-500 hover:border-green-600"
+        >
           <DownloadIcon className="h-4 w-4" />
           Download PPT
         </Button>
@@ -278,15 +281,25 @@ export function PresentationPreview({ presentation, loading }: PresentationPrevi
         </div>
       </div>
 
-      <div className="p-4 border-t flex justify-between items-center">
-        <div className="text-sm text-muted-foreground">
+      <div className="p-4 border-t flex justify-between items-center bg-white shadow-sm">
+        <div className="text-sm text-gray-700">
           Slide {currentSlide + 1} of {presentation.slides.length}
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="icon" onClick={handlePrevSlide}>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={handlePrevSlide}
+            className="bg-green-500 hover:bg-green-600 text-white border-green-500 hover:border-green-600"
+          >
             <ChevronLeftIcon className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" onClick={handleNextSlide}>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={handleNextSlide}
+            className="bg-green-500 hover:bg-green-600 text-white border-green-500 hover:border-green-600"
+          >
             <ChevronRightIcon className="h-4 w-4" />
           </Button>
         </div>
