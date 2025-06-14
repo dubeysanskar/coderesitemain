@@ -1,36 +1,20 @@
 
 'use client'
 
-import { Suspense, lazy, memo, forwardRef } from 'react'
+import { Suspense, lazy, memo } from 'react'
 
-// Define interface to match Spline component props
-interface SplineProps {
-  scene: string
-  className?: string
-  style?: React.CSSProperties
-}
-
-// Simple fallback component that matches the expected type structure
-const SplineFallback = forwardRef<HTMLDivElement, SplineProps>((props, ref) => (
-  <div 
-    ref={ref} 
-    className={props.className || "w-full h-full flex items-center justify-center bg-gradient-to-br from-green-400/10 to-blue-500/10 rounded-lg"}
-    style={props.style}
-  >
-    <div className="text-center">
-      <div className="text-6xl mb-4 opacity-20">🤖</div>
-      <p className="text-white/70">3D Scene Unavailable</p>
-    </div>
-  </div>
-))
-
-SplineFallback.displayName = 'SplineFallback'
-
-// Simplified lazy loading with proper error handling
+// Lazy load Spline with better error handling
 const Spline = lazy(() => 
-  import('@splinetool/react-spline')
-    .then(module => ({ default: module.default }))
-    .catch(() => ({ default: SplineFallback }))
+  import('@splinetool/react-spline').catch(() => ({
+    default: () => (
+      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-400/10 to-blue-500/10 rounded-lg">
+        <div className="text-center">
+          <div className="text-6xl mb-4 opacity-20">🤖</div>
+          <p className="text-white/70">3D Scene Unavailable</p>
+        </div>
+      </div>
+    )
+  }))
 )
 
 interface SplineSceneProps {
@@ -38,6 +22,7 @@ interface SplineSceneProps {
   className?: string
 }
 
+// Memoize the component to prevent unnecessary re-renders
 export const SplineScene = memo(function SplineScene({ scene, className }: SplineSceneProps) {
   return (
     <Suspense 
@@ -45,7 +30,7 @@ export const SplineScene = memo(function SplineScene({ scene, className }: Splin
         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-400/10 to-blue-500/10 rounded-lg">
           <div className="text-center">
             <div className="text-6xl mb-4 opacity-20">🤖</div>
-            <p className="text-white/70">Loading 3D Scene...</p>
+            <p className="text-white/70">3D Scene Loading...</p>
           </div>
         </div>
       }
@@ -55,7 +40,7 @@ export const SplineScene = memo(function SplineScene({ scene, className }: Splin
         className={className}
         style={{ 
           pointerEvents: 'auto',
-          willChange: 'transform'
+          willChange: 'transform' // Optimize for animations
         }}
       />
     </Suspense>

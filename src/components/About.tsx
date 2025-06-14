@@ -71,25 +71,23 @@ const About = () => {
             </div>
           </motion.div>
 
-          {/* 3D Model - Clean and responsive */}
+          {/* 3D Model - Bigger and optimized */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="relative flex justify-center"
+            className="relative"
           >
-            <div className="w-full max-w-lg h-64 md:h-96 lg:h-[500xl] relative overflow-hidden group">
-              {/* Desktop hover spotlight */}
+            <div className="w-full h-[500px] md:h-[600px] relative overflow-hidden group">
               <Spotlight
-                className="hidden md:block -top-40 left-0 md:left-60 md:-top-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                className="-top-40 left-0 md:left-60 md:-top-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden md:block"
                 fill="white"
               />
               
-              {/* 3D Scene - responsive sizing */}
               <SplineScene 
                 scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-                className="w-full h-full md:scale-125 lg:scale-150 transform-gpu"
+                className="w-full h-full scale-110 md:scale-125"
               />
             </div>
           </motion.div>
