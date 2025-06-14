@@ -3,12 +3,19 @@
 
 import { Suspense, lazy, memo, forwardRef } from 'react'
 
+// Define interface to match Spline component props
+interface SplineProps {
+  scene: string
+  className?: string
+  style?: React.CSSProperties
+}
+
 // Simple fallback component that matches the expected type structure
-const SplineFallback = forwardRef<HTMLDivElement>((props, ref) => (
+const SplineFallback = forwardRef<HTMLDivElement, SplineProps>((props, ref) => (
   <div 
     ref={ref} 
-    {...props}
-    className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-400/10 to-blue-500/10 rounded-lg"
+    className={props.className || "w-full h-full flex items-center justify-center bg-gradient-to-br from-green-400/10 to-blue-500/10 rounded-lg"}
+    style={props.style}
   >
     <div className="text-center">
       <div className="text-6xl mb-4 opacity-20">🤖</div>
