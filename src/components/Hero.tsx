@@ -111,7 +111,8 @@ const Hero = () => {
         transition={{ duration: 0.8, delay: 0.4 }}
         className="w-full max-w-5xl px-4"
       >
-        <div className="flex justify-center">
+        {/* Responsive wrapper */}
+        <div className="flex flex-wrap justify-center gap-6">
           <DisplayCards cards={displayCardsData} />
         </div>
       </motion.div>
@@ -140,3 +141,4 @@ const Hero = () => {
 };
 
 export default Hero;
+

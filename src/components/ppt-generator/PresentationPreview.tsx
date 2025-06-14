@@ -283,14 +283,27 @@ export function PresentationPreview({ presentation, loading }: PresentationPrevi
           Slide {currentSlide + 1} of {presentation.slides.length}
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="icon" onClick={handlePrevSlide}>
-            <ChevronLeftIcon className="h-4 w-4" />
+          <Button 
+            variant="secondary" 
+            size="icon" 
+            className="bg-green-500 hover:bg-green-600 rounded-full shadow text-black" 
+            onClick={handlePrevSlide}
+            style={{ backgroundColor: '#22c55e', color: '#111', border: 'none' }}
+          >
+            <ChevronLeftIcon className="h-4 w-4" color="#000" />
           </Button>
-          <Button variant="outline" size="icon" onClick={handleNextSlide}>
-            <ChevronRightIcon className="h-4 w-4" />
+          <Button 
+            variant="secondary" 
+            size="icon" 
+            className="bg-green-500 hover:bg-green-600 rounded-full shadow text-black" 
+            onClick={handleNextSlide}
+            style={{ backgroundColor: '#22c55e', color: '#111', border: 'none' }}
+          >
+            <ChevronRightIcon className="h-4 w-4" color="#000" />
           </Button>
         </div>
       </div>
     </div>
   );
 }
+

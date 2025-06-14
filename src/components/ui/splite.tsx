@@ -1,21 +1,8 @@
-
 'use client'
 
-import { Suspense, lazy, memo } from 'react'
+import { Suspense, lazy, memo } from 'react';
 
-// Lazy load Spline with better error handling
-const Spline = lazy(() => 
-  import('@splinetool/react-spline').catch(() => ({
-    default: () => (
-      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-400/10 to-blue-500/10 rounded-lg">
-        <div className="text-center">
-          <div className="text-6xl mb-4 opacity-20">🤖</div>
-          <p className="text-white/70">3D Scene Unavailable</p>
-        </div>
-      </div>
-    )
-  }))
-)
+const Spline = lazy(() => import('@splinetool/react-spline'));
 
 interface SplineSceneProps {
   scene: string
@@ -40,7 +27,7 @@ export const SplineScene = memo(function SplineScene({ scene, className }: Splin
         className={className}
         style={{ 
           pointerEvents: 'auto',
-          willChange: 'transform' // Optimize for animations
+          willChange: 'transform'
         }}
       />
     </Suspense>
