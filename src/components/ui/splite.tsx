@@ -1,17 +1,23 @@
 
 'use client'
 
-import { Suspense, lazy, memo } from 'react'
+import { Suspense, lazy, memo, forwardRef } from 'react'
 
-// Simple fallback component
-const SplineFallback = () => (
-  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-400/10 to-blue-500/10 rounded-lg">
+// Simple fallback component that matches the expected type structure
+const SplineFallback = forwardRef<HTMLDivElement>((props, ref) => (
+  <div 
+    ref={ref} 
+    {...props}
+    className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-400/10 to-blue-500/10 rounded-lg"
+  >
     <div className="text-center">
       <div className="text-6xl mb-4 opacity-20">🤖</div>
       <p className="text-white/70">3D Scene Unavailable</p>
     </div>
   </div>
-)
+))
+
+SplineFallback.displayName = 'SplineFallback'
 
 // Simplified lazy loading with proper error handling
 const Spline = lazy(() => 
