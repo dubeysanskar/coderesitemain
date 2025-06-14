@@ -4,21 +4,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, TrendingUp, CheckCircle, AlertCircle, Zap } from "lucide-react";
+import { Loader2, TrendingUp, CheckCircle, AlertCircle, Zap, Download } from "lucide-react";
 import { ResumeData, JDAnalysis, ADSOptimization } from "@/lib/resume-types";
 import { geminiResumeService } from "@/lib/gemini-resume-service";
 import { useToast } from "@/hooks/use-toast";
 
 interface ADSOptimizerProps {
   resumeData: ResumeData;
-  jdAnalysis: JDAnalysis;
+  originalResumeData: ResumeData;
+  jdAnalysis: JDAnalysis | null;
   onOptimized: (optimizedData: ResumeData) => void;
 }
 
-export function ADSOptimizer({ resumeData, jdAnalysis, onOptimized }: ADSOptimizerProps) {
+export function ADSOptimizer({ resumeData, originalResumeData, jdAnalysis, onOptimized }: ADSOptimizerProps) {
   const [analyzing, setAnalyzing] = useState(false);
   const [optimizing, setOptimizing] = useState(false);
   const [adsScore, setAdsScore] = useState<ADSOptimization | null>(null);
+  const [isOptimized, setIsOptimized] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -47,6 +49,7 @@ export function ADSOptimizer({ resumeData, jdAnalysis, onOptimized }: ADSOptimiz
       setOptimizing(true);
       const optimizedResume = await geminiResumeService.optimizeResume(resumeData, jdAnalysis);
       onOptimized(optimizedResume);
+      setIsOptimized(true);
       
       // Recalculate score with optimized resume
       const newScore = await geminiResumeService.calculateADSScore(optimizedResume, jdAnalysis);
@@ -68,6 +71,15 @@ export function ADSOptimizer({ resumeData, jdAnalysis, onOptimized }: ADSOptimiz
     }
   };
 
+  const downloadOriginalResume = () => {
+    // TODO: Implement PDF generation for original resume
+    console.log("Downloading original resume...", originalResumeData);
+    toast({
+      title: "Download Started",
+      description: "Original resume download will be available soon."
+    });
+  };
+
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-500";
     if (score >= 60) return "text-yellow-500";
@@ -86,7 +98,7 @@ export function ADSOptimizer({ resumeData, jdAnalysis, onOptimized }: ADSOptimiz
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-green-500" />
-            <p className="text-white">Analyzing your resume against the job description...</p>
+            <p className="text-white">Analyzing your resume against the job requirements...</p>
           </div>
         </CardContent>
       </Card>
@@ -101,6 +113,7 @@ export function ADSOptimizer({ resumeData, jdAnalysis, onOptimized }: ADSOptimiz
           <CardTitle className="text-white flex items-center gap-2">
             <TrendingUp className="w-5 h-5" />
             ATS Optimization Score
+            {isOptimized && <Badge className="bg-green-600 text-white">Optimized</Badge>}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -120,19 +133,21 @@ export function ADSOptimizer({ resumeData, jdAnalysis, onOptimized }: ADSOptimiz
                 />
               </div>
 
-              <div>
-                <h4 className="font-semibold text-red-400 mb-3 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4" />
-                  Missing Keywords
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {adsScore.missingKeywords.map((keyword, index) => (
-                    <Badge key={index} variant="destructive" className="text-xs">
-                      {keyword}
-                    </Badge>
-                  ))}
+              {adsScore.missingKeywords.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-red-400 mb-3 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    Missing Keywords
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {adsScore.missingKeywords.map((keyword, index) => (
+                      <Badge key={index} variant="destructive" className="text-xs">
+                        {keyword}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div>
                 <h4 className="font-semibold text-blue-400 mb-3 flex items-center gap-2">
@@ -149,23 +164,36 @@ export function ADSOptimizer({ resumeData, jdAnalysis, onOptimized }: ADSOptimiz
                 </ul>
               </div>
 
-              <Button 
-                onClick={optimizeResume}
-                disabled={optimizing}
-                className="w-full bg-green-600 hover:bg-green-700"
-              >
-                {optimizing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Optimizing Resume...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-4 h-4 mr-2" />
-                    Apply AI Optimizations
-                  </>
+              <div className="space-y-3">
+                <Button 
+                  onClick={optimizeResume}
+                  disabled={optimizing}
+                  className="w-full bg-green-600 hover:bg-green-700"
+                >
+                  {optimizing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Optimizing Resume...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4 mr-2" />
+                      {isOptimized ? "Re-optimize Resume" : "Apply AI Optimizations"}
+                    </>
+                  )}
+                </Button>
+
+                {isOptimized && (
+                  <Button 
+                    onClick={downloadOriginalResume}
+                    variant="outline"
+                    className="w-full border-gray-600 text-gray-300 hover:bg-gray-800"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download Original Version
+                  </Button>
                 )}
-              </Button>
+              </div>
             </>
           )}
         </CardContent>
@@ -226,6 +254,16 @@ export function ADSOptimizer({ resumeData, jdAnalysis, onOptimized }: ADSOptimiz
               <li>• Format & structure: 10%</li>
             </ul>
           </div>
+
+          {!jdAnalysis && (
+            <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-4">
+              <h4 className="font-semibold text-yellow-400 mb-2">Note</h4>
+              <p className="text-sm text-gray-300">
+                Without a job description, scoring is based on general resume completeness and quality. 
+                For role-specific optimization, return to step 1 and analyze a job description.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -43,6 +43,13 @@ export interface ResumeData {
     organization: string;
     description: string;
   }>;
+  customSections?: Array<{
+    name: string;
+    fields: Array<{
+      key: string;
+      value: string;
+    }>;
+  }>;
 }
 
 export interface JDAnalysis {

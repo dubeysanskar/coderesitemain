@@ -90,28 +90,44 @@ export class GeminiResumeService {
     }
   }
 
-  async calculateADSScore(resumeData: ResumeData, jdAnalysis: JDAnalysis): Promise<ADSOptimization> {
-    const prompt = `
-      Evaluate how well this resume matches the following Job Description requirements. Assign an ATS (ADS) score out of 100 and list the missing keywords or suggestions to improve alignment.
+  async calculateADSScore(resumeData: ResumeData, jdAnalysis: JDAnalysis | null): Promise<ADSOptimization> {
+    // If no JD analysis, provide general scoring
+    if (!jdAnalysis) {
+      return this.calculateGeneralScore(resumeData);
+    }
 
-      Resume Summary: ${resumeData.summary}
-      Skills: ${[...resumeData.skills.programmingLanguages, ...resumeData.skills.frameworks, ...resumeData.skills.tools].join(', ')}
-      Experience: ${resumeData.experience.map(exp => exp.description.join(' ')).join(' ')}
+    const prompt = `
+      Evaluate how well this resume matches the Job Description requirements. Be STRICT in scoring - only give high scores for truly excellent matches.
+
+      SCORING CRITERIA (Be harsh and realistic):
+      - Empty or minimal content should score 10-30
+      - Basic content with some matches should score 30-50  
+      - Good content with decent matches should score 50-70
+      - Strong content with good matches should score 70-85
+      - Exceptional content with excellent matches should score 85-95
+
+      Resume Content:
+      Summary: "${resumeData.summary || 'No summary provided'}"
+      Skills: ${[...resumeData.skills.programmingLanguages, ...resumeData.skills.frameworks, ...resumeData.skills.tools, ...resumeData.skills.softSkills].join(', ') || 'No skills listed'}
+      Experience: ${resumeData.experience.map(exp => `${exp.title} at ${exp.company}: ${exp.description.join(' ')}`).join(' | ') || 'No experience listed'}
+      Education: ${resumeData.education.degree || 'No education listed'}
 
       Job Requirements:
       Key Skills: ${jdAnalysis.keySkills.join(', ')}
       Tools: ${jdAnalysis.tools.join(', ')}
       Keywords: ${jdAnalysis.industryKeywords.join(', ')}
 
+      Analyze keyword matching, skills alignment, and content quality. Be realistic - don't inflate scores.
+
       Return ONLY valid JSON:
       {
-        "score": 85,
-        "missingKeywords": ["keyword1", "keyword2"],
-        "recommendations": ["Add more specific metrics", "Include missing technology X"],
+        "score": 45,
+        "missingKeywords": ["specific missing keywords from JD"],
+        "recommendations": ["Specific actionable improvements"],
         "improvedSections": {
-          "summary": "Improved summary text",
+          "summary": "Enhanced summary with better keyword alignment",
           "experience": ["Improved experience point 1", "Improved experience point 2"],
-          "skills": ["Additional skill 1", "Additional skill 2"]
+          "skills": ["Additional relevant skill 1", "Additional relevant skill 2"]
         }
       }
     `;
@@ -127,19 +143,63 @@ export class GeminiResumeService {
     }
   }
 
-  async optimizeResume(resumeData: ResumeData, jdAnalysis: JDAnalysis): Promise<ResumeData> {
+  private async calculateGeneralScore(resumeData: ResumeData): Promise<ADSOptimization> {
+    // Calculate basic completeness score without JD
+    let score = 0;
+    const recommendations: string[] = [];
+    const missingKeywords: string[] = [];
+
+    // Basic scoring based on completeness
+    if (resumeData.summary && resumeData.summary.length > 50) score += 20;
+    else recommendations.push("Add a comprehensive professional summary");
+
+    if (resumeData.personalInfo.fullName && resumeData.personalInfo.email) score += 10;
+    else recommendations.push("Complete all contact information");
+
+    if (resumeData.experience.length > 0 && resumeData.experience[0].title) score += 25;
+    else recommendations.push("Add relevant work experience");
+
+    if (resumeData.education.degree) score += 15;
+    else recommendations.push("Include education details");
+
+    const allSkills = [...resumeData.skills.programmingLanguages, ...resumeData.skills.frameworks, ...resumeData.skills.tools, ...resumeData.skills.softSkills];
+    if (allSkills.length > 3) score += 20;
+    else recommendations.push("Add more relevant skills");
+
+    if (resumeData.projects.length > 0 && resumeData.projects[0].title) score += 10;
+    else recommendations.push("Include relevant projects");
+
+    return {
+      score: Math.min(score, 85), // Cap at 85 without JD analysis
+      missingKeywords,
+      recommendations,
+      improvedSections: {
+        summary: resumeData.summary ? `Enhanced: ${resumeData.summary.substring(0, 100)}...` : "Add a compelling professional summary highlighting your key strengths and career objectives.",
+        experience: ["Add quantifiable achievements with metrics", "Include action verbs and specific technologies used"],
+        skills: ["Add industry-relevant technical skills", "Include soft skills relevant to your target role"]
+      }
+    };
+  }
+
+  async optimizeResume(resumeData: ResumeData, jdAnalysis: JDAnalysis | null): Promise<ResumeData> {
+    const jdContext = jdAnalysis ? 
+      `Job Requirements: ${JSON.stringify(jdAnalysis)}` : 
+      "No specific job requirements - optimize for general improvement";
+
     const prompt = `
-      Based on the current resume and this Job Description, improve the content by rewriting weak sections and adding relevant phrases to maximize alignment with recruiter expectations.
+      Enhance this resume content by improving weak sections and adding relevant phrases. Keep the same structure but improve the content quality.
 
       Current Resume:
-      Summary: ${resumeData.summary}
-      Experience: ${JSON.stringify(resumeData.experience)}
-      Skills: ${JSON.stringify(resumeData.skills)}
+      ${JSON.stringify(resumeData)}
 
-      Job Requirements:
-      ${JSON.stringify(jdAnalysis)}
+      ${jdContext}
 
-      Return the complete optimized resume data in the exact same JSON structure, but with improved content that better matches the job requirements.
+      Return the complete optimized resume data in the exact same JSON structure, but with improved content that is more professional and impactful.
+      Focus on:
+      - Stronger action verbs
+      - Quantifiable achievements  
+      - Better keyword integration
+      - More compelling descriptions
     `;
 
     try {

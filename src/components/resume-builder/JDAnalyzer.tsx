@@ -3,16 +3,17 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, FileText, Brain } from "lucide-react";
+import { Loader2, FileText, Brain, ArrowRight } from "lucide-react";
 import { geminiResumeService } from "@/lib/gemini-resume-service";
 import { JDAnalysis } from "@/lib/resume-types";
 import { useToast } from "@/hooks/use-toast";
 
 interface JDAnalyzerProps {
   onAnalyzed: (analysis: JDAnalysis) => void;
+  onSkip: () => void;
 }
 
-export function JDAnalyzer({ onAnalyzed }: JDAnalyzerProps) {
+export function JDAnalyzer({ onAnalyzed, onSkip }: JDAnalyzerProps) {
   const [jobDescription, setJobDescription] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<JDAnalysis | null>(null);
@@ -94,6 +95,26 @@ export function JDAnalyzer({ onAnalyzed }: JDAnalyzerProps) {
               </>
             )}
           </Button>
+
+          {/* Skip JD Option */}
+          <div className="mt-6 pt-6 border-t border-gray-700">
+            <div className="text-center">
+              <p className="text-gray-400 mb-4 text-sm">
+                Don't have a Job Description?
+              </p>
+              <Button 
+                onClick={onSkip}
+                variant="outline"
+                className="w-full border-gray-600 text-gray-300 hover:bg-gray-800"
+              >
+                <ArrowRight className="w-4 h-4 mr-2" />
+                Continue Without JD
+              </Button>
+              <p className="text-xs text-gray-500 mt-2">
+                Create your resume from scratch
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
