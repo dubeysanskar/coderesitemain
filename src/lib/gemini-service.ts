@@ -118,15 +118,33 @@ export class GeminiService {
     }
   }
 
-  async generateImage(prompt: string): Promise<string> {
-    // Try Google first, then fallback to Unsplash (handled in image-search)
-    const searchResult = await fetchImageFromGoogle(prompt);
-    if (searchResult) {
-      console.log("[GeminiService] Using Google Search image:", searchResult);
-      return searchResult;
+  async generateImage(prompt: string): Promise<string | null> {
+    console.log("[GeminiService] Starting image search for prompt:", prompt);
+    
+    // Try Google first
+    try {
+      const googleResult = await fetchImageFromGoogle(prompt);
+      if (googleResult) {
+        console.log("[GeminiService] Google Search successful:", googleResult);
+        return googleResult;
+      }
+    } catch (error) {
+      console.error("[GeminiService] Google Search failed:", error);
     }
-    // fallback: AI/Unsplash
-    throw new Error("[GeminiService] No image found by Google; fallback should be used by caller.");
+    
+    // Fallback to Unsplash
+    try {
+      const unsplashResult = await generateAIImage(prompt);
+      if (unsplashResult) {
+        console.log("[GeminiService] Unsplash fallback successful:", unsplashResult);
+        return unsplashResult;
+      }
+    } catch (error) {
+      console.error("[GeminiService] Unsplash fallback failed:", error);
+    }
+    
+    console.warn("[GeminiService] All image generation methods failed for prompt:", prompt);
+    return null;
   }
 
   // New: Only get AI/Unsplash fallback image

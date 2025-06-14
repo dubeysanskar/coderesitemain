@@ -36,39 +36,46 @@ export function AppBuilder() {
         console.log("Generated presentation with", newPresentation.slides.length, "slides");
         console.log("Slides with image prompts:", newPresentation.slides.filter(s => s.imagePrompt).length);
         
-        console.log("Starting image generation for all slides...");
+        console.log("Starting enhanced image generation for all slides...");
+        
+        // Process images with better error handling
         const imagePromises = newPresentation.slides.map(async (slide, index) => {
+          console.log(`[ImageProcess] Processing slide ${index + 1}: "${slide.title}"`);
+          
           if (slide.imagePrompt) {
-            // Try Google image first
+            console.log(`[ImageProcess] Image prompt for slide ${index + 1}:`, slide.imagePrompt);
+            
             try {
-              const googleImg = await geminiService.generateImage(slide.imagePrompt);
-              if (googleImg) {
-                console.log(`[ImageAssign] slide ${index + 1}: found image:`, googleImg);
-                return { ...slide, imageUrl: googleImg };
+              const imageUrl = await geminiService.generateImage(slide.imagePrompt);
+              if (imageUrl) {
+                console.log(`[ImageProcess] SUCCESS - Slide ${index + 1} got image:`, imageUrl);
+                return { ...slide, imageUrl };
+              } else {
+                console.warn(`[ImageProcess] FAILED - No image found for slide ${index + 1}`);
+                return { ...slide, imageUrl: null };
               }
-            } catch (err) {
-              console.error(`[ImageAssign] Google search failed for slide ${index + 1}:`, err);
+            } catch (error) {
+              console.error(`[ImageProcess] ERROR - Slide ${index + 1} image generation failed:`, error);
+              return { ...slide, imageUrl: null };
             }
-            // If not found, fallback to Unsplash
-            try {
-              const aiUrl = await geminiService.generateAIOnlyImage(slide.imagePrompt);
-              if (aiUrl) {
-                console.log(`[ImageAssign] slide ${index + 1}: fallback image:`, aiUrl);
-                return { ...slide, imageUrl: aiUrl };
-              }
-            } catch (err2) {
-              console.error(`[ImageAssign] Fallback AI image failed for slide ${index + 1}:`, err2);
-            }
-            console.warn(`[ImageAssign] slide ${index + 1}: no image could be found`);
+          } else {
+            console.log(`[ImageProcess] No image prompt for slide ${index + 1}`);
             return { ...slide, imageUrl: null };
           }
-          return { ...slide, imageUrl: null };
         });
         
         const updatedSlides = await Promise.all(imagePromises);
         
         const slidesWithImages = updatedSlides.filter(s => s.imageUrl);
-        console.log(`Final IMAGE result: ${slidesWithImages.length}/${updatedSlides.length} slides have images, see slidesWithImages in log for details`, slidesWithImages);
+        console.log(`[ImageProcess] FINAL RESULT: ${slidesWithImages.length}/${updatedSlides.length} slides have images`);
+        
+        // Log each slide's image status
+        updatedSlides.forEach((slide, index) => {
+          console.log(`[ImageProcess] Slide ${index + 1} final image status:`, slide.imageUrl ? 'HAS IMAGE' : 'NO IMAGE');
+          if (slide.imageUrl) {
+            console.log(`[ImageProcess] Slide ${index + 1} image URL:`, slide.imageUrl);
+          }
+        });
         
         newPresentation = {
           ...newPresentation,
@@ -90,7 +97,7 @@ export function AppBuilder() {
       setPresentation(newPresentation);
       toast({
         title: "Presentation Generated",
-        description: "Your presentation is ready! You can now edit individual slides or download the PPT."
+        description: `Your presentation is ready! ${newPresentation.slides.filter(s => s.imageUrl).length} slides have images.`
       });
     } catch (error) {
       console.error("Failed to generate presentation:", error);

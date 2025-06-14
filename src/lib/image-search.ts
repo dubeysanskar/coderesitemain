@@ -1,8 +1,11 @@
 
-const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
-const GOOGLE_CX = import.meta.env.VITE_GOOGLE_CX;
+const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY || import.meta.env.GOOGLE_API_KEY;
+const GOOGLE_CX = import.meta.env.VITE_GOOGLE_CX || import.meta.env.GOOGLE_CX;
 
 export const fetchImageFromGoogle = async (query: string): Promise<string | null> => {
+  console.log("[GoogleSearch] API Key exists:", !!GOOGLE_API_KEY);
+  console.log("[GoogleSearch] CX exists:", !!GOOGLE_CX);
+  
   if (!GOOGLE_API_KEY || !GOOGLE_CX) {
     console.log("Google API credentials missing - GOOGLE_API_KEY:", !!GOOGLE_API_KEY, "GOOGLE_CX:", !!GOOGLE_CX);
     return null;
@@ -23,9 +26,10 @@ export const fetchImageFromGoogle = async (query: string): Promise<string | null
       .replace(/\s{2,}/g, ' ')
       .trim();
     
-    const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${cxId}&searchType=image&q=${encodeURIComponent(cleanQuery)}&safe=active&num=5&imgSize=large&imgType=photo&fileType=jpg,png,jpeg`;
+    const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${cxId}&searchType=image&q=${encodeURIComponent(cleanQuery)}&safe=active&num=10&imgSize=large&imgType=photo&fileType=jpg,png,jpeg,webp`;
     
-    console.log("[GoogleSearch] Searching for:", cleanQuery, "URL:", searchUrl);
+    console.log("[GoogleSearch] Searching for:", cleanQuery);
+    console.log("[GoogleSearch] Search URL:", searchUrl.replace(GOOGLE_API_KEY, 'API_KEY_HIDDEN'));
 
     const res = await fetch(searchUrl);
     if (!res.ok) {
@@ -35,21 +39,33 @@ export const fetchImageFromGoogle = async (query: string): Promise<string | null
     }
 
     const data = await res.json();
-    // Log the raw items for debugging
-    console.log("[GoogleSearch] items:", data.items);
+    console.log("[GoogleSearch] Search response:", data);
 
     if (data.items && data.items.length > 0) {
-      for (const item of data.items) {
-        if (item.link && /\.(jpg|jpeg|png)$/i.test(item.link)) {
-          console.log("[GoogleSearch] Selected image:", item.link);
-          return item.link;
+      // Try to find a working image
+      for (let i = 0; i < Math.min(data.items.length, 5); i++) {
+        const item = data.items[i];
+        if (item.link) {
+          try {
+            // Test if the image URL is accessible
+            const testResponse = await fetch(item.link, { method: 'HEAD' });
+            if (testResponse.ok) {
+              console.log("[GoogleSearch] Selected working image:", item.link);
+              return item.link;
+            }
+          } catch (e) {
+            console.log("[GoogleSearch] Image not accessible:", item.link);
+            continue;
+          }
         }
       }
-      // fallback: use the first result regardless of extension
-      const imageUrl = data.items[0].link;
-      console.log("[GoogleSearch] Fallback to first image:", imageUrl);
-      return imageUrl;
+      
+      // If no images are accessible, return the first one anyway
+      const fallbackUrl = data.items[0].link;
+      console.log("[GoogleSearch] Using fallback image:", fallbackUrl);
+      return fallbackUrl;
     }
+    
     console.log("[GoogleSearch] No results found for:", cleanQuery);
     return null;
   } catch (e) {
@@ -58,7 +74,7 @@ export const fetchImageFromGoogle = async (query: string): Promise<string | null
   }
 };
 
-// Generate image using Unsplash as fallback, NO placeholder ever
+// Generate image using Unsplash with better keyword extraction
 export const generateAIImage = async (prompt: string): Promise<string | null> => {
   try {
     // Extract keywords and create a more specific search
@@ -66,16 +82,16 @@ export const generateAIImage = async (prompt: string): Promise<string | null> =>
       .toLowerCase()
       .replace(/[^\w\s]/g, ' ')
       .split(' ')
-      .filter(word => word.length > 2)
+      .filter(word => word.length > 2 && !['and', 'the', 'for', 'with', 'about'].includes(word))
       .slice(0, 3)
       .join(',');
 
-    // Always try Unsplash as fallback, which returns a real relevant photo
-    const stockImageUrl = `https://source.unsplash.com/1600x900/?${encodeURIComponent(keywords)}`;
-    console.log("[AIImage] Using Unsplash fallback URL:", stockImageUrl);
+    // Use Unsplash with better parameters
+    const unsplashUrl = `https://source.unsplash.com/1600x900/?${encodeURIComponent(keywords)}&orientation=landscape&fit=crop&q=80`;
+    console.log("[AIImage] Using Unsplash with keywords:", keywords);
+    console.log("[AIImage] Unsplash URL:", unsplashUrl);
 
-    // Optionally: Ping the Unsplash url and check it's a valid image; otherwise, just return the url
-    return stockImageUrl;
+    return unsplashUrl;
   } catch (error) {
     console.error("[AIImage] Exception:", error);
     return null;
