@@ -119,25 +119,24 @@ export class GeminiService {
   }
 
   async generateImage(prompt: string): Promise<string> {
-    console.log("Starting image generation process for:", prompt);
-    
-    // Step 1: Try Google Custom Search for real images
+    // Try Google first, then fallback to Unsplash (handled in image-search)
     const searchResult = await fetchImageFromGoogle(prompt);
     if (searchResult) {
-      console.log("Using Google Search image:", searchResult);
+      console.log("[GeminiService] Using Google Search image:", searchResult);
       return searchResult;
     }
+    // fallback: AI/Unsplash
+    throw new Error("[GeminiService] No image found by Google; fallback should be used by caller.");
+  }
 
-    // Step 2: Try AI image generation
+  // New: Only get AI/Unsplash fallback image
+  async generateAIOnlyImage(prompt: string): Promise<string | null> {
     const aiImage = await generateAIImage(prompt);
     if (aiImage) {
-      console.log("Using AI generated image:", aiImage);
+      console.log("[GeminiService] Using AI fallback image:", aiImage);
       return aiImage;
     }
-
-    // Step 3: No placeholders - throw error
-    console.error("Failed to generate any image for prompt:", prompt);
-    throw new Error("Unable to generate image from any source");
+    return null;
   }
 
   async modifySlide(slideIndex: number, modification: string, currentPresentation: Presentation): Promise<SlideContent> {

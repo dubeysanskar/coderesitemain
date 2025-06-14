@@ -39,31 +39,36 @@ export function AppBuilder() {
         console.log("Starting image generation for all slides...");
         const imagePromises = newPresentation.slides.map(async (slide, index) => {
           if (slide.imagePrompt) {
+            // Try Google image first
             try {
-              console.log(`Generating image for slide ${index + 1}:`, slide.imagePrompt);
-              const imageUrl = await geminiService.generateImage(slide.imagePrompt);
-              console.log(`Image for slide ${index + 1}:`, imageUrl ? "SUCCESS" : "FAILED");
-              return { ...slide, imageUrl };
-            } catch (error) {
-              console.error(`Failed to generate image for slide ${index + 1}:`, error);
-              // Try a generic search based on slide title
-              try {
-                const fallbackUrl = await geminiService.generateImage(`${slide.title} business presentation`);
-                console.log(`Fallback image for slide ${index + 1}:`, fallbackUrl ? "SUCCESS" : "FAILED");
-                return { ...slide, imageUrl: fallbackUrl };
-              } catch {
-                console.error(`Complete image generation failure for slide ${index + 1}`);
-                return slide; // Return slide without image
+              const googleImg = await geminiService.generateImage(slide.imagePrompt);
+              if (googleImg) {
+                console.log(`[ImageAssign] slide ${index + 1}: found image:`, googleImg);
+                return { ...slide, imageUrl: googleImg };
               }
+            } catch (err) {
+              console.error(`[ImageAssign] Google search failed for slide ${index + 1}:`, err);
             }
+            // If not found, fallback to Unsplash
+            try {
+              const aiUrl = await geminiService.generateAIOnlyImage(slide.imagePrompt);
+              if (aiUrl) {
+                console.log(`[ImageAssign] slide ${index + 1}: fallback image:`, aiUrl);
+                return { ...slide, imageUrl: aiUrl };
+              }
+            } catch (err2) {
+              console.error(`[ImageAssign] Fallback AI image failed for slide ${index + 1}:`, err2);
+            }
+            console.warn(`[ImageAssign] slide ${index + 1}: no image could be found`);
+            return { ...slide, imageUrl: null };
           }
-          return slide;
+          return { ...slide, imageUrl: null };
         });
         
         const updatedSlides = await Promise.all(imagePromises);
         
         const slidesWithImages = updatedSlides.filter(s => s.imageUrl);
-        console.log(`Final result: ${slidesWithImages.length}/${updatedSlides.length} slides have images`);
+        console.log(`Final IMAGE result: ${slidesWithImages.length}/${updatedSlides.length} slides have images, see slidesWithImages in log for details`, slidesWithImages);
         
         newPresentation = {
           ...newPresentation,
