@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from './ui/card';
@@ -26,7 +25,12 @@ const FeaturedTools = () => {
           icon: '📊',
           onClick: () => navigate('/ppt-generator'),
         },
-        { title: 'Resume Builder', description: 'Professional resume creation', icon: '📄' },
+        { 
+          title: 'Resume Builder', 
+          description: 'Professional resume creation', 
+          icon: '📄',
+          onClick: () => navigate('/resume-builder'),
+        },
         { title: 'Report Generator', description: 'Comprehensive report writing', icon: '📋' },
         { title: 'Learning Guide', description: 'Personalized study materials', icon: '📚' },
       ],
