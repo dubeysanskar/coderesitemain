@@ -184,11 +184,11 @@ export const generatePPT = (presentation: Presentation): void => {
       line: { color: colorScheme.accent, width: layoutType === 0 ? 2 : 3 },
     });
     
-    // Limit bullet points to 6 maximum per slide and truncate long text
-    const contentToDisplay = slide.content ? 
-      slide.content.slice(0, 6).map(point => truncateBulletPoint(point)) : 
-      [];
-    
+    // Limit bullet points to 5 (stricter) and truncate to 20 words
+    const contentToDisplay = slide.content
+      ? slide.content.slice(0, 5).map(point => truncateBulletPoint(point, 20))
+      : [];
+
     // Add content based on layout type with proper font size and spacing
     if (contentToDisplay.length > 0) {
       if (layoutType === 0) {
@@ -316,39 +316,36 @@ export const generatePPT = (presentation: Presentation): void => {
     
     // Add image if available with different styling based on layout
     if (slide.imageUrl) {
+      // Ensure image dimensions fit for 16:9 (max 4.5w x 3.5h inches for layout 0)
       if (layoutType === 0) {
         pptSlide.addImage({
           path: slide.imageUrl,
-          x: '60%', 
+          x: '60%',
           y: 1.7,
-          w: 4.5, 
+          w: 4.5,
           h: 3.5,
         });
       } else if (layoutType === 1) {
-        // Centered larger image for layout 1
         pptSlide.addImage({
           path: slide.imageUrl,
-          x: '27.5%', 
+          x: '27.5%',
           y: 5,
-          w: 6, 
-          h: 3.5,
+          w: 6,
+          h: 3.1, // limit height slightly
         });
       } else {
-        // Right-aligned image with border for layout 2
         pptSlide.addImage({
           path: slide.imageUrl,
-          x: '66%', 
+          x: '66%',
           y: 1.7,
-          w: 3.5, 
-          h: 3.5,
+          w: 3.5,
+          h: 2.6, // limit height so nothing ever overflows slide
         });
-        
-        // Decorative frame around image
         pptSlide.addShape(pptx.ShapeType.rect, {
           x: '65.8%',
           y: 1.6,
           w: 3.7,
-          h: 3.7,
+          h: 2.8, // border matches image
           line: { color: colorScheme.accent, width: 2 },
           fill: { type: 'none' }
         });

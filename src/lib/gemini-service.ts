@@ -46,44 +46,39 @@ export class GeminiService {
 
   async generatePresentation(topic: string, slideCount: number): Promise<Presentation> {
     const systemPrompt = `
-      You are a world-class AI assistant for creating professional presentations, similar to tools like Gamma.ai.
-      Your task is to generate a comprehensive and visually engaging presentation on the topic: "${topic}".
+      You are an advanced AI presentation builder like Gamma.ai.
+      Your task is to generate a thoroughly structured, visually engaging, professional presentation about "${topic}" with exactly ${slideCount} slides.
 
-      The presentation must have exactly ${slideCount} slides.
+      -- STRUCTURE REQUIREMENTS --
+      - SLIDE 1: Title slide. "title": Main full deck title; "subtitle": A creative subtitle for this topic.
+      - SLIDE 2: Agenda/Overview. "title": Agenda; "content": bullet points listing ALL slide titles/topics.
+      - SLIDES 3-${slideCount-1}: Content slides, each on a different subtopic. For every slide:
+        * "title": Clear, concise, <8 words, relevant to the subtopic.
+        * "content": 3-5 information-rich bullet points (max 20 words each), each uniquely explaining a key aspect of this subtopic — avoid repeating explanations or listing too-simple facts.
+        * "imagePrompt": Extremely specific image prompt, themed DIRECTLY after this slide's content.
+      - FINAL SLIDE: Conclusion/Summary. Recap main learnings and takeaways.
 
-      **Presentation Structure:**
-      1.  **Title Slide (1 slide):** A compelling main title for the presentation and a shorter, engaging title for the slide itself.
-      2.  **Agenda/Overview Slide (1 slide):** Outline the main sections of the presentation.
-      3.  **Content Slides (${slideCount > 3 ? slideCount - 3 : 1} slides):**
-          -   Each slide should cover a specific sub-topic.
-          -   Use a clear, descriptive title (max 8 words).
-          -   Provide 3-5 concise, impactful bullet points per slide (max 15 words each).
-          -   The content should be well-researched, accurate, and flow logically.
-      4.  **Conclusion/Summary Slide (1 slide):** Summarize the key takeaways.
+      -- IMAGE GENERATION --
+      For every slide except the agenda/overview, create the "imagePrompt" as a vivid, DETAILED prompt that reflects the main SUBJECT and CONTEXT of the slide; always specify the style (photo, illustration, graph, etc). The prompt must stay on-topic and fit a 16:9 aspect for a presentation slide.
 
-      **For each slide, you MUST provide:**
-      -   **title:** A string for the slide title.
-      -   **content:** An array of strings, where each string is a bullet point.
-      -   **imagePrompt:** A highly detailed and descriptive prompt for an AI image generator. The prompt should describe a professional, relevant, and aesthetically pleasing image (e.g., "A photorealistic image of a futuristic cityscape at sunset, with flying vehicles and holographic billboards, in a cinematic style."). This is crucial for generating visuals.
+      -- CONTENT GUIDELINES --
+      - Each slide’s bullet points should clearly explain new information, not just list, but summarize AND provide a key explanation or fact.
+      - Output structure must be:
+        {
+          "title": [deck title],
+          "slides": [
+            {
+              "title": "[slide title]",
+              "subtitle": "[subtitle text]" (use only on first slide, else omit),
+              "content": ["point 1", "point 2", ...],
+              "imagePrompt": "[detailed image prompt for this slide]"
+            }, ...
+          ]
+        }
+      - If a slide does not need imagePrompt (such as agenda), set imagePrompt: "".
 
-      **Output Format (Strict JSON):**
-      Your entire output must be a single, valid JSON object. Do not include any text, explanations, or markdown formatting outside of the JSON structure.
-
-      Example JSON structure:
-      {
-        "title": "Main Presentation Title",
-        "slides": [
-          {
-            "title": "Title of Slide 1",
-            "content": [
-              "Bullet point 1.",
-              "Bullet point 2.",
-              "Bullet point 3."
-            ],
-            "imagePrompt": "Detailed prompt for an image for slide 1."
-          }
-        ]
-      }
+      -- OUTPUT RULES --
+      Output ONLY strictly valid JSON matching the structure above. NO extra text, code blocks, or markdown — just the JSON object.
     `;
 
     try {
