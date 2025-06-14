@@ -10,7 +10,12 @@ export const fetchImageFromGoogle = async (query: string): Promise<string | null
 
   try {
     // Extract just the CX ID if it's a full URL
-    const cxId = GOOGLE_CX.includes('cx=') ? GOOGLE_CX.split('cx=')[1].split('&')[0] : GOOGLE_CX;
+    let cxId = GOOGLE_CX;
+    if (cxId.includes('cx=')) {
+      const parts = cxId.match(/cx=([a-zA-Z0-9]+)/);
+      if (parts && parts[1]) cxId = parts[1];
+      else cxId = cxId.split('cx=')[1]?.split('&')[0] || cxId;
+    }
     
     // Clean up the query for better search results
     const cleanQuery = query
@@ -20,51 +25,42 @@ export const fetchImageFromGoogle = async (query: string): Promise<string | null
     
     const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${cxId}&searchType=image&q=${encodeURIComponent(cleanQuery)}&safe=active&num=5&imgSize=large&imgType=photo&fileType=jpg,png,jpeg`;
     
-    console.log("Searching Google for:", cleanQuery);
-    console.log("Using CX ID:", cxId);
-    
+    console.log("[GoogleSearch] Searching for:", cleanQuery, "URL:", searchUrl);
+
     const res = await fetch(searchUrl);
-    
     if (!res.ok) {
-      console.error("Google Search API error:", res.status, res.statusText);
-      const errorText = await res.text();
-      console.error("Error details:", errorText);
+      const err = await res.text();
+      console.error("[GoogleSearch] HTTP error:", res.status, res.statusText, err);
       return null;
     }
-    
+
     const data = await res.json();
-    
-    console.log("Google Search Response status:", res.status);
-    console.log("Google Search items found:", data.items?.length || 0);
-    
+    // Log the raw items for debugging
+    console.log("[GoogleSearch] items:", data.items);
+
     if (data.items && data.items.length > 0) {
-      // Try to find a high-quality image
       for (const item of data.items) {
-        if (item.link && item.link.match(/\.(jpg|jpeg|png)$/i)) {
-          console.log("Google Search image found:", item.link);
+        if (item.link && /\.(jpg|jpeg|png)$/i.test(item.link)) {
+          console.log("[GoogleSearch] Selected image:", item.link);
           return item.link;
         }
       }
-      
-      // Fallback to first image if no direct image links found
+      // fallback: use the first result regardless of extension
       const imageUrl = data.items[0].link;
-      console.log("Google Search fallback image:", imageUrl);
+      console.log("[GoogleSearch] Fallback to first image:", imageUrl);
       return imageUrl;
     }
-    
-    console.log("No Google Search results found for:", cleanQuery);
+    console.log("[GoogleSearch] No results found for:", cleanQuery);
     return null;
   } catch (e) {
-    console.error("Google Custom Search Image fetch failed:", e);
+    console.error("[GoogleSearch] Exception:", e);
     return null;
   }
 };
 
-// Generate image using AI with better fallback
+// Generate image using Unsplash as fallback, NO placeholder ever
 export const generateAIImage = async (prompt: string): Promise<string | null> => {
   try {
-    console.log("Attempting AI image generation for:", prompt);
-    
     // Extract keywords and create a more specific search
     const keywords = prompt
       .toLowerCase()
@@ -73,13 +69,15 @@ export const generateAIImage = async (prompt: string): Promise<string | null> =>
       .filter(word => word.length > 2)
       .slice(0, 3)
       .join(',');
-    
+
+    // Always try Unsplash as fallback, which returns a real relevant photo
     const stockImageUrl = `https://source.unsplash.com/1600x900/?${encodeURIComponent(keywords)}`;
-    
-    console.log("Generated AI image URL:", stockImageUrl);
+    console.log("[AIImage] Using Unsplash fallback URL:", stockImageUrl);
+
+    // Optionally: Ping the Unsplash url and check it's a valid image; otherwise, just return the url
     return stockImageUrl;
   } catch (error) {
-    console.error("AI Image generation failed:", error);
+    console.error("[AIImage] Exception:", error);
     return null;
   }
 };
