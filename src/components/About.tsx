@@ -71,7 +71,7 @@ const About = () => {
             </div>
           </motion.div>
 
-          {/* 3D Model - Clean with hover effects */}
+          {/* 3D Model - Bigger and optimized */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -79,7 +79,7 @@ const About = () => {
             viewport={{ once: true }}
             className="relative"
           >
-            <div className="w-full h-96 relative overflow-hidden group">
+            <div className="w-full h-[500px] md:h-[600px] relative overflow-hidden group">
               <Spotlight
                 className="-top-40 left-0 md:left-60 md:-top-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden md:block"
                 fill="white"
@@ -87,7 +87,7 @@ const About = () => {
               
               <SplineScene 
                 scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-                className="w-full h-full scale-75 md:scale-100"
+                className="w-full h-full scale-110 md:scale-125"
               />
             </div>
           </motion.div>
