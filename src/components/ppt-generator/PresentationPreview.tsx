@@ -101,9 +101,9 @@ export function PresentationPreview({ presentation, loading, onEditSlide }: Pres
             <Button 
               variant="outline" 
               onClick={() => onEditSlide(currentSlide)}
-              className="gap-2"
+              className="gap-2 text-black hover:text-black border-gray-300 hover:bg-gray-50"
             >
-              <EditIcon className="h-4 w-4" />
+              <EditIcon className="h-4 w-4 text-black" />
               Edit Slide
             </Button>
           )}

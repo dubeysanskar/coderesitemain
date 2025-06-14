@@ -33,20 +33,27 @@ export function AppBuilder() {
       try {
         newPresentation = await geminiService.generatePresentation(prompt, slideCount);
         
-        console.log("Generating images for slides...");
+        console.log("Generated presentation with", newPresentation.slides.length, "slides");
+        console.log("Slides with image prompts:", newPresentation.slides.filter(s => s.imagePrompt).length);
+        
+        console.log("Starting image generation for all slides...");
         const imagePromises = newPresentation.slides.map(async (slide, index) => {
           if (slide.imagePrompt) {
             try {
+              console.log(`Generating image for slide ${index + 1}:`, slide.imagePrompt);
               const imageUrl = await geminiService.generateImage(slide.imagePrompt);
+              console.log(`Image for slide ${index + 1}:`, imageUrl ? "SUCCESS" : "FAILED");
               return { ...slide, imageUrl };
             } catch (error) {
               console.error(`Failed to generate image for slide ${index + 1}:`, error);
-              // Instead of keeping slide without image, try a generic search
+              // Try a generic search based on slide title
               try {
-                const fallbackUrl = await geminiService.generateImage(`${newPresentation.title} presentation slide`);
+                const fallbackUrl = await geminiService.generateImage(`${slide.title} business presentation`);
+                console.log(`Fallback image for slide ${index + 1}:`, fallbackUrl ? "SUCCESS" : "FAILED");
                 return { ...slide, imageUrl: fallbackUrl };
               } catch {
-                return slide; // Only if everything fails
+                console.error(`Complete image generation failure for slide ${index + 1}`);
+                return slide; // Return slide without image
               }
             }
           }
@@ -54,6 +61,9 @@ export function AppBuilder() {
         });
         
         const updatedSlides = await Promise.all(imagePromises);
+        
+        const slidesWithImages = updatedSlides.filter(s => s.imageUrl);
+        console.log(`Final result: ${slidesWithImages.length}/${updatedSlides.length} slides have images`);
         
         newPresentation = {
           ...newPresentation,
