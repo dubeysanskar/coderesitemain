@@ -1,6 +1,6 @@
 
-const GOOGLE_API_KEY = import.meta.env.GOOGLE_API_KEY;
-const GOOGLE_CX = import.meta.env.GOOGLE_CX;
+const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
+const GOOGLE_CX = import.meta.env.VITE_GOOGLE_CX;
 
 export const fetchImageFromGoogle = async (query: string): Promise<string | null> => {
   if (!GOOGLE_API_KEY || !GOOGLE_CX) {
@@ -18,11 +18,15 @@ export const fetchImageFromGoogle = async (query: string): Promise<string | null
       .replace(/\s{2,}/g, ' ')
       .trim();
     
-    const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${cxId}&searchType=image&q=${encodeURIComponent(cleanQuery)}&safe=active&num=5&imgSize=large&imgType=photo`;
+    const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${cxId}&searchType=image&q=${encodeURIComponent(cleanQuery)}&safe=active&num=10&imgSize=large&imgType=photo&fileType=jpg,png`;
     
     console.log("Searching Google for:", cleanQuery);
+    console.log("Search URL:", searchUrl);
+    
     const res = await fetch(searchUrl);
     const data = await res.json();
+    
+    console.log("Google Search Response:", data);
     
     if (data.items && data.items.length > 0) {
       // Return the first high-quality image result
@@ -35,6 +39,24 @@ export const fetchImageFromGoogle = async (query: string): Promise<string | null
     return null;
   } catch (e) {
     console.error("Google Custom Search Image fetch failed:", e);
+    return null;
+  }
+};
+
+// Generate image using AI (placeholder for actual AI image generation)
+export const generateAIImage = async (prompt: string): Promise<string | null> => {
+  try {
+    console.log("Attempting AI image generation for:", prompt);
+    
+    // For now, return a high-quality stock image URL based on the prompt
+    // This can be replaced with actual AI image generation API
+    const keywords = prompt.toLowerCase().split(' ').slice(0, 3).join('-');
+    const stockImageUrl = `https://source.unsplash.com/1600x900/?${encodeURIComponent(keywords)}`;
+    
+    console.log("Generated AI image URL:", stockImageUrl);
+    return stockImageUrl;
+  } catch (error) {
+    console.error("AI Image generation failed:", error);
     return null;
   }
 };

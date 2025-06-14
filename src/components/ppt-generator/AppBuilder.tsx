@@ -14,43 +14,6 @@ export function AppBuilder() {
   const [editingSlide, setEditingSlide] = useState<number | null>(null);
   const { toast } = useToast();
 
-  const generateFallbackPresentation = (topic: string, slideCount: number): Presentation => {
-    const presentationTopic = topic && topic.trim() !== "" ? topic : "India: A Cultural and Historical Journey";
-    
-    const slides = [];
-    const topics = [
-      "Introduction to India", 
-      "Rich Cultural Heritage", 
-      "Historical Timeline", 
-      "Geographical Diversity", 
-      "Economic Growth", 
-      "Indian Cuisine", 
-      "Art and Architecture", 
-      "Modern India", 
-      "Global Influence", 
-      "Future Prospects"
-    ];
-    
-    for (let i = 0; i < slideCount; i++) {
-      slides.push({
-        title: i < topics.length ? `${topics[i]}` : `Aspect of India ${i + 1}`,
-        content: [
-          `${presentationTopic} point 1`,
-          `${presentationTopic} point 2`,
-          `${presentationTopic} point 3`,
-        ],
-        imagePrompt: `Image related to ${presentationTopic} - ${topics[i % topics.length]}`,
-        imageUrl: `https://placehold.co/600x400/${Math.floor(Math.random()*16777215).toString(16)}/ffffff?text=India+${i+1}`
-      });
-    }
-    
-    return {
-      title: `Presentation on ${presentationTopic}`,
-      slides,
-      theme: selectedTheme
-    };
-  };
-
   const handleGeneratePresentation = async (prompt: string, slideCount: number) => {
     try {
       setLoading(true);
@@ -78,7 +41,13 @@ export function AppBuilder() {
               return { ...slide, imageUrl };
             } catch (error) {
               console.error(`Failed to generate image for slide ${index + 1}:`, error);
-              return slide;
+              // Instead of keeping slide without image, try a generic search
+              try {
+                const fallbackUrl = await geminiService.generateImage(`${newPresentation.title} presentation slide`);
+                return { ...slide, imageUrl: fallbackUrl };
+              } catch {
+                return slide; // Only if everything fails
+              }
             }
           }
           return slide;

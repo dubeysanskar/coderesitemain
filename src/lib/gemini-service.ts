@@ -1,7 +1,6 @@
-
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import { Presentation, SlideContent } from './types';
-import { fetchImageFromGoogle } from './image-search';
+import { fetchImageFromGoogle, generateAIImage } from './image-search';
 
 export class GeminiService {
   private genAI: GoogleGenerativeAI;
@@ -44,20 +43,20 @@ export class GeminiService {
       You are an expert presentation designer. Create a comprehensive, professionally structured presentation about "${topic}" with exactly ${slideCount} slides.
 
       CRITICAL REQUIREMENTS:
-      - SLIDE 1: Title slide with main presentation title and engaging subtitle
+      - SLIDE 1: Title slide with main presentation title and 3-4 engaging bullet points about what the presentation covers
       - SLIDE 2: Table of Contents/Agenda listing all upcoming slide topics
       - SLIDES 3-${slideCount-1}: Content slides, each covering a distinct aspect of ${topic}
       - FINAL SLIDE: Conclusion/Summary with key takeaways
 
       CONTENT EXCELLENCE STANDARDS:
-      - Each content slide must have 4-6 substantial bullet points (15-25 words each)
+      - Each slide must have 4-6 substantial bullet points (15-25 words each)
       - Bullet points should provide specific insights, data, examples, or actionable information
       - Avoid generic statements; include concrete details, statistics, or real-world applications
       - Each slide should tell a complete story about its subtopic
       - Progressive flow: each slide should build logically on the previous ones
 
       IMAGE SPECIFICATIONS:
-      - Create highly specific, professional image prompts for each content slide
+      - Create highly specific, professional image prompts for each slide
       - Prompts should describe: subject, setting, style (photo/illustration/diagram), composition
       - Images must directly relate to the slide's specific content, not just the general topic
       - Include relevant visual elements like charts, infographics, or professional photography
@@ -69,15 +68,14 @@ export class GeminiService {
         "slides": [
           {
             "title": "[Slide title]",
-            "subtitle": "[Only for title slide]",
-            "content": ["[Detailed point 1]", "[Detailed point 2]", ...],
+            "content": ["[Detailed point 1]", "[Detailed point 2]", "[Detailed point 3]", "[Detailed point 4]"],
             "imagePrompt": "[Specific, detailed image description]"
           }
         ]
       }
 
       QUALITY CHECKLIST:
-      ✓ Each slide has unique, valuable content
+      ✓ Each slide has unique, valuable content with 4-6 bullet points
       ✓ Bullet points are informative and specific
       ✓ Image prompts are detailed and relevant
       ✓ Logical progression throughout presentation
@@ -121,50 +119,25 @@ export class GeminiService {
   }
 
   async generateImage(prompt: string): Promise<string> {
-    // First try Google Custom Search for real images
+    console.log("Starting image generation process for:", prompt);
+    
+    // Step 1: Try Google Custom Search for real images
     const searchResult = await fetchImageFromGoogle(prompt);
     if (searchResult) {
       console.log("Using Google Search image:", searchResult);
       return searchResult;
     }
 
-    // Try Gemini image generation if available
-    try {
-      console.log("Attempting Gemini image generation for:", prompt);
-      
-      // Use Gemini's image generation model if available
-      const imageModel = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      const imagePrompt = `Generate a high-quality, professional image: ${prompt}. Style: realistic, business-appropriate, 16:9 aspect ratio, high resolution.`;
-      
-      const result = await imageModel.generateContent([imagePrompt]);
-      
-      // Note: This is a placeholder for actual Gemini image generation
-      // The actual implementation would depend on your specific Gemini setup
-      console.log("Gemini image generation attempted, falling back to placeholder");
-      
-    } catch (error) {
-      console.log("Gemini image generation not available, using fallback:", error);
+    // Step 2: Try AI image generation
+    const aiImage = await generateAIImage(prompt);
+    if (aiImage) {
+      console.log("Using AI generated image:", aiImage);
+      return aiImage;
     }
 
-    // Fallback to curated placeholder images
-    const placeholderImages = [
-      'photo-1560472354-b33ff0c44a43', // Business/tech
-      'photo-1551434678-e076c223a692', // Business meeting
-      'photo-1460925895917-afdab827c52f', // Analytics/data
-      'photo-1553877522-43269d4ea984', // Growth/success
-      'photo-1504384308090-c894fdcc538d', // Innovation/tech
-      'photo-1559136555-9303baea8ebd', // Strategy/planning
-      'photo-1507003211169-0a1dd7228f2d', // Leadership
-      'photo-1522202176988-66273c2fd55f', // Collaboration
-      'photo-1542744173-8e7e53415bb0', // Professional
-      'photo-1521737604893-d14cc237f11d', // Business growth
-    ];
-    
-    const randomImageId = placeholderImages[Math.floor(Math.random() * placeholderImages.length)];
-    const fallbackUrl = `https://images.unsplash.com/${randomImageId}?w=1600&h=900&fit=crop`;
-    
-    console.log("Using fallback placeholder image:", fallbackUrl);
-    return fallbackUrl;
+    // Step 3: No placeholders - throw error
+    console.error("Failed to generate any image for prompt:", prompt);
+    throw new Error("Unable to generate image from any source");
   }
 
   async modifySlide(slideIndex: number, modification: string, currentPresentation: Presentation): Promise<SlideContent> {
