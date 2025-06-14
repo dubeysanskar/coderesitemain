@@ -31,7 +31,12 @@ const FeaturedTools = () => {
           icon: '📄',
           onClick: () => navigate('/resume-builder'),
         },
-        { title: 'Report Generator', description: 'Comprehensive report writing', icon: '📋' },
+        { 
+          title: 'Report Generator', 
+          description: 'Comprehensive report writing', 
+          icon: '📋',
+          onClick: () => navigate('/report-generator'),
+        },
         { title: 'Learning Guide', description: 'Personalized study materials', icon: '📚' },
       ],
     },
