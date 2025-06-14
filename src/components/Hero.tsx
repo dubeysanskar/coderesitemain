@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from './ui/button';
@@ -24,36 +25,36 @@ const Hero = () => {
 
   const displayCardsData = [
     {
-      icon: <FileText className="size-3 md:size-4 text-green-300" />,
+      icon: <FileText className="size-4 text-green-300" />,
       title: "PPT Generator",
       description: "Create presentations instantly",
       date: "AI-Powered",
       iconClassName: "text-green-500",
       titleClassName: "text-green-500",
-      className: "[grid-area:stack] hover:-translate-y-4 md:hover:-translate-y-10 before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-border before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-background/50 grayscale-[100%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0 text-xs md:text-sm",
+      className: "[grid-area:stack] hover:-translate-y-10 before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-border before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-background/50 grayscale-[100%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0",
     },
     {
-      icon: <Sparkles className="size-3 md:size-4 text-blue-300" />,
+      icon: <Sparkles className="size-4 text-blue-300" />,
       title: "Report Generator",
       description: "Comprehensive reports in seconds",
       date: "Smart AI",
       iconClassName: "text-blue-500",
       titleClassName: "text-blue-500",
-      className: "[grid-area:stack] translate-x-4 md:translate-x-8 lg:translate-x-16 translate-y-5 md:translate-y-10 hover:-translate-y-1 before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-border before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-background/50 grayscale-[100%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0 text-xs md:text-sm",
+      className: "[grid-area:stack] translate-x-8 md:translate-x-16 translate-y-10 hover:-translate-y-1 before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-border before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-background/50 grayscale-[100%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0",
     },
     {
-      icon: <Image className="size-3 md:size-4 text-purple-300" />,
+      icon: <Image className="size-4 text-purple-300" />,
       title: "AI Image Creator",
       description: "Professional visuals made easy",
       date: "Creative AI",
       iconClassName: "text-purple-500",
       titleClassName: "text-purple-500",
-      className: "[grid-area:stack] translate-x-8 md:translate-x-16 lg:translate-x-32 translate-y-10 md:translate-y-20 hover:translate-y-5 md:hover:translate-y-10 text-xs md:text-sm",
+      className: "[grid-area:stack] translate-x-16 md:translate-x-32 translate-y-20 hover:translate-y-10",
     },
   ];
 
   return (
-    <section id="hero" className="min-h-screen flex flex-col justify-center items-center relative px-4 pt-16 overflow-hidden">
+    <section id="hero" className="min-h-screen flex flex-col justify-center items-center relative px-4 pt-16">
       {/* Main Headline */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -103,14 +104,14 @@ const Hero = () => {
         </Button>
       </motion.div>
 
-      {/* Display Cards - Improved mobile responsiveness */}
+      {/* Display Cards - Better mobile responsiveness */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.4 }}
-        className="w-full max-w-2xl md:max-w-4xl lg:max-w-5xl px-4"
+        className="w-full max-w-5xl px-4"
       >
-        <div className="flex justify-center scale-75 md:scale-90 lg:scale-100">
+        <div className="flex justify-center">
           <DisplayCards cards={displayCardsData} />
         </div>
       </motion.div>
