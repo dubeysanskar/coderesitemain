@@ -84,16 +84,6 @@ const createChartSlide = (pptx: any, slideData: SlideContent, colorScheme: any, 
     align: 'right',
   });
   
-  // Add branding element
-  slide.addText('WebMind AI', {
-    x: 0.3,
-    y: 0.1,
-    fontSize: 14,
-    color: colorScheme.text,
-    transparency: 30,
-    bold: true,
-  });
-  
   return slide;
 };
 
@@ -138,9 +128,6 @@ export const generatePPT = (presentation: Presentation): void => {
       
       // Subtitle (from the first slide's own title)
       titleSlide.addText(slide.title, { x: 0.5, y: '58%', w: '90%', h: 1, align: 'center', fontSize: 24, color: colorScheme.text, fontFace: 'Calibri' });
-      
-      // Branding
-      titleSlide.addText('WebMind AI', { x: 0.3, y: 0.1, fontSize: 14, color: colorScheme.text, transparency: 30, bold: true });
       
       // Slide number
       titleSlide.addText(`${index + 1}/${totalSlidesWithFinal}`, { x: '90%', y: '90%', w: 0.5, h: 0.3, fontSize: 12, color: colorScheme.text, fontFace: 'Calibri', align: 'right' });
@@ -316,36 +303,21 @@ export const generatePPT = (presentation: Presentation): void => {
     
     // Add image if available with different styling based on layout
     if (slide.imageUrl) {
-      // Ensure image dimensions fit for 16:9 (max 4.5w x 3.5h inches for layout 0)
-      if (layoutType === 0) {
-        pptSlide.addImage({
-          path: slide.imageUrl,
-          x: '60%',
-          y: 1.7,
-          w: 4.5,
-          h: 3.5,
-        });
-      } else if (layoutType === 1) {
-        pptSlide.addImage({
-          path: slide.imageUrl,
-          x: '27.5%',
-          y: 5,
-          w: 6,
-          h: 3.1, // limit height slightly
-        });
-      } else {
-        pptSlide.addImage({
-          path: slide.imageUrl,
-          x: '66%',
-          y: 1.7,
-          w: 3.5,
-          h: 2.6, // limit height so nothing ever overflows slide
-        });
+      // All images constrained to max 5w x 3.5h inches, always within safe bounds for any layout
+      pptSlide.addImage({
+        path: slide.imageUrl,
+        x: layoutType === 1 ? '27.5%' : (layoutType === 0 ? '60%' : '66%'),
+        y: layoutType === 1 ? 5 : 1.7,
+        w: layoutType === 1 ? 6 : (layoutType === 0 ? 4.5 : 3.5),
+        h: layoutType === 1 ? 3.1 : (layoutType === 0 ? 3.5 : 2.6),
+      });
+      // Border if desired
+      if (layoutType === 2) {
         pptSlide.addShape(pptx.ShapeType.rect, {
           x: '65.8%',
           y: 1.6,
           w: 3.7,
-          h: 2.8, // border matches image
+          h: 2.8,
           line: { color: colorScheme.accent, width: 2 },
           fill: { type: 'none' }
         });
@@ -362,16 +334,6 @@ export const generatePPT = (presentation: Presentation): void => {
       color: colorScheme.text,
       fontFace: 'Calibri',
       align: 'right',
-    });
-    
-    // Add branding element
-    pptSlide.addText('WebMind AI', {
-      x: 0.3,
-      y: 0.1,
-      fontSize: 14,
-      color: colorScheme.text,
-      transparency: 30,
-      bold: true,
     });
   });
   

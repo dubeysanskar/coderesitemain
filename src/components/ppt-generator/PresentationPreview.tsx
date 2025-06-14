@@ -89,8 +89,6 @@ export function PresentationPreview({ presentation, loading }: PresentationPrevi
 
   const currentSlideContent = presentation.slides[currentSlide];
   const themeColors = getThemeColors(presentation.theme);
-
-  // Determine the layout type based on slide index
   const layoutType = currentSlide % 3;
 
   return (
@@ -104,7 +102,6 @@ export function PresentationPreview({ presentation, loading }: PresentationPrevi
       </div>
 
       <div className="flex-grow flex flex-col items-center justify-center p-4 overflow-hidden relative" ref={previewRef}>
-        {/* Apply strict 16:9 aspect ratio container */}
         <div className="w-full max-w-4xl">
           <AspectRatio ratio={16/9} className="border shadow-md rounded-md overflow-hidden">
             <motion.div
@@ -114,7 +111,7 @@ export function PresentationPreview({ presentation, loading }: PresentationPrevi
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
               className="slide p-6 h-full"
-              style={{ 
+              style={{
                 backgroundColor: themeColors.background,
                 color: themeColors.text,
                 backgroundImage: `radial-gradient(circle at 10% 20%, ${themeColors.background}99 0%, ${themeColors.background} 90%)`,
@@ -122,25 +119,14 @@ export function PresentationPreview({ presentation, loading }: PresentationPrevi
                 position: "relative"
               }}
             >
-              {/* Slide branding */}
-              <div className="text-xs opacity-70 mb-1" style={{ color: themeColors.text }}>
-                WebMind AI
-              </div>
-              
-              {/* Slide title with different alignments based on layout */}
-              <h3 
-                className={`text-2xl font-bold mb-4 ${layoutType === 1 ? 'text-center' : ''}`}
-                style={{ color: themeColors.accent }}
-              >
+              {/* Slide branding (REMOVED watermark) */}
+
+              <h3 className={`text-2xl font-bold mb-4 ${layoutType === 1 ? 'text-center' : ''}`} style={{ color: themeColors.accent }}>
                 {currentSlideContent.title}
               </h3>
-              
-              {/* Title underline - visual representation */}
-              <div 
-                className={`h-0.5 w-full mb-4 opacity-80`}
-                style={{ backgroundColor: themeColors.accent }}
-              ></div>
-              
+
+              <div className="h-0.5 w-full mb-4 opacity-80" style={{ backgroundColor: themeColors.accent }}></div>
+
               {/* Different layouts based on slide number */}
               {layoutType === 0 && (
                 <div className="flex flex-col md:flex-row gap-4">

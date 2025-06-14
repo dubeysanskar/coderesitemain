@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import { Presentation, SlideContent } from './types';
+import { fetchImageFromGoogle } from './image-search';
 
 // This service will handle interactions with the Gemini API
 export class GeminiService {
@@ -123,26 +124,30 @@ export class GeminiService {
   }
 
   async generateImage(prompt: string): Promise<string> {
-    // A list of high-quality, professional placeholder images from Unsplash
+    // Try Google Custom Search first for a relevant image
+    const searchResult = await fetchImageFromGoogle(prompt);
+    if (searchResult) {
+      console.log("Google Search image found:", searchResult);
+      return searchResult;
+    }
+
+    // TODO: Optionally add Gemini model v2 image generation here, if your API access allows. 
+    // For now, fall back to a high-quality placeholder (Unsplash), but feel free to request further upgrades.
+
+    // Fallback — Unsplash
     const placeholderImages = [
-      'photo-1488590528505-98d2b5aba04b', // code on laptop
-      'photo-1518770660439-4636190af475', // circuit board
-      'photo-1461749280684-dccba630e2f6', // code on monitor
-      'photo-1486312338219-ce68d2c6f44d', // person using macbook
-      'photo-1485827404703-89b55fcc595e', // robot
-      'photo-1531297484001-80022131f5a1', // laptop on surface
-      'photo-1487058792275-0ad4aaf24ca7', // colorful code
-      'photo-1519389950473-47ba0277781c', // team working on laptops
-      'photo-1498050108023-c5249f4df085', // macbook with code
-      'photo-1605810230434-7631ac76ec81'  // people looking at screens
+      'photo-1488590528505-98d2b5aba04b',
+      'photo-1518770660439-4636190af475',
+      'photo-1461749280684-dccba630e2f6',
+      'photo-1486312338219-ce68d2c6f44d',
+      'photo-1485827404703-89b55fcc595e',
+      'photo-1531297484001-80022131f5a1',
+      'photo-1487058792275-0ad4aaf24ca7',
+      'photo-1519389950473-47ba0277781c',
+      'photo-1498050108023-c5249f4df085',
+      'photo-1605810230434-7631ac76ec81'
     ];
-    
-    // Pick a random image from the list
     const randomImageId = placeholderImages[Math.floor(Math.random() * placeholderImages.length)];
-    
-    // In a real application, this would call an actual image generation API using the prompt.
-    // For now, we return a high-quality, correctly-sized placeholder.
-    console.log(`Using placeholder image for prompt: "${prompt}"`);
     return `https://images.unsplash.com/${randomImageId}?w=1600&h=900&fit=crop`;
   }
 }
