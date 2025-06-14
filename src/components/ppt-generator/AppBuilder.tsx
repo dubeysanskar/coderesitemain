@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Presentation } from "@/lib/types";
@@ -6,16 +5,16 @@ import { ChatInterface } from "./ChatInterface";
 import { PresentationPreview } from "./PresentationPreview";
 import { geminiService } from "@/lib/gemini-service";
 import { useToast } from "@/hooks/use-toast";
+import { SlideEditor } from "./SlideEditor";
 
 export function AppBuilder() {
   const [presentation, setPresentation] = useState<Presentation | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedTheme, setSelectedTheme] = useState<'light' | 'dark' | 'midnight' | 'skywave' | 'mint' | 'sunset' | 'ocean' | 'forest' | 'royal'>('light');
+  const [editingSlide, setEditingSlide] = useState<number | null>(null);
   const { toast } = useToast();
 
-  // Fallback presentation generator when API isn't available
   const generateFallbackPresentation = (topic: string, slideCount: number): Presentation => {
-    // If no topic is provided, default to India
     const presentationTopic = topic && topic.trim() !== "" ? topic : "India: A Cultural and Historical Journey";
     
     const slides = [];
@@ -56,7 +55,6 @@ export function AppBuilder() {
     try {
       setLoading(true);
       
-      // Make sure we have a prompt
       if (!prompt || prompt.trim() === "") {
         toast({
           title: "Missing Topic",
@@ -70,26 +68,24 @@ export function AppBuilder() {
       let newPresentation;
       
       try {
-        // Generate presentation content from Gemini
         newPresentation = await geminiService.generatePresentation(prompt, slideCount);
         
-        // For each slide, generate an image based on the image prompt
-        const updatedSlides = await Promise.all(
-          newPresentation.slides.map(async (slide) => {
-            if (slide.imagePrompt) {
-              try {
-                const imageUrl = await geminiService.generateImage(slide.imagePrompt);
-                return { ...slide, imageUrl };
-              } catch (error) {
-                console.error("Failed to generate image:", error);
-                return slide;
-              }
+        console.log("Generating images for slides...");
+        const imagePromises = newPresentation.slides.map(async (slide, index) => {
+          if (slide.imagePrompt) {
+            try {
+              const imageUrl = await geminiService.generateImage(slide.imagePrompt);
+              return { ...slide, imageUrl };
+            } catch (error) {
+              console.error(`Failed to generate image for slide ${index + 1}:`, error);
+              return slide;
             }
-            return slide;
-          })
-        );
+          }
+          return slide;
+        });
         
-        // Update the presentation with generated images and selected theme
+        const updatedSlides = await Promise.all(imagePromises);
+        
         newPresentation = {
           ...newPresentation,
           slides: updatedSlides,
@@ -110,7 +106,7 @@ export function AppBuilder() {
       setPresentation(newPresentation);
       toast({
         title: "Presentation Generated",
-        description: "Your presentation is ready to be viewed and downloaded."
+        description: "Your presentation is ready! You can now edit individual slides or download the PPT."
       });
     } catch (error) {
       console.error("Failed to generate presentation:", error);
@@ -124,11 +120,44 @@ export function AppBuilder() {
     }
   };
 
-  // Handle theme change for the presentation
+  const handleSlideModification = async (slideIndex: number, modification: string) => {
+    if (!presentation) return;
+    
+    try {
+      const modifiedSlide = await geminiService.modifySlide(slideIndex, modification, presentation);
+      
+      if (modifiedSlide.imagePrompt) {
+        const newImageUrl = await geminiService.generateImage(modifiedSlide.imagePrompt);
+        modifiedSlide.imageUrl = newImageUrl;
+      }
+      
+      const updatedSlides = [...presentation.slides];
+      updatedSlides[slideIndex] = modifiedSlide;
+      
+      setPresentation({
+        ...presentation,
+        slides: updatedSlides
+      });
+      
+      setEditingSlide(null);
+      
+      toast({
+        title: "Slide Updated",
+        description: `Slide ${slideIndex + 1} has been successfully modified.`
+      });
+    } catch (error) {
+      console.error("Failed to modify slide:", error);
+      toast({
+        title: "Modification Failed",
+        description: "Failed to modify the slide. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleThemeChange = (theme: 'light' | 'dark' | 'midnight' | 'skywave' | 'mint' | 'sunset' | 'ocean' | 'forest' | 'royal') => {
     setSelectedTheme(theme);
     
-    // Update existing presentation theme if one exists
     if (presentation) {
       setPresentation({
         ...presentation,
@@ -152,6 +181,10 @@ export function AppBuilder() {
             loading={loading}
             onThemeChange={handleThemeChange}
             currentTheme={selectedTheme}
+            presentation={presentation}
+            onEditSlide={setEditingSlide}
+            onSlideModification={handleSlideModification}
+            editingSlide={editingSlide}
           />
         </motion.div>
       </AnimatePresence>
@@ -167,6 +200,7 @@ export function AppBuilder() {
           <PresentationPreview 
             presentation={presentation}
             loading={loading}
+            onEditSlide={setEditingSlide}
           />
         </motion.div>
       </AnimatePresence>

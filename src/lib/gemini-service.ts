@@ -1,14 +1,13 @@
+
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import { Presentation, SlideContent } from './types';
 import { fetchImageFromGoogle } from './image-search';
 
-// This service will handle interactions with the Gemini API
 export class GeminiService {
   private genAI: GoogleGenerativeAI;
   private model: any;
 
   constructor() {
-    // Use the API key from environment variables
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     
     if (!apiKey) {
@@ -17,7 +16,6 @@ export class GeminiService {
     
     this.genAI = new GoogleGenerativeAI(apiKey);
     
-    // Initialize the Gemini 1.5 Flash model
     this.model = this.genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
       safetySettings: [
@@ -33,88 +31,87 @@ export class GeminiService {
     });
   }
 
-  // Helper function to extract JSON from potential markdown code blocks
   private extractJsonFromResponse(text: string): string {
-    // Check if the response is wrapped in markdown code blocks
     const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     if (jsonMatch && jsonMatch[1]) {
       return jsonMatch[1].trim();
     }
-    
-    // If no markdown code blocks are found, return the original text
     return text;
   }
 
   async generatePresentation(topic: string, slideCount: number): Promise<Presentation> {
     const systemPrompt = `
-      You are an advanced AI presentation builder like Gamma.ai.
-      Your task is to generate a thoroughly structured, visually engaging, professional presentation about "${topic}" with exactly ${slideCount} slides.
+      You are an expert presentation designer. Create a comprehensive, professionally structured presentation about "${topic}" with exactly ${slideCount} slides.
 
-      -- STRUCTURE REQUIREMENTS --
-      - SLIDE 1: Title slide. "title": Main full deck title; "subtitle": A creative subtitle for this topic.
-      - SLIDE 2: Agenda/Overview. "title": Agenda; "content": bullet points listing ALL slide titles/topics.
-      - SLIDES 3-${slideCount-1}: Content slides, each on a different subtopic. For every slide:
-        * "title": Clear, concise, <8 words, relevant to the subtopic.
-        * "content": 3-5 information-rich bullet points (max 20 words each), each uniquely explaining a key aspect of this subtopic — avoid repeating explanations or listing too-simple facts.
-        * "imagePrompt": Extremely specific image prompt, themed DIRECTLY after this slide's content.
-      - FINAL SLIDE: Conclusion/Summary. Recap main learnings and takeaways.
+      CRITICAL REQUIREMENTS:
+      - SLIDE 1: Title slide with main presentation title and engaging subtitle
+      - SLIDE 2: Table of Contents/Agenda listing all upcoming slide topics
+      - SLIDES 3-${slideCount-1}: Content slides, each covering a distinct aspect of ${topic}
+      - FINAL SLIDE: Conclusion/Summary with key takeaways
 
-      -- IMAGE GENERATION --
-      For every slide except the agenda/overview, create the "imagePrompt" as a vivid, DETAILED prompt that reflects the main SUBJECT and CONTEXT of the slide; always specify the style (photo, illustration, graph, etc). The prompt must stay on-topic and fit a 16:9 aspect for a presentation slide.
+      CONTENT EXCELLENCE STANDARDS:
+      - Each content slide must have 4-6 substantial bullet points (15-25 words each)
+      - Bullet points should provide specific insights, data, examples, or actionable information
+      - Avoid generic statements; include concrete details, statistics, or real-world applications
+      - Each slide should tell a complete story about its subtopic
+      - Progressive flow: each slide should build logically on the previous ones
 
-      -- CONTENT GUIDELINES --
-      - Each slide’s bullet points should clearly explain new information, not just list, but summarize AND provide a key explanation or fact.
-      - Output structure must be:
-        {
-          "title": [deck title],
-          "slides": [
-            {
-              "title": "[slide title]",
-              "subtitle": "[subtitle text]" (use only on first slide, else omit),
-              "content": ["point 1", "point 2", ...],
-              "imagePrompt": "[detailed image prompt for this slide]"
-            }, ...
-          ]
-        }
-      - If a slide does not need imagePrompt (such as agenda), set imagePrompt: "".
+      IMAGE SPECIFICATIONS:
+      - Create highly specific, professional image prompts for each content slide
+      - Prompts should describe: subject, setting, style (photo/illustration/diagram), composition
+      - Images must directly relate to the slide's specific content, not just the general topic
+      - Include relevant visual elements like charts, infographics, or professional photography
+      - Optimize for 16:9 presentation format
 
-      -- OUTPUT RULES --
-      Output ONLY strictly valid JSON matching the structure above. NO extra text, code blocks, or markdown — just the JSON object.
+      OUTPUT FORMAT (JSON only, no markdown):
+      {
+        "title": "[Compelling presentation title]",
+        "slides": [
+          {
+            "title": "[Slide title]",
+            "subtitle": "[Only for title slide]",
+            "content": ["[Detailed point 1]", "[Detailed point 2]", ...],
+            "imagePrompt": "[Specific, detailed image description]"
+          }
+        ]
+      }
+
+      QUALITY CHECKLIST:
+      ✓ Each slide has unique, valuable content
+      ✓ Bullet points are informative and specific
+      ✓ Image prompts are detailed and relevant
+      ✓ Logical progression throughout presentation
+      ✓ Professional tone and structure
     `;
 
     try {
-      console.log(`Generating presentation on "${topic}" with ${slideCount} slides...`);
+      console.log(`Generating enhanced presentation on "${topic}" with ${slideCount} slides...`);
       const result = await this.model.generateContent([systemPrompt]);
       const rawText = await result.response.text();
-      console.log("Raw Gemini response:", rawText.substring(0, 200) + "..."); // Log part of the response for debugging
+      console.log("Raw Gemini response:", rawText.substring(0, 200) + "...");
       
-      // Clean the response to extract JSON
       const cleanedText = this.extractJsonFromResponse(rawText);
-      console.log("Cleaned JSON:", cleanedText.substring(0, 200) + "..."); // Log part of the cleaned response
+      console.log("Cleaned JSON:", cleanedText.substring(0, 200) + "...");
       
-      // Try to parse the cleaned response as JSON
       try {
         const data = JSON.parse(cleanedText);
         
-        // Basic validation that we got what we expected
         if (!data.title || !Array.isArray(data.slides)) {
-          console.error("Invalid response format - missing title or slides array:", data);
+          console.error("Invalid response format:", data);
           throw new Error('Invalid response format from Gemini');
         }
         
-        // Map the response to our Presentation format
         return {
           title: data.title,
           slides: data.slides.map((slide: any) => ({
             title: slide.title,
-            content: Array.isArray(slide.content) ? slide.content.slice(0, 6) : [], // Limit to max 6 bullet points
-            imagePrompt: slide.imagePrompt || `High quality professional presentation image about ${slide.title} related to ${topic} with clear visual elements, suitable for 16:9 slide format`,
+            content: Array.isArray(slide.content) ? slide.content.slice(0, 6) : [],
+            imagePrompt: slide.imagePrompt || `Professional high-quality image about ${slide.title} related to ${topic}, suitable for business presentation, 16:9 format`,
           })),
-          theme: 'light', // Default theme
+          theme: 'light',
         };
       } catch (e) {
         console.error('Failed to parse Gemini response:', e);
-        console.error('Problematic JSON text:', cleanedText);
         throw new Error('Failed to parse presentation data from AI');
       }
     } catch (e) {
@@ -124,31 +121,88 @@ export class GeminiService {
   }
 
   async generateImage(prompt: string): Promise<string> {
-    // Try Google Custom Search first for a relevant image
+    // First try Google Custom Search for real images
     const searchResult = await fetchImageFromGoogle(prompt);
     if (searchResult) {
-      console.log("Google Search image found:", searchResult);
+      console.log("Using Google Search image:", searchResult);
       return searchResult;
     }
 
-    // TODO: Optionally add Gemini model v2 image generation here, if your API access allows. 
-    // For now, fall back to a high-quality placeholder (Unsplash), but feel free to request further upgrades.
+    // Try Gemini image generation if available
+    try {
+      console.log("Attempting Gemini image generation for:", prompt);
+      
+      // Use Gemini's image generation model if available
+      const imageModel = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const imagePrompt = `Generate a high-quality, professional image: ${prompt}. Style: realistic, business-appropriate, 16:9 aspect ratio, high resolution.`;
+      
+      const result = await imageModel.generateContent([imagePrompt]);
+      
+      // Note: This is a placeholder for actual Gemini image generation
+      // The actual implementation would depend on your specific Gemini setup
+      console.log("Gemini image generation attempted, falling back to placeholder");
+      
+    } catch (error) {
+      console.log("Gemini image generation not available, using fallback:", error);
+    }
 
-    // Fallback — Unsplash
+    // Fallback to curated placeholder images
     const placeholderImages = [
-      'photo-1488590528505-98d2b5aba04b',
-      'photo-1518770660439-4636190af475',
-      'photo-1461749280684-dccba630e2f6',
-      'photo-1486312338219-ce68d2c6f44d',
-      'photo-1485827404703-89b55fcc595e',
-      'photo-1531297484001-80022131f5a1',
-      'photo-1487058792275-0ad4aaf24ca7',
-      'photo-1519389950473-47ba0277781c',
-      'photo-1498050108023-c5249f4df085',
-      'photo-1605810230434-7631ac76ec81'
+      'photo-1560472354-b33ff0c44a43', // Business/tech
+      'photo-1551434678-e076c223a692', // Business meeting
+      'photo-1460925895917-afdab827c52f', // Analytics/data
+      'photo-1553877522-43269d4ea984', // Growth/success
+      'photo-1504384308090-c894fdcc538d', // Innovation/tech
+      'photo-1559136555-9303baea8ebd', // Strategy/planning
+      'photo-1507003211169-0a1dd7228f2d', // Leadership
+      'photo-1522202176988-66273c2fd55f', // Collaboration
+      'photo-1542744173-8e7e53415bb0', // Professional
+      'photo-1521737604893-d14cc237f11d', // Business growth
     ];
+    
     const randomImageId = placeholderImages[Math.floor(Math.random() * placeholderImages.length)];
-    return `https://images.unsplash.com/${randomImageId}?w=1600&h=900&fit=crop`;
+    const fallbackUrl = `https://images.unsplash.com/${randomImageId}?w=1600&h=900&fit=crop`;
+    
+    console.log("Using fallback placeholder image:", fallbackUrl);
+    return fallbackUrl;
+  }
+
+  async modifySlide(slideIndex: number, modification: string, currentPresentation: Presentation): Promise<SlideContent> {
+    const currentSlide = currentPresentation.slides[slideIndex];
+    
+    const modificationPrompt = `
+      Modify this presentation slide based on the user's request: "${modification}"
+      
+      Current slide:
+      Title: ${currentSlide.title}
+      Content: ${currentSlide.content.join(', ')}
+      
+      Return ONLY valid JSON with this exact structure:
+      {
+        "title": "[updated title]",
+        "content": ["[point 1]", "[point 2]", "[point 3]", "[point 4]"],
+        "imagePrompt": "[updated image description]"
+      }
+      
+      Ensure content is professional, detailed, and relevant to the topic "${currentPresentation.title}".
+    `;
+
+    try {
+      const result = await this.model.generateContent([modificationPrompt]);
+      const rawText = await result.response.text();
+      const cleanedText = this.extractJsonFromResponse(rawText);
+      const data = JSON.parse(cleanedText);
+      
+      return {
+        title: data.title || currentSlide.title,
+        content: Array.isArray(data.content) ? data.content : currentSlide.content,
+        imagePrompt: data.imagePrompt || currentSlide.imagePrompt,
+        imageUrl: currentSlide.imageUrl,
+      };
+    } catch (error) {
+      console.error('Failed to modify slide:', error);
+      throw new Error('Failed to modify slide content');
+    }
   }
 }
 
