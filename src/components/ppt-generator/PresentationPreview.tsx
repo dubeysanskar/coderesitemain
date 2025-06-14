@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { DownloadIcon, ChevronLeftIcon, ChevronRightIcon, ZapIcon } from "lucide-react";
+import { DownloadIcon, ChevronLeftIcon, ChevronRightIcon, ZapIcon, EditIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Presentation, SlideContent } from "@/lib/types";
@@ -10,6 +10,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 interface PresentationPreviewProps {
   presentation: Presentation | null;
   loading: boolean;
+  onEditSlide?: (slideIndex: number) => void;
 }
 
 // Get theme colors based on theme name
@@ -37,7 +38,7 @@ const getThemeColors = (theme: string) => {
   }
 };
 
-export function PresentationPreview({ presentation, loading }: PresentationPreviewProps) {
+export function PresentationPreview({ presentation, loading, onEditSlide }: PresentationPreviewProps) {
   const [currentSlide, setCurrentSlide] = useState<number>(0);
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -95,10 +96,22 @@ export function PresentationPreview({ presentation, loading }: PresentationPrevi
     <div className="flex flex-col h-full">
       <div className="flex justify-between items-center p-4 border-b">
         <h2 className="text-lg font-semibold">{presentation.title}</h2>
-        <Button onClick={handleDownload} className="gap-2 bg-green-500 hover:bg-green-600 text-primary-foreground">
-          <DownloadIcon className="h-4 w-4" />
-          Download PPT
-        </Button>
+        <div className="flex gap-2">
+          {onEditSlide && (
+            <Button 
+              variant="outline" 
+              onClick={() => onEditSlide(currentSlide)}
+              className="gap-2"
+            >
+              <EditIcon className="h-4 w-4" />
+              Edit Slide
+            </Button>
+          )}
+          <Button onClick={handleDownload} className="gap-2 bg-green-500 hover:bg-green-600 text-primary-foreground">
+            <DownloadIcon className="h-4 w-4" />
+            Download PPT
+          </Button>
+        </div>
       </div>
 
       <div className="flex-grow flex flex-col items-center justify-center p-4 overflow-hidden relative" ref={previewRef}>
@@ -110,7 +123,7 @@ export function PresentationPreview({ presentation, loading }: PresentationPrevi
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
-              className="slide p-6 h-full"
+              className="slide p-6 h-full cursor-pointer hover:shadow-lg transition-shadow"
               style={{
                 backgroundColor: themeColors.background,
                 color: themeColors.text,
@@ -118,6 +131,7 @@ export function PresentationPreview({ presentation, loading }: PresentationPrevi
                 overflow: "hidden",
                 position: "relative"
               }}
+              onClick={() => onEditSlide && onEditSlide(currentSlide)}
             >
               {/* Slide branding (REMOVED watermark) */}
 
@@ -250,6 +264,15 @@ export function PresentationPreview({ presentation, loading }: PresentationPrevi
                         <div className="text-xs mt-1" style={{ color: themeColors.text }}>Item {i+1}</div>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Edit hint overlay */}
+              {onEditSlide && (
+                <div className="absolute top-2 right-2 opacity-0 hover:opacity-100 transition-opacity">
+                  <div className="bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                    Click to edit
                   </div>
                 </div>
               )}

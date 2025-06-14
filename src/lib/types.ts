@@ -16,3 +16,9 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
 }
+
+export interface SlideModification {
+  slideIndex: number;
+  modification: string;
+  timestamp: Date;
+}

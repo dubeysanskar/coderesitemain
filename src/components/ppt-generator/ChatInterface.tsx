@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownIcon, SendIcon, Loader2Icon } from "lucide-react";
@@ -5,22 +6,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChatMessage } from "@/lib/types";
+import { ChatMessage, Presentation } from "@/lib/types";
+import { SlideEditor } from "./SlideEditor";
 
 interface ChatInterfaceProps {
   onSubmit: (prompt: string, slideCount: number) => Promise<void>;
   loading: boolean;
   onThemeChange?: (theme: 'light' | 'dark' | 'midnight' | 'skywave' | 'mint' | 'sunset' | 'ocean' | 'forest' | 'royal') => void;
   currentTheme?: 'light' | 'dark' | 'midnight' | 'skywave' | 'mint' | 'sunset' | 'ocean' | 'forest' | 'royal';
+  presentation?: Presentation | null;
+  onEditSlide?: (slideIndex: number | null) => void;
+  onSlideModification?: (slideIndex: number, modification: string) => Promise<void>;
+  editingSlide?: number | null;
 }
 
-export function ChatInterface({ onSubmit, loading, onThemeChange, currentTheme = 'light' }: ChatInterfaceProps) {
+export function ChatInterface({ 
+  onSubmit, 
+  loading, 
+  onThemeChange, 
+  currentTheme = 'light',
+  presentation,
+  onEditSlide,
+  onSlideModification,
+  editingSlide
+}: ChatInterfaceProps) {
   const [prompt, setPrompt] = useState<string>("");
-  const [slideCount, setSlideCount] = useState<number>(4);
+  const [slideCount, setSlideCount] = useState<number>(6);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
-      content: "Hello! I'm your AI presentation assistant. Tell me what presentation you'd like to create, and I'll generate it for you. You can choose how many slides you want from the dropdown above."
+      content: "Hello! I'm your AI presentation assistant. Tell me what presentation you'd like to create, and I'll generate it for you. After creation, you can click on any slide to edit its content."
     }
   ]);
   
@@ -29,7 +44,6 @@ export function ChatInterface({ onSubmit, loading, onThemeChange, currentTheme =
   const handleSubmit = async () => {
     if (!prompt.trim() || loading) return;
     
-    // Add user message to chat
     const userMessage: ChatMessage = {
       role: "user",
       content: prompt
@@ -37,44 +51,37 @@ export function ChatInterface({ onSubmit, loading, onThemeChange, currentTheme =
     
     setMessages(prev => [...prev, userMessage]);
     
-    // Add typing indicator
     const typingMessage: ChatMessage = {
       role: "assistant",
-      content: "Generating your presentation..."
+      content: "Generating your enhanced presentation with optimized content and relevant images..."
     };
     
     setMessages(prev => [...prev, typingMessage]);
-    
-    // Clear input
     setPrompt("");
     
-    // Call the parent onSubmit handler
     try {
       await onSubmit(prompt, slideCount);
       
-      // Replace typing indicator with success message
       setMessages(prev => {
         const newMessages = [...prev];
-        newMessages.pop(); // Remove typing indicator
+        newMessages.pop();
         return [...newMessages, {
           role: "assistant", 
-          content: "I've created your presentation! You can now view and download it."
+          content: "Your presentation is ready! I've created professional slides with relevant content and images. You can now view, edit individual slides, or download the PPT file."
         }];
       });
     } catch (error) {
-      // Replace typing indicator with error message
       setMessages(prev => {
         const newMessages = [...prev];
-        newMessages.pop(); // Remove typing indicator
+        newMessages.pop();
         return [...newMessages, {
           role: "assistant", 
-          content: "I encountered an error while creating your presentation. Please try again with a different topic."
+          content: "I encountered an error while creating your presentation. Please try again with a different topic or check your internet connection."
         }];
       });
     }
   };
   
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -162,6 +169,51 @@ export function ChatInterface({ onSubmit, loading, onThemeChange, currentTheme =
             </motion.div>
           ))}
         </AnimatePresence>
+        
+        {/* Show slide editor if editing */}
+        {editingSlide !== null && presentation && onSlideModification && onEditSlide && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <SlideEditor
+              slide={presentation.slides[editingSlide]}
+              slideIndex={editingSlide}
+              onSave={onSlideModification}
+              onCancel={() => onEditSlide(null)}
+            />
+          </motion.div>
+        )}
+        
+        {/* Show slide quick-edit options when presentation exists */}
+        {presentation && !editingSlide && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-2"
+          >
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="py-3 px-4">
+                <p className="text-sm text-blue-800 font-medium mb-2">💡 Quick Actions:</p>
+                <div className="flex flex-wrap gap-2">
+                  {presentation.slides.map((slide, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onEditSlide && onEditSlide(index)}
+                      className="text-xs bg-white hover:bg-blue-100"
+                    >
+                      Edit Slide {index + 1}
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+        
         <div ref={messagesEndRef} />
       </div>
       
