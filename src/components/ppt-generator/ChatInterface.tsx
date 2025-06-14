@@ -81,10 +81,10 @@ export function ChatInterface({ onSubmit, loading, onThemeChange, currentTheme =
   }, [messages]);
   
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center gap-4 p-4 border-b">
+    <div className="flex flex-col h-full bg-gray-50">
+      <div className="flex items-center gap-4 p-4 border-b bg-white">
         <div className="flex-grow">
-          <label htmlFor="slide-count" className="block text-sm font-medium text-muted-foreground mb-1">
+          <label htmlFor="slide-count" className="block text-sm font-medium text-gray-700 mb-1">
             Number of Slides
           </label>
           <Select 
@@ -92,12 +92,12 @@ export function ChatInterface({ onSubmit, loading, onThemeChange, currentTheme =
             onValueChange={(value) => setSlideCount(parseInt(value))}
             disabled={loading}
           >
-            <SelectTrigger id="slide-count" className="w-full">
+            <SelectTrigger id="slide-count" className="w-full bg-white border-gray-300 text-gray-900">
               <SelectValue placeholder="Select slides" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white border-gray-300">
               {[4, 5, 6, 7, 8, 9, 10].map((num) => (
-                <SelectItem key={num} value={num.toString()}>
+                <SelectItem key={num} value={num.toString()} className="text-gray-900 hover:bg-gray-100">
                   {num} slides
                 </SelectItem>
               ))}
@@ -107,7 +107,7 @@ export function ChatInterface({ onSubmit, loading, onThemeChange, currentTheme =
 
         {onThemeChange && (
           <div className="flex-grow">
-            <label htmlFor="theme-select" className="block text-sm font-medium text-muted-foreground mb-1">
+            <label htmlFor="theme-select" className="block text-sm font-medium text-gray-700 mb-1">
               Theme
             </label>
             <Select 
@@ -115,26 +115,26 @@ export function ChatInterface({ onSubmit, loading, onThemeChange, currentTheme =
               onValueChange={(value) => onThemeChange(value as 'light' | 'dark' | 'midnight' | 'skywave' | 'mint' | 'sunset' | 'ocean' | 'forest' | 'royal')}
               disabled={loading}
             >
-              <SelectTrigger id="theme-select" className="w-full">
+              <SelectTrigger id="theme-select" className="w-full bg-white border-gray-300 text-gray-900">
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="light">Light</SelectItem>
-                <SelectItem value="dark">Dark</SelectItem>
-                <SelectItem value="midnight">Midnight</SelectItem>
-                <SelectItem value="skywave">Skywave</SelectItem>
-                <SelectItem value="mint">Mint</SelectItem>
-                <SelectItem value="sunset">Sunset</SelectItem>
-                <SelectItem value="ocean">Ocean</SelectItem>
-                <SelectItem value="forest">Forest</SelectItem>
-                <SelectItem value="royal">Royal</SelectItem>
+              <SelectContent className="bg-white border-gray-300">
+                <SelectItem value="light" className="text-gray-900 hover:bg-gray-100">Light</SelectItem>
+                <SelectItem value="dark" className="text-gray-900 hover:bg-gray-100">Dark</SelectItem>
+                <SelectItem value="midnight" className="text-gray-900 hover:bg-gray-100">Midnight</SelectItem>
+                <SelectItem value="skywave" className="text-gray-900 hover:bg-gray-100">Skywave</SelectItem>
+                <SelectItem value="mint" className="text-gray-900 hover:bg-gray-100">Mint</SelectItem>
+                <SelectItem value="sunset" className="text-gray-900 hover:bg-gray-100">Sunset</SelectItem>
+                <SelectItem value="ocean" className="text-gray-900 hover:bg-gray-100">Ocean</SelectItem>
+                <SelectItem value="forest" className="text-gray-900 hover:bg-gray-100">Forest</SelectItem>
+                <SelectItem value="royal" className="text-gray-900 hover:bg-gray-100">Royal</SelectItem>
               </SelectContent>
             </Select>
           </div>
         )}
       </div>
       
-      <div className="flex-grow overflow-y-auto p-4 space-y-4">
+      <div className="flex-grow overflow-y-auto p-4 space-y-4 bg-gray-50">
         <AnimatePresence>
           {messages.map((message, index) => (
             <motion.div
@@ -145,9 +145,11 @@ export function ChatInterface({ onSubmit, loading, onThemeChange, currentTheme =
               transition={{ duration: 0.3 }}
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <Card className={`max-w-[80%] ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+              <Card className={`max-w-[80%] ${message.role === 'user' ? 'bg-green-500 text-white' : 'bg-white border-gray-200'}`}>
                 <CardContent className="py-3 px-4">
-                  {message.content}
+                  <span className={message.role === 'user' ? 'text-white' : 'text-gray-900'}>
+                    {message.content}
+                  </span>
                 </CardContent>
               </Card>
             </motion.div>
@@ -167,7 +169,7 @@ export function ChatInterface({ onSubmit, loading, onThemeChange, currentTheme =
           <Button 
             size="icon" 
             variant="secondary"
-            className="rounded-full shadow-lg"
+            className="rounded-full shadow-lg bg-white text-gray-900 hover:bg-gray-100"
             onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })}
           >
             <ArrowDownIcon className="h-4 w-4" />
@@ -175,7 +177,7 @@ export function ChatInterface({ onSubmit, loading, onThemeChange, currentTheme =
         </motion.div>
       )}
       
-      <div className="p-4 border-t">
+      <div className="p-4 border-t bg-white">
         <form 
           onSubmit={(e) => {
             e.preventDefault();
@@ -188,12 +190,13 @@ export function ChatInterface({ onSubmit, loading, onThemeChange, currentTheme =
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Describe your presentation topic..."
             disabled={loading}
-            className="flex-grow"
+            className="flex-grow bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
           />
           <Button 
             type="submit" 
             size="icon" 
             disabled={!prompt.trim() || loading}
+            className="bg-green-500 hover:bg-green-600 text-white"
           >
             {loading ? (
               <Loader2Icon className="h-4 w-4 animate-spin" />
