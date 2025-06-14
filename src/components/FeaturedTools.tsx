@@ -1,9 +1,12 @@
+
 import React from 'react';
 import { Sparkles } from 'lucide-react';
 import { Presentation, FileUser, FileText } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button } from './ui/button';
 
 const FeaturedTools = () => {
+  const navigate = useNavigate();
   const tools = [
     {
       id: 1,
@@ -42,14 +45,30 @@ const FeaturedTools = () => {
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {tools.map((tool) => (
-            <Link to={tool.path} key={tool.id} className="relative overflow-hidden rounded-lg shadow-lg hover-glow">
+            <div key={tool.id} className="relative overflow-hidden rounded-lg shadow-lg hover-glow group">
               <div className={`absolute inset-0 bg-gradient-to-r ${tool.gradient} opacity-20`}></div>
-              <div className="relative p-6">
+              <div className="relative p-6 flex flex-col items-center">
                 <tool.icon className="w-8 h-8 mb-4 text-white" />
                 <h3 className="text-xl font-semibold mb-2 text-white">{tool.title}</h3>
-                <p className="text-gray-300">{tool.description}</p>
+                <p className="text-gray-300 mb-4">{tool.description}</p>
+                {tool.title === "Report Generator" ? (
+                  <Button
+                    size="sm"
+                    className="mt-2 px-6 py-2 bg-green-500 hover:bg-green-600 text-black font-semibold rounded-full text-base transition"
+                    onClick={() => navigate('/report-generator')}
+                  >
+                    Try It
+                  </Button>
+                ) : (
+                  <Link
+                    to={tool.path}
+                    className="mt-2 text-green-200 underline hover:text-green-400 transition text-base"
+                  >
+                    Explore
+                  </Link>
+                )}
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       </div>
@@ -58,3 +77,4 @@ const FeaturedTools = () => {
 };
 
 export default FeaturedTools;
+
