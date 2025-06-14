@@ -1,13 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from './ui/button';
 import DisplayCards from './ui/display-cards';
 import { FileText, Image, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
   const [currentText, setCurrentText] = useState(0);
   const texts = ['AI Solutions', 'Web Services', 'App Development', 'Cybersecurity'];
+  const navigate = useNavigate();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -21,6 +22,10 @@ const Hero = () => {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleTryFreeTools = () => {
+    navigate('/resume-builder');
   };
 
   const displayCardsData = [
@@ -88,7 +93,7 @@ const Hero = () => {
         className="flex flex-col sm:flex-row gap-4 mb-12"
       >
         <Button 
-          onClick={() => scrollToSection('featured-tools')}
+          onClick={handleTryFreeTools}
           size="lg"
           className="bg-green-500 hover:bg-green-600 text-black font-medium px-8 py-3 rounded-full text-lg hover:scale-105 transition-all duration-200"
         >
@@ -141,4 +146,3 @@ const Hero = () => {
 };
 
 export default Hero;
-
