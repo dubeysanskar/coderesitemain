@@ -26,16 +26,12 @@ const LeadSearchForm: React.FC<LeadSearchFormProps> = ({
 }) => {
   const industries = [
     'Technology', 'Healthcare', 'Finance', 'Education', 'Real Estate',
-    'Manufacturing', 'Retail', 'Consulting', 'Digital Marketing', 'E-commerce'
+    'Manufacturing', 'Retail', 'Consulting', 'Digital Marketing', 'E-commerce',
+    'Construction', 'Food & Beverage', 'Automotive', 'Legal Services', 'Travel & Tourism'
   ];
 
   const companySizes = [
     '1-10', '10-50', '50-100', '100-500', '500-1000', '1000+'
-  ];
-
-  const locations = [
-    'United States', 'New York, NY', 'California', 'Texas', 'Florida',
-    'Illinois', 'Pennsylvania', 'Ohio', 'Georgia', 'North Carolina'
   ];
 
   return (
@@ -48,10 +44,10 @@ const LeadSearchForm: React.FC<LeadSearchFormProps> = ({
         <CardHeader>
           <CardTitle className="text-2xl text-white flex items-center gap-2">
             <Target className="h-6 w-6 text-green-400" />
-            Lead Generation Tool
+            AI-Powered Lead Generation
           </CardTitle>
           <p className="text-gray-300">
-            Find high-quality leads that match your ideal customer profile
+            Generate real leads from across the web using advanced AI and search technology
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -60,14 +56,14 @@ const LeadSearchForm: React.FC<LeadSearchFormProps> = ({
             <div className="space-y-2">
               <Label htmlFor="industry" className="text-white flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                Industry
+                Industry *
               </Label>
               <Select 
                 value={searchCriteria.industry} 
                 onValueChange={(value) => onCriteriaChange('industry', value)}
               >
                 <SelectTrigger className="bg-black/40 border-white/30 text-white">
-                  <SelectValue placeholder="Select industry" />
+                  <SelectValue placeholder="Select target industry" />
                 </SelectTrigger>
                 <SelectContent className="bg-black border-white/30">
                   {industries.map((industry) => (
@@ -83,23 +79,18 @@ const LeadSearchForm: React.FC<LeadSearchFormProps> = ({
             <div className="space-y-2">
               <Label htmlFor="location" className="text-white flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
-                Location
+                Location *
               </Label>
-              <Select 
-                value={searchCriteria.location} 
-                onValueChange={(value) => onCriteriaChange('location', value)}
-              >
-                <SelectTrigger className="bg-black/40 border-white/30 text-white">
-                  <SelectValue placeholder="Select location" />
-                </SelectTrigger>
-                <SelectContent className="bg-black border-white/30">
-                  {locations.map((location) => (
-                    <SelectItem key={location} value={location} className="text-white hover:bg-white/10">
-                      {location}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input
+                id="location"
+                value={searchCriteria.location}
+                onChange={(e) => onCriteriaChange('location', e.target.value)}
+                placeholder="e.g., Lucknow, Uttar Pradesh, India"
+                className="bg-black/40 border-white/30 text-white placeholder:text-gray-400"
+              />
+              <p className="text-xs text-gray-400">
+                Be specific: City, State, Country for better targeting
+              </p>
             </div>
 
             {/* Company Size */}
@@ -124,12 +115,12 @@ const LeadSearchForm: React.FC<LeadSearchFormProps> = ({
 
             {/* Job Title */}
             <div className="space-y-2">
-              <Label htmlFor="jobTitle" className="text-white">Job Title</Label>
+              <Label htmlFor="jobTitle" className="text-white">Target Role</Label>
               <Input
                 id="jobTitle"
                 value={searchCriteria.jobTitle}
                 onChange={(e) => onCriteriaChange('jobTitle', e.target.value)}
-                placeholder="e.g., Marketing Manager, CEO, Director"
+                placeholder="e.g., CEO, Marketing Manager, Owner"
                 className="bg-black/40 border-white/30 text-white placeholder:text-gray-400"
               />
             </div>
@@ -137,12 +128,12 @@ const LeadSearchForm: React.FC<LeadSearchFormProps> = ({
 
           {/* Keywords */}
           <div className="space-y-2">
-            <Label htmlFor="keywords" className="text-white">Keywords (Optional)</Label>
+            <Label htmlFor="keywords" className="text-white">Additional Keywords</Label>
             <Textarea
               id="keywords"
               value={searchCriteria.keywords}
               onChange={(e) => onCriteriaChange('keywords', e.target.value)}
-              placeholder="Enter specific keywords, company names, or technologies..."
+              placeholder="Enter specific services, products, or company names..."
               className="bg-black/40 border-white/30 text-white placeholder:text-gray-400"
             />
           </div>
@@ -179,21 +170,27 @@ const LeadSearchForm: React.FC<LeadSearchFormProps> = ({
           {/* Search Button */}
           <Button
             onClick={onSearch}
-            disabled={isSearching}
-            className="w-full bg-green-500 hover:bg-green-600 text-black font-medium py-3 text-lg"
+            disabled={isSearching || (!searchCriteria.industry && !searchCriteria.location)}
+            className="w-full bg-white hover:bg-gray-100 text-black font-medium py-3 text-lg"
           >
             {isSearching ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black mr-2"></div>
-                Searching for Leads...
+                Generating Leads...
               </>
             ) : (
               <>
                 <Search className="h-5 w-5 mr-2" />
-                Generate Leads
+                Generate Real Leads
               </>
             )}
           </Button>
+          
+          {(!searchCriteria.industry && !searchCriteria.location) && (
+            <p className="text-yellow-400 text-sm text-center">
+              Please select at least an industry or location to start generating leads
+            </p>
+          )}
         </CardContent>
       </Card>
     </motion.div>
