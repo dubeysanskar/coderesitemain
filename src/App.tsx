@@ -12,6 +12,7 @@ import PPTGenerator from "./pages/PPTGenerator";
 import ResumeBuilder from "./pages/ResumeBuilder";
 import ReportGenerator from "./pages/ReportGenerator";
 import LeadGenerator from "./pages/LeadGenerator";
+import MailMerger from "./pages/MailMerger";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/resume-builder" element={<ResumeBuilder />} />
           <Route path="/report-generator" element={<ReportGenerator />} />
           <Route path="/lead-generator" element={<LeadGenerator />} />
+          <Route path="/mail-merger" element={<MailMerger />} />
           <Route path="/services/:service" element={<ServiceGig />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

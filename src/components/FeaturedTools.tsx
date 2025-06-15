@@ -79,7 +79,12 @@ const FeaturedTools = () => {
           icon: '📈',
           onClick: () => navigate('/ppt-generator'),
         },
-        { title: 'ATS Enhancer', description: 'Resume optimization for ATS', icon: '🔍' },
+        { 
+          title: 'Mail Merger tool', 
+          description: 'Merge your mail to automate workflow', 
+          icon: '📧',
+          onClick: () => navigate('/mail-merger'),
+        },
         { title: 'Prompt Guide', description: 'AI prompting strategies', icon: '💬' },
       ],
     },
