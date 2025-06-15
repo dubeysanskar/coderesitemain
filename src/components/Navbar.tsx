@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from './ui/button';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -124,14 +125,27 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Get Started Button */}
+          {/* Auth Buttons - Desktop */}
           <div className="hidden md:block">
-            <Button 
-              onClick={() => scrollToSection('featured-tools')}
-              className="bg-green-500 hover:bg-green-600 text-black font-medium px-6 py-2 rounded-full transition-all duration-200 hover:scale-105"
-            >
-              Get Started
-            </Button>
+            <SignedOut>
+              <SignInButton mode="modal">
+                <Button className="bg-green-500 hover:bg-green-600 text-black font-medium px-6 py-2 rounded-full transition-all duration-200 hover:scale-105">
+                  Get Started
+                </Button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <div className="flex items-center space-x-4">
+                <span className="text-white text-sm">Welcome!</span>
+                <UserButton 
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-10 h-10"
+                    }
+                  }}
+                />
+              </div>
+            </SignedIn>
           </div>
 
           {/* Mobile menu button */}
@@ -180,12 +194,29 @@ const Navbar = () => {
                   </button>
                 ))}
               </div>
-              <Button 
-                onClick={() => scrollToSection('featured-tools')}
-                className="bg-green-500 hover:bg-green-600 text-black font-medium w-full mt-4"
-              >
-                Get Started
-              </Button>
+              
+              {/* Mobile Auth */}
+              <div className="border-t border-white/20 pt-4">
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <Button className="bg-green-500 hover:bg-green-600 text-black font-medium w-full">
+                      Get Started
+                    </Button>
+                  </SignInButton>
+                </SignedOut>
+                <SignedIn>
+                  <div className="flex items-center justify-between">
+                    <span className="text-white text-sm">Welcome!</span>
+                    <UserButton 
+                      appearance={{
+                        elements: {
+                          avatarBox: "w-10 h-10"
+                        }
+                      }}
+                    />
+                  </div>
+                </SignedIn>
+              </div>
             </div>
           </motion.div>
         )}
