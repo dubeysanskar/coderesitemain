@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
+import { useToast } from './ui/use-toast';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -13,6 +14,8 @@ const Contact = () => {
     service: '',
     message: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -22,21 +25,53 @@ const Contact = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log('Form submitted:', formData);
-    // Show success message
-    alert('Message sent successfully! We will get back to you soon.');
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      company: '',
-      phone: '',
-      service: '',
-      message: '',
-    });
+    setIsSubmitting(true);
+
+    try {
+      // Create mailto link with form data
+      const subject = `Contact Form Submission - ${formData.service || 'General Inquiry'}`;
+      const body = `
+Name: ${formData.name}
+Email: ${formData.email}
+Company: ${formData.company || 'Not provided'}
+Phone: ${formData.phone || 'Not provided'}
+Service Required: ${formData.service}
+
+Message:
+${formData.message}
+      `.trim();
+
+      const mailtoLink = `mailto:sanskardubeydev@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      
+      // Open default email client
+      window.location.href = mailtoLink;
+      
+      toast({
+        title: "Email client opened",
+        description: "Your default email client should open with the message pre-filled. Please send the email to complete your submission.",
+        duration: 5000,
+      });
+
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        company: '',
+        phone: '',
+        service: '',
+        message: '',
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "There was an issue opening your email client. Please try again or contact us directly.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -172,9 +207,10 @@ const Contact = () => {
 
                   <Button
                     type="submit"
-                    className="w-full bg-green-500 hover:bg-green-600 text-black font-medium py-3 rounded-lg hover:scale-105 transition-all duration-200"
+                    disabled={isSubmitting}
+                    className="w-full bg-green-500 hover:bg-green-600 text-black font-medium py-3 rounded-lg hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Send Message
+                    {isSubmitting ? 'Opening Email Client...' : 'Send Message'}
                   </Button>
                 </form>
               </CardContent>
@@ -197,7 +233,7 @@ const Contact = () => {
                     <div className="text-2xl">📧</div>
                     <div>
                       <h4 className="text-lg font-semibold text-white">Email</h4>
-                      <p className="text-gray-300">contact@coderesite.com</p>
+                      <p className="text-gray-300">sanskardubeydev@gmail.com</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-4">
