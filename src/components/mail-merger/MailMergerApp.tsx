@@ -9,6 +9,8 @@ import { Upload, Mail, Eye, Send, FileSpreadsheet, CheckCircle, AlertCircle, Plu
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 
 interface Contact {
   name: string;
@@ -52,62 +54,128 @@ Your Name`);
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!file.name.endsWith('.csv') && !file.name.endsWith('.xlsx')) {
+    const fileExtension = file.name.toLowerCase().split('.').pop();
+    if (!['csv', 'xlsx', 'xls'].includes(fileExtension || '')) {
       toast({
         title: "Invalid File Format",
-        description: "Please upload a CSV or Excel file.",
+        description: "Please upload a CSV or Excel file (.csv, .xlsx, .xls).",
         variant: "destructive"
       });
       return;
     }
 
     setIsUploading(true);
+    console.log('Starting file upload process for:', file.name);
+
     try {
-      const text = await file.text();
-      const lines = text.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-      
+      let parsedData: any[] = [];
+
+      if (fileExtension === 'csv') {
+        // Parse CSV file
+        const text = await file.text();
+        console.log('CSV text preview:', text.substring(0, 200));
+        
+        const results = Papa.parse(text, {
+          header: true,
+          skipEmptyLines: true,
+          transformHeader: (header) => header.trim().toLowerCase()
+        });
+
+        if (results.errors.length > 0) {
+          console.error('CSV parsing errors:', results.errors);
+          throw new Error('CSV parsing failed: ' + results.errors[0].message);
+        }
+
+        parsedData = results.data;
+      } else {
+        // Parse Excel file
+        const arrayBuffer = await file.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        
+        parsedData = XLSX.utils.sheet_to_json(worksheet, { 
+          raw: false,
+          defval: ''
+        });
+
+        // Convert headers to lowercase
+        parsedData = parsedData.map(row => {
+          const newRow: any = {};
+          Object.keys(row).forEach(key => {
+            newRow[key.trim().toLowerCase()] = row[key];
+          });
+          return newRow;
+        });
+      }
+
+      console.log('Parsed data preview:', parsedData.slice(0, 3));
+
+      if (parsedData.length === 0) {
+        throw new Error('No data found in the file');
+      }
+
+      // Check for required columns
+      const headers = Object.keys(parsedData[0]);
+      console.log('Available headers:', headers);
+
       if (!headers.includes('name') || !headers.includes('email')) {
         toast({
           title: "Invalid File Format",
           description: "File must contain 'name' and 'email' columns.",
           variant: "destructive"
         });
+        setIsUploading(false);
         return;
       }
 
-      const parsedContacts: Contact[] = [];
-      for (let i = 1; i < lines.length; i++) {
-        if (lines[i].trim()) {
-          const values = lines[i].split(',');
-          const contact: Contact = { name: '', email: '' };
+      // Convert to contacts format
+      const validContacts: Contact[] = [];
+      parsedData.forEach((row, index) => {
+        const name = row.name?.toString().trim();
+        const email = row.email?.toString().trim();
+
+        if (name && email) {
+          const contact: Contact = { name, email };
           
-          headers.forEach((header, index) => {
-            const value = values[index]?.trim() || '';
-            contact[header] = value;
+          // Add all other fields
+          Object.keys(row).forEach(key => {
+            if (key !== 'name' && key !== 'email' && row[key]) {
+              contact[key] = row[key].toString().trim();
+            }
           });
 
-          if (contact.name && contact.email) {
-            parsedContacts.push(contact);
-          }
+          validContacts.push(contact);
+        } else {
+          console.log(`Skipping row ${index + 1} - missing name or email:`, row);
         }
+      });
+
+      if (validContacts.length === 0) {
+        throw new Error('No valid contacts found with both name and email');
       }
 
-      setContacts(parsedContacts);
+      setContacts(validContacts);
       setAvailableFields(headers);
+      
+      console.log('Successfully loaded contacts:', validContacts.length);
+      
       toast({
         title: "File Uploaded Successfully",
-        description: `Loaded ${parsedContacts.length} contacts.`
+        description: `Loaded ${validContacts.length} contacts.`
       });
+
     } catch (error) {
       console.error('File parsing error:', error);
       toast({
         title: "Upload Failed",
-        description: "Error parsing the file. Please check the format.",
+        description: error instanceof Error ? error.message : "Error parsing the file. Please check the format.",
         variant: "destructive"
       });
     } finally {
       setIsUploading(false);
+      // Reset the file input
+      event.target.value = '';
     }
   };
 
@@ -281,10 +349,11 @@ Your Name`);
               <CardContent className="space-y-4">
                 <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center">
                   <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-400 mb-4">Upload CSV or Excel file with contacts</p>
+                  <p className="text-gray-400 mb-2">Upload CSV or Excel file with contacts</p>
+                  <p className="text-sm text-gray-500 mb-4">File must contain 'name' and 'email' columns</p>
                   <input
                     type="file"
-                    accept=".csv,.xlsx"
+                    accept=".csv,.xlsx,.xls"
                     onChange={handleFileUpload}
                     className="hidden"
                     id="file-upload"
@@ -296,7 +365,7 @@ Your Name`);
                     disabled={isUploading}
                   >
                     <label htmlFor="file-upload" className="cursor-pointer">
-                      {isUploading ? 'Uploading...' : 'Choose File'}
+                      {isUploading ? 'Processing...' : 'Choose File'}
                     </label>
                   </Button>
                 </div>
