@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { LeadSearchCriteria, LeadGenerationResult } from '@/lib/lead-types';
@@ -21,7 +20,6 @@ const LeadGeneratorApp: React.FC = () => {
     location: {
       city: '',
       state: '',
-      // Removed the default "United States" country
     },
     companySize: '',
     jobTitle: '',
@@ -30,7 +28,9 @@ const LeadGeneratorApp: React.FC = () => {
     customTags: [],
     emailRequired: true,
     phoneRequired: false,
-    searchDepth: 3
+    searchDepth: 3,
+    timeRange: 'w', // Default to 1 week
+    maxPages: 3 // Default to 3 pages
   });
 
   const handleCriteriaChange = (criteria: LeadSearchCriteria) => {
