@@ -3,6 +3,8 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const getApiKey = () => {
   const apiKey = import.meta.env.VITE_GEMINI_LEAD_API_KEY;
+  console.log('🔑 Checking API key availability:', apiKey ? 'Found' : 'Missing');
+  
   if (!apiKey) {
     throw new Error('Gemini API key not found. Please check your environment variables.');
   }
@@ -11,9 +13,11 @@ const getApiKey = () => {
 
 export const refinePrompt = async (rawInput: string, targetModel: string = 'general'): Promise<string> => {
   try {
+    console.log('🚀 Starting prompt refinement process...');
     const apiKey = getApiKey();
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    console.log('✅ Gemini model initialized');
 
     const systemPrompt = `You are a professional prompt engineer. Your job is to take raw or messy instructions from users and rewrite them as structured, high-quality prompts suitable for AI models like ${targetModel === 'gemini' ? 'Google Gemini' : targetModel === 'chatgpt' ? 'OpenAI ChatGPT' : targetModel === 'claude' ? 'Anthropic Claude' : 'any AI model'}.
 
@@ -57,9 +61,11 @@ Now, take this raw input and transform it into a polished, structured prompt:
 
 Return only the refined prompt, nothing else.`;
 
+    console.log('📝 Sending request to Gemini API...');
     const result = await model.generateContent(systemPrompt);
     const response = await result.response;
     const refinedPrompt = response.text();
+    console.log('📨 Received response from Gemini API');
 
     if (!refinedPrompt || refinedPrompt.trim().length === 0) {
       throw new Error('Empty response from AI');
