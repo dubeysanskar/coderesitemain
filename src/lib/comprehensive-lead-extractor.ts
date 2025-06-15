@@ -1,4 +1,3 @@
-
 import { Lead, LeadSearchCriteria } from './lead-types';
 
 export class ComprehensiveLeadExtractor {
@@ -98,44 +97,27 @@ export class ComprehensiveLeadExtractor {
 
   private extractNames(title: string, snippet: string): string[] {
     const combinedText = `${title} ${snippet}`;
-    const names: string[] = [];
+    const names = new Set<string>();
     
-    // Use match with global flag to get all matches at once
-    const firstLastPattern = /\b([A-Z][a-z]+ [A-Z][a-z]+)\b/g;
-    const firstMiddleLastPattern = /\b([A-Z][a-z]+ [A-Z]\. [A-Z][a-z]+)\b/g;
-    const fullNamePattern = /\b([A-Z][a-z]+(?:\s[A-Z][a-z]+){1,2})\b/g;
+    // Define patterns for name extraction
+    const patterns = [
+      /\b([A-Z][a-z]+ [A-Z][a-z]+)\b/g, // First Last
+      /\b([A-Z][a-z]+ [A-Z]\. [A-Z][a-z]+)\b/g, // First M. Last
+      /\b([A-Z][a-z]+(?:\s[A-Z][a-z]+){1,2})\b/g // First Middle Last
+    ];
     
-    // Extract first-last names
-    const firstLastMatches = combinedText.match(firstLastPattern);
-    if (firstLastMatches) {
-      firstLastMatches.forEach(match => {
-        if (!this.isCommonWord(match) && match.split(' ').length >= 2) {
-          names.push(match);
+    // Extract names using each pattern
+    patterns.forEach(pattern => {
+      const matches = Array.from(combinedText.matchAll(pattern));
+      matches.forEach(match => {
+        const name = match[1];
+        if (name && !this.isCommonWord(name) && name.split(' ').length >= 2) {
+          names.add(name);
         }
       });
-    }
+    });
     
-    // Extract first-middle-last names
-    const firstMiddleLastMatches = combinedText.match(firstMiddleLastPattern);
-    if (firstMiddleLastMatches) {
-      firstMiddleLastMatches.forEach(match => {
-        if (!this.isCommonWord(match) && match.split(' ').length >= 2) {
-          names.push(match);
-        }
-      });
-    }
-    
-    // Extract full names
-    const fullNameMatches = combinedText.match(fullNamePattern);
-    if (fullNameMatches) {
-      fullNameMatches.forEach(match => {
-        if (!this.isCommonWord(match) && match.split(' ').length >= 2) {
-          names.push(match);
-        }
-      });
-    }
-    
-    return [...new Set(names)];
+    return Array.from(names);
   }
 
   private extractCompanies(title: string, snippet: string, criteria: LeadSearchCriteria): string[] {
