@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { useNavigate } from 'react-router-dom';
+import { SignedIn, SignedOut, SignInButton } from "@clerk/clerk-react";
 
 const Services = () => {
   const navigate = useNavigate();
@@ -89,12 +89,21 @@ const Services = () => {
                     </ul>
                   </div>
                   
-                  <Button 
-                    onClick={() => handleViewMore(service.slug)}
-                    className="bg-green-500 hover:bg-green-600 text-black font-medium rounded-full w-full hover:scale-105 transition-all duration-200"
-                  >
-                    View More
-                  </Button>
+                  <SignedIn>
+                    <Button
+                      onClick={() => handleViewMore(service.slug)}
+                      className="bg-green-500 hover:bg-green-600 text-black font-medium rounded-full w-full hover:scale-105 transition-all duration-200"
+                    >
+                      View More
+                    </Button>
+                  </SignedIn>
+                  <SignedOut>
+                    <SignInButton mode="modal">
+                      <Button className="bg-green-500 hover:bg-green-600 text-black font-medium rounded-full w-full hover:scale-105 transition-all duration-200">
+                        View More
+                      </Button>
+                    </SignInButton>
+                  </SignedOut>
                 </CardContent>
               </Card>
             </motion.div>

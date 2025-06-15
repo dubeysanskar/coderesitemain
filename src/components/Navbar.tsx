@@ -1,14 +1,21 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from './ui/button';
 import { useNavigate, useLocation } from 'react-router-dom';
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  UserButton,
+  useClerk,
+} from "@clerk/clerk-react";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { signOut } = useClerk();
 
   const scrollToSection = (sectionId: string) => {
     // If we're not on home page, navigate home first
@@ -68,11 +75,10 @@ const Navbar = () => {
               <img 
                 src="/logo.png" 
                 alt="CodeResite" 
-                className="h-12 w-auto"
+                className="h-20 w-auto" // Increased logo size
               />
             </motion.div>
           </div>
-
           {/* Desktop Navigation */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-4">
@@ -123,17 +129,30 @@ const Navbar = () => {
               </div>
             </div>
           </div>
-
-          {/* Get Started Button */}
+          {/* Get Started / Log in / Log out button */}
           <div className="hidden md:block">
-            <Button 
-              onClick={() => scrollToSection('featured-tools')}
-              className="bg-green-500 hover:bg-green-600 text-black font-medium px-6 py-2 rounded-full transition-all duration-200 hover:scale-105"
-            >
-              Get Started
-            </Button>
+            <SignedOut>
+              <SignInButton mode="modal">
+                <Button
+                  className="bg-green-500 hover:bg-green-600 text-black font-medium px-6 py-2 rounded-full transition-all duration-200 hover:scale-105"
+                >
+                  GET STARTED
+                </Button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <div className="flex items-center gap-3">
+                <UserButton afterSignOutUrl="/" />
+                <Button
+                  className="bg-green-500 hover:bg-green-600 text-black font-medium px-6 py-2 rounded-full transition-all duration-200 hover:scale-105"
+                  onClick={() => signOut()}
+                  type="button"
+                >
+                  LOG OUT
+                </Button>
+              </div>
+            </SignedIn>
           </div>
-
           {/* Mobile menu button */}
           <div className="md:hidden">
             <button
@@ -150,7 +169,6 @@ const Navbar = () => {
             </button>
           </div>
         </div>
-
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <motion.div
@@ -180,12 +198,28 @@ const Navbar = () => {
                   </button>
                 ))}
               </div>
-              <Button 
-                onClick={() => scrollToSection('featured-tools')}
-                className="bg-green-500 hover:bg-green-600 text-black font-medium w-full mt-4"
-              >
-                Get Started
-              </Button>
+              {/* Auth button for mobile */}
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <Button 
+                    className="bg-green-500 hover:bg-green-600 text-black font-medium w-full mt-4"
+                  >
+                    GET STARTED
+                  </Button>
+                </SignInButton>
+              </SignedOut>
+              <SignedIn>
+                <div className="flex items-center gap-3 mt-4">
+                  <UserButton afterSignOutUrl="/" />
+                  <Button
+                    className="bg-green-500 hover:bg-green-600 text-black font-medium w-full"
+                    onClick={() => signOut()}
+                    type="button"
+                  >
+                    LOG OUT
+                  </Button>
+                </div>
+              </SignedIn>
             </div>
           </motion.div>
         )}
