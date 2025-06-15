@@ -1,3 +1,4 @@
+
 export interface LeadSearchCriteria {
   industry: string[];
   location: {
@@ -15,6 +16,7 @@ export interface LeadSearchCriteria {
   searchDepth: number; // Pages 1-5
   timeRange?: string; // New field for time-based search
   maxPages?: number; // New field for search pages
+  targetPlatforms?: string[]; // New field for platform selection
 }
 
 export interface Lead {
@@ -30,6 +32,8 @@ export interface Lead {
   companySize: string;
   score: number;
   sourceUrl?: string;
+  platform?: string; // Which platform this lead was found on
+  extractedData?: any; // Raw extracted data for quality assessment
 }
 
 export interface LeadGenerationResult {
@@ -38,6 +42,12 @@ export interface LeadGenerationResult {
   searchCriteria: LeadSearchCriteria;
   generatedAt: string;
   googleDorkQuery: string;
+  platformResults?: {
+    [platform: string]: {
+      count: number;
+      queries: string[];
+    };
+  };
 }
 
 export interface GoogleDorkQuery {

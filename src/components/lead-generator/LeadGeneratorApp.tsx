@@ -30,7 +30,8 @@ const LeadGeneratorApp: React.FC = () => {
     phoneRequired: false,
     searchDepth: 3,
     timeRange: 'w', // Default to 1 week
-    maxPages: 3 // Default to 3 pages
+    maxPages: 3, // Default to 3 pages
+    targetPlatforms: ['linkedin', 'reddit', 'twitter'] // Default platforms
   });
 
   const handleCriteriaChange = (criteria: LeadSearchCriteria) => {
@@ -53,7 +54,7 @@ const LeadGeneratorApp: React.FC = () => {
   };
 
   const handleSearch = async () => {
-    console.log('🎯 Starting search with criteria:', searchCriteria);
+    console.log('🎯 Starting comprehensive search with criteria:', searchCriteria);
     
     if (searchCriteria.industry.length === 0 && !searchCriteria.location.city) {
       toast({
@@ -64,11 +65,20 @@ const LeadGeneratorApp: React.FC = () => {
       return;
     }
 
+    if (!searchCriteria.targetPlatforms || searchCriteria.targetPlatforms.length === 0) {
+      toast({
+        title: "No Platforms Selected",
+        description: "Please select at least one platform to search.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSearching(true);
     try {
       toast({
-        title: "🚀 Multi-Platform Lead Search Started",
-        description: "Searching LinkedIn, Reddit, and Twitter for qualified leads...",
+        title: "🚀 Advanced Multi-Platform Search Started",
+        description: `Searching ${searchCriteria.targetPlatforms.length} platforms with ${searchCriteria.maxPages} pages each for comprehensive lead data...`,
       });
 
       const searchResults = await newLeadGenerationService.generateLeads(searchCriteria);
@@ -78,10 +88,10 @@ const LeadGeneratorApp: React.FC = () => {
       setCurrentStep('results');
       
       toast({
-        title: searchResults.totalCount > 0 ? "🎯 Leads Found!" : "🔍 Search Completed",
+        title: searchResults.totalCount > 0 ? "🎯 Quality Leads Found!" : "🔍 Search Completed",
         description: searchResults.totalCount > 0 
-          ? `Found ${searchResults.totalCount} qualified leads across multiple platforms.`
-          : "No leads found with current criteria. Try adjusting your search parameters.",
+          ? `Found ${searchResults.totalCount} qualified leads with contact information across ${searchCriteria.targetPlatforms.length} platforms.`
+          : "No leads found with current criteria. Try adjusting your search parameters or adding more platforms.",
       });
     } catch (error) {
       console.error('❌ Error generating leads:', error);

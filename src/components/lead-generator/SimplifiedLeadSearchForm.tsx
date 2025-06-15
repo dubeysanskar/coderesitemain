@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Target, MapPin, Briefcase, Clock, Globe } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Search, Target, MapPin, Briefcase, Clock, Globe, X } from 'lucide-react';
 import { LeadSearchCriteria } from '@/lib/lead-types';
 
 interface SimplifiedLeadSearchFormProps {
@@ -38,6 +39,14 @@ const SimplifiedLeadSearchForm: React.FC<SimplifiedLeadSearchFormProps> = ({
     { value: 'w', label: '1 Week' },
     { value: 'm', label: '1 Month' },
     { value: 'y', label: '1 Year' }
+  ];
+
+  const availablePlatforms = [
+    { id: 'linkedin', name: 'LinkedIn Profiles', domain: 'linkedin.com/in' },
+    { id: 'reddit', name: 'Reddit Posts', domain: 'reddit.com' },
+    { id: 'twitter', name: 'Twitter Profiles', domain: 'twitter.com' },
+    { id: 'github', name: 'GitHub Profiles', domain: 'github.com' },
+    { id: 'medium', name: 'Medium Articles', domain: 'medium.com' }
   ];
 
   const handleIndustryChange = (value: string) => {
@@ -75,6 +84,42 @@ const SimplifiedLeadSearchForm: React.FC<SimplifiedLeadSearchFormProps> = ({
     });
   };
 
+  const handlePlatformToggle = (platformId: string, checked: boolean) => {
+    const currentPlatforms = searchCriteria.targetPlatforms || ['linkedin', 'reddit', 'twitter'];
+    let newPlatforms;
+    
+    if (checked) {
+      newPlatforms = [...currentPlatforms, platformId];
+    } else {
+      newPlatforms = currentPlatforms.filter(p => p !== platformId);
+    }
+    
+    onCriteriaChange({
+      ...searchCriteria,
+      targetPlatforms: newPlatforms
+    });
+  };
+
+  const addCustomPlatform = (domain: string) => {
+    if (domain.trim()) {
+      const currentPlatforms = searchCriteria.targetPlatforms || [];
+      onCriteriaChange({
+        ...searchCriteria,
+        targetPlatforms: [...currentPlatforms, domain.trim()]
+      });
+    }
+  };
+
+  const removeCustomPlatform = (platform: string) => {
+    const currentPlatforms = searchCriteria.targetPlatforms || [];
+    onCriteriaChange({
+      ...searchCriteria,
+      targetPlatforms: currentPlatforms.filter(p => p !== platform)
+    });
+  };
+
+  const currentPlatforms = searchCriteria.targetPlatforms || ['linkedin', 'reddit', 'twitter'];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -88,7 +133,7 @@ const SimplifiedLeadSearchForm: React.FC<SimplifiedLeadSearchFormProps> = ({
             Smart Lead Generator
           </CardTitle>
           <p className="text-gray-300">
-            Find leads from LinkedIn, Reddit, and Twitter using advanced Google dorking
+            Find leads across multiple platforms using advanced Google dorking
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -154,6 +199,62 @@ const SimplifiedLeadSearchForm: React.FC<SimplifiedLeadSearchFormProps> = ({
             />
           </div>
 
+          {/* Target Platforms */}
+          <div className="space-y-4">
+            <Label className="text-white text-lg">Target Platforms</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {availablePlatforms.map((platform) => (
+                <div key={platform.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={platform.id}
+                    checked={currentPlatforms.includes(platform.id)}
+                    onCheckedChange={(checked) => handlePlatformToggle(platform.id, checked as boolean)}
+                    className="border-white/30"
+                  />
+                  <Label htmlFor={platform.id} className="text-white text-sm">
+                    {platform.name}
+                  </Label>
+                </div>
+              ))}
+            </div>
+            
+            {/* Custom Platform Input */}
+            <div className="space-y-2">
+              <Label className="text-white">Add Custom Platform</Label>
+              <Input
+                placeholder="e.g., stackoverflow.com, producthunt.com"
+                className="bg-black/40 border-white/30 text-white placeholder:text-gray-400"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    addCustomPlatform(e.currentTarget.value);
+                    e.currentTarget.value = '';
+                  }
+                }}
+              />
+            </div>
+
+            {/* Selected Platforms */}
+            {currentPlatforms.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {currentPlatforms.map((platform) => (
+                  <div key={platform} className="bg-green-500/20 border border-green-500/30 rounded-lg px-3 py-1 flex items-center gap-2">
+                    <span className="text-green-400 text-sm">
+                      {availablePlatforms.find(p => p.id === platform)?.name || platform}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => removeCustomPlatform(platform)}
+                      className="h-4 w-4 p-0 text-green-400 hover:text-red-400"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Time Range and Search Pages */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -191,23 +292,13 @@ const SimplifiedLeadSearchForm: React.FC<SimplifiedLeadSearchFormProps> = ({
                   <SelectValue placeholder="Select pages" />
                 </SelectTrigger>
                 <SelectContent className="bg-black border-white/30">
-                  <SelectItem value="1" className="text-white hover:bg-white/10">1 Page</SelectItem>
-                  <SelectItem value="2" className="text-white hover:bg-white/10">2 Pages</SelectItem>
-                  <SelectItem value="3" className="text-white hover:bg-white/10">3 Pages</SelectItem>
-                  <SelectItem value="5" className="text-white hover:bg-white/10">5 Pages</SelectItem>
-                  <SelectItem value="10" className="text-white hover:bg-white/10">10 Pages</SelectItem>
+                  {[1, 2, 3, 5, 10].map((pages) => (
+                    <SelectItem key={pages} value={pages.toString()} className="text-white hover:bg-white/10">
+                      {pages} Page{pages > 1 ? 's' : ''}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-            </div>
-          </div>
-
-          {/* Platform Info */}
-          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-            <h3 className="text-green-400 font-medium mb-2">🎯 Target Platforms</h3>
-            <div className="flex gap-4 text-sm text-gray-300">
-              <span>✅ LinkedIn Profiles</span>
-              <span>✅ Reddit Posts</span>
-              <span>✅ Twitter Profiles</span>
             </div>
           </div>
 
