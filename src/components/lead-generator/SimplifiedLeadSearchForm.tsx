@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Target, MapPin, Briefcase } from 'lucide-react';
+import { Search, Target, MapPin, Briefcase, Clock, Globe } from 'lucide-react';
 import { LeadSearchCriteria } from '@/lib/lead-types';
 
 interface SimplifiedLeadSearchFormProps {
@@ -30,6 +30,16 @@ const SimplifiedLeadSearchForm: React.FC<SimplifiedLeadSearchFormProps> = ({
     'EdTech', 'FinTech', 'Cybersecurity', 'AI/ML', 'SaaS'
   ];
 
+  const timeRanges = [
+    { value: 'h', label: '1 Hour' },
+    { value: 'h10', label: '10 Hours' },
+    { value: 'd', label: '1 Day' },
+    { value: 'd3', label: '3 Days' },
+    { value: 'w', label: '1 Week' },
+    { value: 'm', label: '1 Month' },
+    { value: 'y', label: '1 Year' }
+  ];
+
   const handleIndustryChange = (value: string) => {
     onCriteriaChange({
       ...searchCriteria,
@@ -48,6 +58,20 @@ const SimplifiedLeadSearchForm: React.FC<SimplifiedLeadSearchFormProps> = ({
     onCriteriaChange({
       ...searchCriteria,
       jobTitle: value
+    });
+  };
+
+  const handleTimeRangeChange = (value: string) => {
+    onCriteriaChange({
+      ...searchCriteria,
+      timeRange: value
+    });
+  };
+
+  const handleMaxPagesChange = (value: string) => {
+    onCriteriaChange({
+      ...searchCriteria,
+      maxPages: parseInt(value)
     });
   };
 
@@ -128,6 +152,53 @@ const SimplifiedLeadSearchForm: React.FC<SimplifiedLeadSearchFormProps> = ({
               placeholder="e.g., Software Engineer, Marketing Manager, CEO"
               className="bg-black/40 border-white/30 text-white placeholder:text-gray-400"
             />
+          </div>
+
+          {/* Time Range and Search Pages */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-white flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Time Range
+              </Label>
+              <Select 
+                value={searchCriteria.timeRange || ''} 
+                onValueChange={handleTimeRangeChange}
+              >
+                <SelectTrigger className="bg-black/40 border-white/30 text-white">
+                  <SelectValue placeholder="Select time range" />
+                </SelectTrigger>
+                <SelectContent className="bg-black border-white/30">
+                  {timeRanges.map((range) => (
+                    <SelectItem key={range.value} value={range.value} className="text-white hover:bg-white/10">
+                      {range.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                Search Pages
+              </Label>
+              <Select 
+                value={searchCriteria.maxPages?.toString() || '3'} 
+                onValueChange={handleMaxPagesChange}
+              >
+                <SelectTrigger className="bg-black/40 border-white/30 text-white">
+                  <SelectValue placeholder="Select pages" />
+                </SelectTrigger>
+                <SelectContent className="bg-black border-white/30">
+                  <SelectItem value="1" className="text-white hover:bg-white/10">1 Page</SelectItem>
+                  <SelectItem value="2" className="text-white hover:bg-white/10">2 Pages</SelectItem>
+                  <SelectItem value="3" className="text-white hover:bg-white/10">3 Pages</SelectItem>
+                  <SelectItem value="5" className="text-white hover:bg-white/10">5 Pages</SelectItem>
+                  <SelectItem value="10" className="text-white hover:bg-white/10">10 Pages</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Platform Info */}

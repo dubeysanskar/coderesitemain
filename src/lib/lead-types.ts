@@ -1,4 +1,3 @@
-
 export interface LeadSearchCriteria {
   industry: string[];
   location: {
@@ -14,6 +13,8 @@ export interface LeadSearchCriteria {
   emailRequired: boolean;
   phoneRequired: boolean;
   searchDepth: number; // Pages 1-5
+  timeRange?: string; // New field for time-based search
+  maxPages?: number; // New field for search pages
 }
 
 export interface Lead {
