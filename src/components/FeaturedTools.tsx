@@ -73,7 +73,12 @@ const FeaturedTools = () => {
           icon: '🎯',
           onClick: () => navigate('/lead-generator'),
         },
-        { title: 'Presentation Maker', description: 'Professional marketing slides', icon: '📈' },
+        { 
+          title: 'Presentation Maker', 
+          description: 'Professional marketing slides', 
+          icon: '📈',
+          onClick: () => navigate('/ppt-generator'),
+        },
         { title: 'ATS Enhancer', description: 'Resume optimization for ATS', icon: '🔍' },
         { title: 'Prompt Guide', description: 'AI prompting strategies', icon: '💬' },
       ],
