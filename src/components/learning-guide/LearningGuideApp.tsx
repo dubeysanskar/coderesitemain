@@ -3,7 +3,6 @@ import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, Download, ArrowLeft, X } from 'lucide-react';
 
 const roleBased = [
@@ -25,7 +24,6 @@ const skillBased = [
 
 export function LearningGuideApp() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
   const [selectedRoadmap, setSelectedRoadmap] = useState<string | null>(null);
 
   const getImagePath = (title: string) => {
@@ -53,31 +51,23 @@ export function LearningGuideApp() {
     setSearchTerm('');
   };
 
-  const filteredRoadmaps = useMemo(() => {
-    let allRoadmaps = [
-      ...roleBased.map(role => ({ title: role, category: 'role' as const })),
-      ...skillBased.map(skill => ({ title: skill, category: 'skill' as const }))
-    ];
+  const filteredRoleRoadmaps = useMemo(() => {
+    return roleBased.filter(role =>
+      role.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm]);
 
-    if (activeTab === 'roles') {
-      allRoadmaps = allRoadmaps.filter(item => item.category === 'role');
-    } else if (activeTab === 'skills') {
-      allRoadmaps = allRoadmaps.filter(item => item.category === 'skill');
-    }
-
-    if (searchTerm) {
-      allRoadmaps = allRoadmaps.filter(item =>
-        item.title.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    return allRoadmaps;
-  }, [searchTerm, activeTab]);
+  const filteredSkillRoadmaps = useMemo(() => {
+    return skillBased.filter(skill =>
+      skill.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (filteredRoadmaps.length > 0) {
-      setSelectedRoadmap(filteredRoadmaps[0].title);
+    const allFiltered = [...filteredRoleRoadmaps, ...filteredSkillRoadmaps];
+    if (allFiltered.length > 0) {
+      setSelectedRoadmap(allFiltered[0]);
     }
   };
 
@@ -91,7 +81,23 @@ export function LearningGuideApp() {
           className="bg-black/60 backdrop-blur-sm rounded-lg p-6"
         >
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-white">{selectedRoadmap} Roadmap</h2>
+            <div className="flex items-center gap-4">
+              <Button
+                onClick={handleBackToHome}
+                className="bg-white text-black hover:bg-gray-200 transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Home
+              </Button>
+              <h2 className="text-2xl font-bold text-white">{selectedRoadmap} Roadmap</h2>
+              <Button
+                onClick={() => handleDownload(selectedRoadmap)}
+                className="bg-green-500 text-black hover:bg-green-600 transition-colors"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download Image
+              </Button>
+            </div>
             <Button
               onClick={() => setSelectedRoadmap(null)}
               className="bg-white text-black hover:bg-gray-200"
@@ -100,7 +106,7 @@ export function LearningGuideApp() {
             </Button>
           </div>
           
-          <div className="mb-6 text-center">
+          <div className="text-center">
             <img 
               src={getImagePath(selectedRoadmap)}
               alt={`${selectedRoadmap} Roadmap`}
@@ -111,30 +117,13 @@ export function LearningGuideApp() {
               }}
             />
           </div>
-          
-          <div className="flex gap-4 justify-center">
-            <Button 
-              onClick={handleBackToHome}
-              className="bg-white text-black hover:bg-gray-200"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
-            <Button 
-              onClick={() => handleDownload(selectedRoadmap)}
-              className="bg-green-500 text-black hover:bg-green-600"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Download Image
-            </Button>
-          </div>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 pt-24">
+    <div className="max-w-7xl mx-auto px-4 py-8 pt-24 min-h-screen">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -149,84 +138,108 @@ export function LearningGuideApp() {
         </p>
 
         {/* Search Bar */}
-        <form onSubmit={handleSearchSubmit} className="relative max-w-md mx-auto mb-8">
+        <form onSubmit={handleSearchSubmit} className="relative max-w-md mx-auto mb-12">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             type="text"
             placeholder="Search for roles or skills..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-black/40 border-white/20 text-white placeholder-gray-400"
+            className="pl-10 bg-black/40 border-white/20 text-white placeholder-gray-400 h-12"
           />
         </form>
       </motion.div>
 
-      {/* Filter Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
-        <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 bg-black/40">
-          <TabsTrigger value="all" className="text-white data-[state=active]:bg-green-600 data-[state=active]:text-black">
-            All ({roleBased.length + skillBased.length})
-          </TabsTrigger>
-          <TabsTrigger value="roles" className="text-white data-[state=active]:bg-green-600 data-[state=active]:text-black">
-            Roles ({roleBased.length})
-          </TabsTrigger>
-          <TabsTrigger value="skills" className="text-white data-[state=active]:bg-green-600 data-[state=active]:text-black">
-            Skills ({skillBased.length})
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="all" className="mt-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-            {filteredRoadmaps.map((roadmap) => (
+      {/* Role-Based Section */}
+      <div className="mb-16">
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-8"
+        >
+          <h2 className="text-3xl font-bold text-white mb-2">Role-Based Roadmaps</h2>
+          <p className="text-gray-400">Career-focused learning paths for specific roles</p>
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+        >
+          {filteredRoleRoadmaps.map((role, index) => (
+            <motion.div
+              key={role}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 * index }}
+              whileHover={{ scale: 1.05, y: -5 }}
+              whileTap={{ scale: 0.95 }}
+            >
               <Button
-                key={`${roadmap.category}-${roadmap.title}`}
-                onClick={() => handleRoadmapClick(roadmap.title)}
-                className="bg-white text-black hover:bg-gray-200 h-auto py-3 px-2 text-sm font-medium"
+                onClick={() => handleRoadmapClick(role)}
+                className="w-full h-16 bg-gradient-to-r from-green-500/20 to-blue-500/20 border border-green-500/30 text-white hover:from-green-500/30 hover:to-blue-500/30 hover:border-green-400 transition-all duration-300 rounded-lg backdrop-blur-sm shadow-lg hover:shadow-xl"
               >
-                {roadmap.title}
+                <span className="font-medium text-center">{role}</span>
               </Button>
-            ))}
-          </div>
-        </TabsContent>
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
 
-        <TabsContent value="roles" className="mt-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-            {filteredRoadmaps.map((roadmap) => (
+      {/* Skill-Based Section */}
+      <div className="mb-16">
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mb-8"
+        >
+          <h2 className="text-3xl font-bold text-white mb-2">Skill-Based Roadmaps</h2>
+          <p className="text-gray-400">Technology and skill-specific learning paths</p>
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+        >
+          {filteredSkillRoadmaps.map((skill, index) => (
+            <motion.div
+              key={skill}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 * index }}
+              whileHover={{ scale: 1.05, y: -5 }}
+              whileTap={{ scale: 0.95 }}
+            >
               <Button
-                key={`${roadmap.category}-${roadmap.title}`}
-                onClick={() => handleRoadmapClick(roadmap.title)}
-                className="bg-white text-black hover:bg-gray-200 h-auto py-3 px-2 text-sm font-medium"
+                onClick={() => handleRoadmapClick(skill)}
+                className="w-full h-16 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 text-white hover:from-blue-500/30 hover:to-purple-500/30 hover:border-blue-400 transition-all duration-300 rounded-lg backdrop-blur-sm shadow-lg hover:shadow-xl"
               >
-                {roadmap.title}
+                <span className="font-medium text-center">{skill}</span>
               </Button>
-            ))}
-          </div>
-        </TabsContent>
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
 
-        <TabsContent value="skills" className="mt-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-            {filteredRoadmaps.map((roadmap) => (
-              <Button
-                key={`${roadmap.category}-${roadmap.title}`}
-                onClick={() => handleRoadmapClick(roadmap.title)}
-                className="bg-white text-black hover:bg-gray-200 h-auto py-3 px-2 text-sm font-medium"
-              >
-                {roadmap.title}
-              </Button>
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      {filteredRoadmaps.length === 0 && (
+      {(filteredRoleRoadmaps.length === 0 && filteredSkillRoadmaps.length === 0 && searchTerm) && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-center py-12"
         >
-          <p className="text-gray-400 text-lg">
-            No roadmaps found for "{searchTerm}". Try a different search term.
-          </p>
+          <div className="bg-black/40 backdrop-blur-sm rounded-lg p-8 border border-white/10">
+            <p className="text-gray-400 text-lg mb-4">
+              No roadmaps found for "{searchTerm}"
+            </p>
+            <p className="text-gray-500">
+              Try a different search term or browse our available roadmaps above.
+            </p>
+          </div>
         </motion.div>
       )}
     </div>
