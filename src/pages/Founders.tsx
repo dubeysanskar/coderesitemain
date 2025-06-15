@@ -127,21 +127,11 @@ const Founders = () => {
                           animation: 'blob 8s infinite'
                         }}
                       >
-                        <div className={`w-full h-full ${
-                          founder.name === 'Balkrishna Garg' || founder.name === 'Adarsh Shukla' 
-                            ? 'bg-white p-4' 
-                            : ''
-                        }`}>
-                          <img 
-                            src={founder.avatar} 
-                            alt={founder.name}
-                            className={`w-full h-full transition-all duration-300 group-hover:blur-sm group-hover:scale-110 ${
-                              founder.name === 'Balkrishna Garg' || founder.name === 'Adarsh Shukla' 
-                                ? 'object-contain' 
-                                : 'object-cover'
-                            }`}
-                          />
-                        </div>
+                        <img 
+                          src={founder.avatar} 
+                          alt={founder.name}
+                          className="w-full h-full object-cover transition-all duration-300 group-hover:blur-sm group-hover:scale-110"
+                        />
                         
                         {/* Hover overlay */}
                         <motion.div
