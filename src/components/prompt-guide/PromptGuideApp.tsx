@@ -286,7 +286,7 @@ Example: 'I want to build a tool that takes Excel upload and sends email with di
                         </Button>
                         <Button
                           onClick={cancelEditing}
-                          className="flex-1 border-gray-600 text-black bg-white"
+                          className="flex-1 text-black bg-white hover:bg-gray-100"
                         >
                           Cancel
                         </Button>
@@ -304,14 +304,14 @@ Example: 'I want to build a tool that takes Excel upload and sends email with di
                       <div className="flex gap-2">
                         <Button
                           onClick={() => copyToClipboard(refinedPrompt)}
-                          className="flex-1 border-gray-600 text-black bg-white"
+                          className="flex-1 text-black bg-white hover:bg-gray-100"
                         >
                           <Copy className="h-4 w-4 mr-2" />
                           Copy
                         </Button>
                         <Button
                           onClick={downloadPrompt}
-                          className="flex-1 border-gray-600 text-black bg-white"
+                          className="flex-1 text-black bg-white hover:bg-gray-100"
                         >
                           Download
                         </Button>
@@ -319,7 +319,7 @@ Example: 'I want to build a tool that takes Excel upload and sends email with di
                       
                       <Button
                         onClick={startEditing}
-                        className="w-full border-green-600 text-black bg-white"
+                        className="w-full text-black bg-white hover:bg-gray-100"
                       >
                         <Edit className="h-4 w-4 mr-2" />
                         Edit This Prompt
@@ -350,7 +350,7 @@ Example: 'I want to build a tool that takes Excel upload and sends email with di
                   onClick={() => setShowChatbot(false)}
                   variant="ghost"
                   size="icon"
-                  className="text-gray-400"
+                  className="text-gray-400 hover:text-gray-300"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -358,7 +358,7 @@ Example: 'I want to build a tool that takes Excel upload and sends email with di
               <CardContent className="space-y-4">
                 <div className="bg-gray-800/50 rounded-lg p-3">
                   <p className="text-sm text-gray-300">
-                    Tell me what you'd like to modify in your current prompt. For example:
+                    Tell me what you would like to modify in your current prompt. For example:
                   </p>
                   <ul className="text-xs text-gray-400 mt-2 space-y-1">
                     <li>• "Remove target pages and reference design"</li>
@@ -394,7 +394,7 @@ Example: 'I want to build a tool that takes Excel upload and sends email with di
                   </Button>
                   <Button
                     onClick={() => setShowChatbot(false)}
-                    className="border-gray-600 text-black bg-white"
+                    className="text-black bg-white hover:bg-gray-100"
                   >
                     Cancel
                   </Button>
@@ -462,7 +462,7 @@ Example: 'I want to build a tool that takes Excel upload and sends email with di
               </div>
             </div>
           </CardContent>
-        </div>
+        </Card>
       </div>
     </div>
   );
