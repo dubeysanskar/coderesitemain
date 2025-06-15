@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Copy, Wand2, ArrowRight, Edit } from 'lucide-react';
+import { Copy, Wand2, ArrowRight, Edit, MessageCircle, Send, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { refinePrompt } from '@/lib/prompt-refiner-service';
 
@@ -16,6 +15,9 @@ const PromptGuideApp = () => {
   const [showComparison, setShowComparison] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editablePrompt, setEditablePrompt] = useState('');
+  const [showChatbot, setShowChatbot] = useState(false);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatLoading, setIsChatLoading] = useState(false);
 
   const handleRefinePrompt = async () => {
     if (!rawInput.trim()) {
@@ -69,6 +71,49 @@ const PromptGuideApp = () => {
       toast.error('Failed to update prompt. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleChatUpdate = async () => {
+    if (!chatInput.trim()) {
+      toast.error('Please enter your modification request');
+      return;
+    }
+
+    if (!refinedPrompt.trim()) {
+      toast.error('No prompt to update. Please generate a prompt first.');
+      return;
+    }
+
+    setIsChatLoading(true);
+    try {
+      console.log('🔄 Starting chat-based prompt update...');
+      console.log('Chat input:', chatInput);
+      console.log('Current prompt:', refinedPrompt);
+      
+      const updateInstruction = `Here is the current prompt:
+
+"${refinedPrompt}"
+
+User's modification request: ${chatInput}
+
+Please modify the above prompt based on the user's request. Only make the specific changes they mentioned - don't rewrite the entire prompt unless necessary. Keep the same structure and style, but incorporate their requested changes (additions, removals, or modifications).
+
+Return only the updated prompt, nothing else.`;
+      
+      const updatedPrompt = await refinePrompt(updateInstruction, targetModel);
+      console.log('✅ Chat-updated prompt received:', updatedPrompt);
+      
+      setRefinedPrompt(updatedPrompt);
+      setEditablePrompt(updatedPrompt);
+      setShowChatbot(false);
+      setChatInput('');
+      toast.success('Prompt updated successfully!');
+    } catch (error) {
+      console.error('❌ Error updating prompt via chat:', error);
+      toast.error('Failed to update prompt. Please try again.');
+    } finally {
+      setIsChatLoading(false);
     }
   };
 
@@ -160,23 +205,38 @@ Example: 'i want to build a tool that take excel upload and send email with diff
                 </Select>
               </div>
 
-              <Button 
-                onClick={handleRefinePrompt}
-                disabled={isLoading || !rawInput.trim()}
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
-              >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Refining Prompt...
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Wand2 className="h-4 w-4" />
-                    Refine Prompt
-                  </div>
+              <div className="space-y-3">
+                <Button 
+                  onClick={handleRefinePrompt}
+                  disabled={isLoading || !rawInput.trim()}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Refining Prompt...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Wand2 className="h-4 w-4" />
+                      Refine Prompt
+                    </div>
+                  )}
+                </Button>
+
+                {refinedPrompt && (
+                  <Button
+                    onClick={() => setShowChatbot(true)}
+                    disabled={isLoading}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <div className="flex items-center gap-2">
+                      <MessageCircle className="h-4 w-4" />
+                      Update Current Generated Prompt
+                    </div>
+                  </Button>
                 )}
-              </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -256,10 +316,10 @@ Example: 'i want to build a tool that take excel upload and send email with diff
                       <Button
                         onClick={startEditing}
                         variant="outline"
-                        className="w-full border-green-600 text-green-400 hover:bg-green-600 hover:text-white"
+                        className="w-full border-green-600 text-black bg-white hover:bg-white hover:text-black"
                       >
                         <Edit className="h-4 w-4 mr-2" />
-                        Update This Prompt
+                        Edit This Prompt
                       </Button>
                     </>
                   )}
@@ -273,6 +333,74 @@ Example: 'i want to build a tool that take excel upload and send email with diff
             </CardContent>
           </Card>
         </div>
+
+        {/* Chatbot Interface Modal */}
+        {showChatbot && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-2xl bg-gray-900 border-gray-700">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-white flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5 text-blue-400" />
+                  Update Current Generated Prompt
+                </CardTitle>
+                <Button
+                  onClick={() => setShowChatbot(false)}
+                  variant="ghost"
+                  size="icon"
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-gray-800/50 rounded-lg p-3">
+                  <p className="text-sm text-gray-300">
+                    Tell me what you'd like to modify in your current prompt. For example:
+                  </p>
+                  <ul className="text-xs text-gray-400 mt-2 space-y-1">
+                    <li>• "Remove target pages and reference design"</li>
+                    <li>• "Add more target points about user authentication"</li>
+                    <li>• "Change the output format to JSON instead of HTML"</li>
+                  </ul>
+                </div>
+                
+                <Textarea
+                  placeholder="What would you like to modify in the current prompt? Be specific about what to add, remove, or change..."
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  className="min-h-[120px] bg-gray-800/80 border-gray-600 text-white placeholder-gray-400"
+                />
+                
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleChatUpdate}
+                    disabled={isChatLoading || !chatInput.trim()}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {isChatLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Updating Prompt...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Send className="h-4 w-4" />
+                        Update Prompt
+                      </div>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => setShowChatbot(false)}
+                    variant="outline"
+                    className="border-gray-600 text-white hover:bg-gray-700"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Before & After Comparison */}
         {showComparison && rawInput && refinedPrompt && (
