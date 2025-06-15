@@ -1,4 +1,3 @@
-
 import { Lead, LeadSearchCriteria } from './lead-types';
 
 export class ComprehensiveLeadExtractor {
@@ -106,19 +105,17 @@ export class ComprehensiveLeadExtractor {
     const names: string[] = [];
     const combinedText = `${title} ${snippet}`;
     
-    for (const pattern of namePatterns) {
-      const matches = combinedText.match(pattern);
-      if (matches && Array.isArray(matches)) {
-        // Process each match and add valid names
-        for (const match of matches) {
-          if (match && typeof match === 'string' && 
-              !this.isCommonWord(match) && 
-              match.split(' ').length >= 2) {
-            names.push(match);
-          }
+    namePatterns.forEach(pattern => {
+      let match;
+      while ((match = pattern.exec(combinedText)) !== null) {
+        const name = match[1];
+        if (name && 
+            !this.isCommonWord(name) && 
+            name.split(' ').length >= 2) {
+          names.push(name);
         }
       }
-    }
+    });
     
     return [...new Set(names)];
   }
