@@ -27,6 +27,7 @@ const Navbar = () => {
       }
     }
     setIsMenuOpen(false);
+    setIsToolsOpen(false);
   };
 
   const handleHomeClick = () => {
@@ -47,9 +48,9 @@ const Navbar = () => {
   ];
 
   const toolsItems = [
-    { label: 'Social Media Creators', action: () => scrollToSection('social-creators') },
-    { label: 'Students', action: () => scrollToSection('students') },
     { label: 'Marketing', action: () => scrollToSection('marketing') },
+    { label: 'Students', action: () => scrollToSection('students') },
+    { label: 'Social Media Creators', action: () => scrollToSection('social-creators') },
     { label: 'Cybersecurity', action: () => scrollToSection('cybersecurity') },
   ];
 
@@ -61,10 +62,14 @@ const Navbar = () => {
           <div className="flex-shrink-0">
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500 cursor-pointer"
+              className="cursor-pointer flex items-center"
               onClick={handleHomeClick}
             >
-              CodeResite
+              <img 
+                src="/logo.png" 
+                alt="CodeResite" 
+                className="h-8 w-auto"
+              />
             </motion.div>
           </div>
 
