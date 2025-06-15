@@ -4,25 +4,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const greetings = [
   'Hello',      // English
+  'Hola',       // Spanish
+  'Bonjour',    // French
   'नमस्ते',      // Hindi
   'హలో',        // Telugu
   'வணக்கம்',     // Tamil
-  'ನಮಸ್ಕಾರ',    // Kannada
-  'નમસ્તે',      // Gujarati
-  'নমস্কার',     // Bengali
-  'ਸਤ ਸ੍ਰੀ ਅਕਾਲ', // Punjabi
-  'नमस्कार',     // Marathi
-  'നമസ്കാരം',   // Malayalam
-  'ନମସ୍କାର',    // Odia
-  'Hola',       // Spanish
-  'Bonjour',    // French
-  'こんにちは',    // Japanese
-  '안녕하세요',    // Korean
-  'مرحبا',      // Arabic
-  'Hallo',      // German
   'Ciao',       // Italian
-  'Привет',     // Russian
-  '你好'        // Chinese
+  'こんにちは',    // Japanese
+  'नमस्ते'       // Hindi (Namaste - final)
 ];
 
 interface SplashScreenProps {
