@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from './ui/card';
@@ -29,25 +30,27 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      // Using Formspree service to handle form submissions
-      const response = await fetch('https://formspree.io/f/xgvejbyl', {
+      const response = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Accept: 'application/json',
         },
         body: JSON.stringify({
+          access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY,
           name: formData.name,
           email: formData.email,
           company: formData.company,
           phone: formData.phone,
           service: formData.service,
           message: formData.message,
-          _replyto: formData.email,
-          _subject: `Contact Form Submission from ${formData.name} - ${formData.service || 'General Inquiry'}`,
+          subject: `Contact Form Submission from ${formData.name} - ${formData.service || 'General Inquiry'}`,
         }),
       });
 
-      if (response.ok) {
+      const result = await response.json();
+
+      if (result.success) {
         toast({
           title: "Message sent successfully!",
           description: "Thank you for contacting us. We'll get back to you soon.",
