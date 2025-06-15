@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { LeadSearchCriteria, LeadGenerationResult } from '@/lib/lead-types';
 import { newLeadGenerationService } from '@/lib/new-lead-generation-service';
-import AdvancedLeadSearchForm from './AdvancedLeadSearchForm';
+import SimplifiedLeadSearchForm from './SimplifiedLeadSearchForm';
 import LeadsResults from './LeadsResults';
 import GoogleDorkPreview from './GoogleDorkPreview';
 import { useToast } from '@/hooks/use-toast';
@@ -21,7 +21,7 @@ const LeadGeneratorApp: React.FC = () => {
     location: {
       city: '',
       state: '',
-      country: 'India'
+      country: 'United States'
     },
     companySize: '',
     jobTitle: '',
@@ -29,7 +29,7 @@ const LeadGeneratorApp: React.FC = () => {
     field: '',
     customTags: [],
     emailRequired: true,
-    phoneRequired: true,
+    phoneRequired: false,
     searchDepth: 3
   });
 
@@ -52,10 +52,10 @@ const LeadGeneratorApp: React.FC = () => {
   };
 
   const handleSearch = async () => {
-    if (searchCriteria.industry.length === 0 && !searchCriteria.location.city && !searchCriteria.jobTitle) {
+    if (searchCriteria.industry.length === 0 && !searchCriteria.location.city) {
       toast({
         title: "Missing Information",
-        description: "Please fill in at least one search criteria (Industry, Location, or Job Title).",
+        description: "Please fill in at least one search criteria (Industry or Location).",
         variant: "destructive",
       });
       return;
@@ -64,8 +64,8 @@ const LeadGeneratorApp: React.FC = () => {
     setIsSearching(true);
     try {
       toast({
-        title: "🚀 Advanced Google Dorking Started",
-        description: "Using advanced search patterns to find qualified leads with AI extraction...",
+        title: "🚀 Multi-Platform Lead Search Started",
+        description: "Searching LinkedIn, Reddit, and Twitter for qualified leads...",
       });
 
       const searchResults = await newLeadGenerationService.generateLeads(searchCriteria);
@@ -73,8 +73,8 @@ const LeadGeneratorApp: React.FC = () => {
       setCurrentStep('results');
       
       toast({
-        title: "🎯 Smart Leads Generated!",
-        description: `Found ${searchResults.totalCount} qualified leads using Google dorking techniques.`,
+        title: "🎯 Leads Found!",
+        description: `Found ${searchResults.totalCount} qualified leads across multiple platforms.`,
       });
     } catch (error) {
       console.error('Error generating leads:', error);
@@ -98,10 +98,10 @@ const LeadGeneratorApp: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
-        className="container mx-auto max-w-6xl"
+        className="container mx-auto max-w-4xl"
       >
         {currentStep === 'search' ? (
-          <AdvancedLeadSearchForm
+          <SimplifiedLeadSearchForm
             searchCriteria={searchCriteria}
             onCriteriaChange={handleCriteriaChange}
             onSearch={handleSearch}

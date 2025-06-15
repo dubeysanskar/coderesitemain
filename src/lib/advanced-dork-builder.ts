@@ -18,20 +18,52 @@ export class AdvancedDorkBuilder {
   generateDorkQueries(): DorkQuery[] {
     const queries: DorkQuery[] = [];
 
-    // Generate contact-focused queries
-    queries.push(...this.buildContactQueries());
+    // Generate social media queries (LinkedIn, Reddit, Twitter)
+    queries.push(...this.buildSocialQueries());
     
     // Generate professional network queries
     queries.push(...this.buildProfessionalQueries());
     
+    // Generate contact-focused queries
+    queries.push(...this.buildContactQueries());
+    
     // Generate directory queries
     queries.push(...this.buildDirectoryQueries());
+
+    return queries;
+  }
+
+  private buildSocialQueries(): DorkQuery[] {
+    const queries: DorkQuery[] = [];
     
-    // Generate social media queries
-    queries.push(...this.buildSocialQueries());
+    for (const pattern of GOOGLE_DORK_PATTERNS.SOCIAL) {
+      const query = this.replacePlaceholders(pattern.pattern);
+      
+      queries.push({
+        query,
+        description: pattern.description,
+        category: 'Social Media'
+      });
+    }
+
+    return queries;
+  }
+
+  private buildProfessionalQueries(): DorkQuery[] {
+    const queries: DorkQuery[] = [];
     
-    // Generate website queries
-    queries.push(...this.buildWebsiteQueries());
+    for (const pattern of GOOGLE_DORK_PATTERNS.PROFESSIONAL) {
+      let query = this.replacePlaceholders(pattern.pattern);
+      
+      // Add email requirement
+      query += ' AND (intext:"email" OR intext:"@" OR intext:"contact")';
+      
+      queries.push({
+        query,
+        description: pattern.description,
+        category: 'Professional Networks'
+      });
+    }
 
     return queries;
   }
@@ -60,25 +92,6 @@ export class AdvancedDorkBuilder {
     return queries;
   }
 
-  private buildProfessionalQueries(): DorkQuery[] {
-    const queries: DorkQuery[] = [];
-    
-    for (const pattern of GOOGLE_DORK_PATTERNS.PROFESSIONAL) {
-      let query = this.replacePlaceholders(pattern.pattern);
-      
-      // Add email requirement
-      query += ' AND (intext:"email" OR intext:"@" OR intext:"contact")';
-      
-      queries.push({
-        query,
-        description: pattern.description,
-        category: 'Professional Networks'
-      });
-    }
-
-    return queries;
-  }
-
   private buildDirectoryQueries(): DorkQuery[] {
     const queries: DorkQuery[] = [];
     
@@ -98,47 +111,11 @@ export class AdvancedDorkBuilder {
     return queries;
   }
 
-  private buildSocialQueries(): DorkQuery[] {
-    const queries: DorkQuery[] = [];
-    
-    for (const pattern of GOOGLE_DORK_PATTERNS.SOCIAL) {
-      const query = this.replacePlaceholders(pattern.pattern);
-      
-      queries.push({
-        query,
-        description: pattern.description,
-        category: 'Social Media'
-      });
-    }
-
-    return queries;
-  }
-
-  private buildWebsiteQueries(): DorkQuery[] {
-    const queries: DorkQuery[] = [];
-    
-    for (const pattern of GOOGLE_DORK_PATTERNS.WEBSITES) {
-      let query = this.replacePlaceholders(pattern.pattern);
-      
-      // Add email requirement
-      query += ' AND (intext:"@" OR intext:"email")';
-      
-      queries.push({
-        query,
-        description: pattern.description,
-        category: 'Company Websites'
-      });
-    }
-
-    return queries;
-  }
-
   private replacePlaceholders(pattern: string): string {
     let query = pattern;
     
     // Replace industry
     if (this.criteria.industry.length > 0) {
-      const industryTerms = this.criteria.industry.map(ind => `"${ind}"`).join(' OR ');
       query = query.replace('{industry}', this.criteria.industry[0]);
       query = query.replace('{company_type}', this.criteria.industry[0]);
     }
@@ -197,7 +174,7 @@ export class AdvancedDorkBuilder {
   }
 
   private buildBasicDorkQuery(): string {
-    let baseQuery = 'site:linkedin.com/in OR site:about.me';
+    let baseQuery = 'site:linkedin.com/in OR site:reddit.com OR site:twitter.com';
     
     // Add industry filter
     if (this.criteria.industry.length > 0) {

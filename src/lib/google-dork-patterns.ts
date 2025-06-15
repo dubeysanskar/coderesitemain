@@ -18,11 +18,6 @@ export const GOOGLE_DORK_PATTERNS = {
       name: 'Contact Pages',
       pattern: 'inurl:contact AND intext:"{industry}" AND intext:"{location}"',
       description: 'Contact pages for specific industries'
-    },
-    {
-      name: 'Staff Directories',
-      pattern: 'intext:"staff directory" OR intext:"employee directory" AND intext:"{company_type}"',
-      description: 'Employee directories for companies'
     }
   ],
 
@@ -35,14 +30,38 @@ export const GOOGLE_DORK_PATTERNS = {
       sites: ['linkedin.com']
     },
     {
-      name: 'Company About Pages',
-      pattern: 'inurl:about AND intext:"team" AND intext:"{industry}" AND intext:"{location}"',
-      description: 'Company about pages with team information'
+      name: 'LinkedIn Company Pages',
+      pattern: 'site:linkedin.com/company AND intext:"{industry}" AND intext:"{location}"',
+      description: 'LinkedIn company pages',
+      sites: ['linkedin.com']
+    }
+  ],
+
+  // Social media platforms
+  SOCIAL: [
+    {
+      name: 'Reddit Posts',
+      pattern: 'site:reddit.com AND intext:"{role}" AND intext:"{location}" AND intext:"hiring"',
+      description: 'Reddit posts about hiring or job opportunities',
+      sites: ['reddit.com']
     },
     {
-      name: 'Professional Bios',
-      pattern: 'intext:"biography" OR intext:"bio" AND intext:"{role}" AND intext:"{location}"',
-      description: 'Professional biographies'
+      name: 'Reddit Job Subreddits',
+      pattern: 'site:reddit.com/r/jobs OR site:reddit.com/r/forhire AND intext:"{industry}" AND intext:"{location}"',
+      description: 'Reddit job and hiring subreddits',
+      sites: ['reddit.com']
+    },
+    {
+      name: 'Twitter Profiles',
+      pattern: 'site:twitter.com AND intext:"{role}" AND intext:"{location}" AND intext:"email"',
+      description: 'Twitter profiles with contact info',
+      sites: ['twitter.com']
+    },
+    {
+      name: 'Twitter Job Posts',
+      pattern: 'site:twitter.com AND intext:"hiring" AND intext:"{industry}" AND intext:"{location}"',
+      description: 'Twitter job postings',
+      sites: ['twitter.com']
     }
   ],
 
@@ -52,42 +71,7 @@ export const GOOGLE_DORK_PATTERNS = {
       name: 'Business Listings',
       pattern: 'site:yellowpages.com OR site:yelp.com AND intext:"{industry}" AND intext:"{location}"',
       description: 'Business directory listings',
-      sites: ['yellowpages.com', 'yelp.com', 'google.com/maps']
-    },
-    {
-      name: 'Chamber of Commerce',
-      pattern: 'site:chamber.com OR intext:"chamber of commerce" AND intext:"{location}" AND intext:"{industry}"',
-      description: 'Chamber of commerce listings'
-    }
-  ],
-
-  // Social media and forums
-  SOCIAL: [
-    {
-      name: 'Twitter Profiles',
-      pattern: 'site:twitter.com AND intext:"{role}" AND intext:"{location}" AND intext:"email"',
-      description: 'Twitter profiles with contact info',
-      sites: ['twitter.com']
-    },
-    {
-      name: 'Facebook Business Pages',
-      pattern: 'site:facebook.com AND intext:"{industry}" AND intext:"{location}" AND intext:"contact"',
-      description: 'Facebook business pages',
-      sites: ['facebook.com']
-    }
-  ],
-
-  // Company websites
-  WEBSITES: [
-    {
-      name: 'Team Pages',
-      pattern: 'inurl:team OR inurl:staff OR inurl:about AND intext:"{role}" AND intext:"{location}"',
-      description: 'Company team and staff pages'
-    },
-    {
-      name: 'Press Releases',
-      pattern: 'intext:"press release" AND intext:"{company_type}" AND intext:"{location}" AND intext:"contact"',
-      description: 'Press releases with contact information'
+      sites: ['yellowpages.com', 'yelp.com']
     }
   ]
 };
@@ -96,22 +80,18 @@ export const CONTACT_DORKS = [
   'intext:"email" AND intext:"phone"',
   'intext:"contact us" AND intext:"@"',
   'intext:"reach out" AND intext:"call"',
-  'inurl:contact AND intext:"@"',
-  'intext:"get in touch" AND intext:"phone"'
+  'inurl:contact AND intext:"@"'
 ];
 
 export const LOCATION_MODIFIERS = [
   'intext:"{city}"',
   'intext:"{city}, {state}"',
   'intext:"{state}"',
-  'near "{city}"',
-  'location:"{city}"'
+  'near "{city}"'
 ];
 
 export const ROLE_PATTERNS = [
   'intitle:"{role}"',
   'intext:"{role}"',
-  'intext:"position: {role}"',
-  'intext:"title: {role}"',
   'intext:"{role} at"'
 ];
