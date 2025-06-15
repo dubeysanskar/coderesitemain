@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Copy, Wand2, ArrowRight } from 'lucide-react';
+import { Copy, Wand2, ArrowRight, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 import { refinePrompt } from '@/lib/prompt-refiner-service';
 
@@ -14,6 +14,8 @@ const PromptGuideApp = () => {
   const [refinedPrompt, setRefinedPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editablePrompt, setEditablePrompt] = useState('');
 
   const handleRefinePrompt = async () => {
     if (!rawInput.trim()) {
@@ -31,11 +33,40 @@ const PromptGuideApp = () => {
       console.log('✅ Refined prompt received:', refined);
       
       setRefinedPrompt(refined);
+      setEditablePrompt(refined);
       setShowComparison(true);
+      setIsEditing(false);
       toast.success('Prompt refined successfully!');
     } catch (error) {
       console.error('❌ Error refining prompt:', error);
       toast.error('Failed to refine prompt. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdatePrompt = async () => {
+    if (!editablePrompt.trim()) {
+      toast.error('Please enter some text to update');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      console.log('🔄 Starting prompt update...');
+      console.log('Editable prompt:', editablePrompt);
+      console.log('Target model:', targetModel);
+      
+      const refined = await refinePrompt(editablePrompt, targetModel);
+      console.log('✅ Updated prompt received:', refined);
+      
+      setRefinedPrompt(refined);
+      setEditablePrompt(refined);
+      setIsEditing(false);
+      toast.success('Prompt updated successfully!');
+    } catch (error) {
+      console.error('❌ Error updating prompt:', error);
+      toast.error('Failed to update prompt. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -61,6 +92,16 @@ const PromptGuideApp = () => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast.success('Prompt downloaded!');
+  };
+
+  const startEditing = () => {
+    setIsEditing(true);
+    setEditablePrompt(refinedPrompt);
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+    setEditablePrompt(refinedPrompt);
   };
 
   // Function to format text with proper markdown rendering
@@ -150,30 +191,78 @@ Example: 'i want to build a tool that take excel upload and send email with diff
             <CardContent className="space-y-4">
               {refinedPrompt ? (
                 <>
-                  <div className="bg-gray-800/80 border border-gray-600 rounded-lg p-4 min-h-[200px]">
-                    <div 
-                      className="text-gray-200 whitespace-pre-wrap text-sm leading-relaxed"
-                      dangerouslySetInnerHTML={{ __html: formatText(refinedPrompt) }}
-                    />
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => copyToClipboard(refinedPrompt)}
-                      variant="outline"
-                      className="flex-1 border-gray-600 text-black bg-white hover:bg-white hover:text-black"
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy
-                    </Button>
-                    <Button
-                      onClick={downloadPrompt}
-                      variant="outline"
-                      className="flex-1 border-gray-600 text-black bg-white hover:bg-white hover:text-black"
-                    >
-                      Download
-                    </Button>
-                  </div>
+                  {isEditing ? (
+                    <div className="space-y-4">
+                      <Textarea
+                        value={editablePrompt}
+                        onChange={(e) => setEditablePrompt(e.target.value)}
+                        className="min-h-[200px] bg-gray-800/80 border-gray-600 text-white placeholder-gray-400"
+                        placeholder="Edit your refined prompt here..."
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleUpdatePrompt}
+                          disabled={isLoading || !editablePrompt.trim()}
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          {isLoading ? (
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              Updating...
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <Wand2 className="h-4 w-4" />
+                              Update Prompt
+                            </div>
+                          )}
+                        </Button>
+                        <Button
+                          onClick={cancelEditing}
+                          variant="outline"
+                          className="flex-1 border-gray-600 text-white hover:bg-gray-700"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="bg-gray-800/80 border border-gray-600 rounded-lg p-4 min-h-[200px]">
+                        <div 
+                          className="text-gray-200 whitespace-pre-wrap text-sm leading-relaxed"
+                          dangerouslySetInnerHTML={{ __html: formatText(refinedPrompt) }}
+                        />
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => copyToClipboard(refinedPrompt)}
+                          variant="outline"
+                          className="flex-1 border-gray-600 text-black bg-white hover:bg-white hover:text-black"
+                        >
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy
+                        </Button>
+                        <Button
+                          onClick={downloadPrompt}
+                          variant="outline"
+                          className="flex-1 border-gray-600 text-black bg-white hover:bg-white hover:text-black"
+                        >
+                          Download
+                        </Button>
+                      </div>
+                      
+                      <Button
+                        onClick={startEditing}
+                        variant="outline"
+                        className="w-full border-green-600 text-green-400 hover:bg-green-600 hover:text-white"
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Update This Prompt
+                      </Button>
+                    </>
+                  )}
                 </>
               ) : (
                 <div className="text-center py-20 text-gray-400">
