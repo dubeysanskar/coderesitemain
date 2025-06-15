@@ -5,11 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const greetings = [
   'Hello',      // English
   'Hola',       // Spanish
-  'Bonjour',    // French
   'नमस्ते',      // Hindi
-  'హలో',        // Telugu
-  'வணக்கம்',     // Tamil
-  'Ciao',       // Italian
   'こんにちは',    // Japanese
   'नमस्ते'       // Hindi (Namaste - final)
 ];
@@ -52,7 +48,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.2 }}
             transition={{ duration: 0.05 }}
-            className="text-6xl md:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 text-center"
+            className="text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 text-center"
           >
             {greetings[currentIndex]}
           </motion.h1>
