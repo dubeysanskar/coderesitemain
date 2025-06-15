@@ -1,7 +1,7 @@
 
 import { Lead, LeadSearchCriteria } from './lead-types';
 
-interface ExtractedContactData {
+interface ContactInfo {
   emails: string[];
   phones: string[];
   names: string[];
@@ -10,94 +10,110 @@ interface ExtractedContactData {
 
 export class ComprehensiveLeadExtractor {
   private geminiApiKey: string;
+  private commonWords: Set<string>;
 
   constructor() {
     this.geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+    this.commonWords = new Set<string>([
+      'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'her', 'was', 'one', 'our',
+      'had', 'but', 'words', 'not', 'what', 'all', 'were', 'they', 'we', 'when', 'your', 'said',
+      'each', 'which', 'she', 'do', 'how', 'their', 'if', 'will', 'up', 'other', 'about', 'out',
+      'many', 'then', 'them', 'these', 'so', 'some', 'her', 'would', 'make', 'like', 'into', 'him',
+      'has', 'two', 'more', 'her', 'go', 'no', 'way', 'could', 'my', 'than', 'first', 'been', 'call',
+      'who', 'its', 'now', 'find', 'long', 'down', 'day', 'did', 'get', 'come', 'made', 'may', 'part'
+    ]);
   }
 
   async extractLeadsFromPage(pageContent: any, criteria: LeadSearchCriteria, platform: string): Promise<Lead[]> {
-    console.log(`🔍 Extracting leads from ${platform}:`, pageContent.title);
+    console.log(`🔍 Processing ${platform} page:`, pageContent.title);
     
     try {
-      const extractedData = this.extractContactData(pageContent);
+      const contactInfo = this.extractContactInfo(pageContent);
       
-      if (!this.hasValidContactData(extractedData)) {
-        console.log('❌ No valid contact data found');
+      if (!this.hasValidContacts(contactInfo)) {
+        console.log('❌ No valid contact information found');
         return [];
       }
 
-      const baseLead = this.createBaseLead(extractedData, pageContent, criteria, platform);
+      const baseLead = this.buildBaseLead(contactInfo, pageContent, criteria, platform);
       
-      if (this.geminiApiKey && baseLead) {
-        const enhancedLead = await this.enhanceWithAI(baseLead, pageContent);
+      if (!baseLead) {
+        console.log('❌ Could not create base lead');
+        return [];
+      }
+
+      let finalLead = baseLead;
+      
+      if (this.geminiApiKey) {
+        const enhancedLead = await this.enhanceLeadWithAI(baseLead, pageContent);
         if (enhancedLead) {
-          return [this.calculateLeadScore(enhancedLead, criteria)];
+          finalLead = enhancedLead;
         }
       }
       
-      return baseLead ? [this.calculateLeadScore(baseLead, criteria)] : [];
+      const scoredLead = this.scoreLeadQuality(finalLead, criteria);
+      return [scoredLead];
       
     } catch (error) {
-      console.error('❌ Error in lead extraction:', error);
+      console.error('❌ Lead extraction error:', error);
       return [];
     }
   }
 
-  private extractContactData(pageContent: any): ExtractedContactData {
-    const title = pageContent.title || '';
-    const snippet = pageContent.snippet || '';
-    const fullText = `${title} ${snippet}`;
+  private extractContactInfo(pageContent: any): ContactInfo {
+    const textContent = `${pageContent.title || ''} ${pageContent.snippet || ''}`;
     const url = pageContent.link || '';
     
     return {
-      emails: this.extractEmails(fullText, url),
-      phones: this.extractPhones(fullText),
-      names: this.extractNames(fullText),
-      companies: this.extractCompanies(fullText)
+      emails: this.findEmails(textContent, url),
+      phones: this.findPhones(textContent),
+      names: this.findPersonNames(textContent),
+      companies: this.findCompanyNames(textContent)
     };
   }
 
-  private extractEmails(text: string, url: string): string[] {
-    const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
-    const foundEmails = text.match(emailRegex) || [];
+  private findEmails(text: string, url: string): string[] {
+    const emailPattern = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
+    const matches = text.match(emailPattern) || [];
+    const validEmails = matches.filter(email => this.isValidEmail(email));
     
-    // If no emails found, try to infer from domain
-    if (foundEmails.length === 0) {
-      const domain = this.getDomainFromUrl(url);
-      if (domain && this.isBusinessDomain(domain)) {
-        foundEmails.push(`contact@${domain}`);
+    if (validEmails.length === 0) {
+      const inferredEmail = this.inferEmailFromDomain(url);
+      if (inferredEmail) {
+        validEmails.push(inferredEmail);
       }
     }
     
-    return [...new Set(foundEmails)];
+    return Array.from(new Set(validEmails));
   }
 
-  private extractPhones(text: string): string[] {
-    const phoneRegex = /(\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}/g;
-    const foundPhones = text.match(phoneRegex) || [];
-    return [...new Set(foundPhones)];
+  private findPhones(text: string): string[] {
+    const phonePattern = /(\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}/g;
+    const matches = text.match(phonePattern) || [];
+    return Array.from(new Set(matches.map(phone => this.cleanPhoneNumber(phone))));
   }
 
-  private extractNames(text: string): string[] {
-    const nameRegex = /\b[A-Z][a-z]+ [A-Z][a-z]+\b/g;
-    const potentialNames = text.match(nameRegex) || [];
+  private findPersonNames(text: string): string[] {
+    const namePattern = /\b[A-Z][a-z]+ [A-Z][a-z]+\b/g;
+    const potentialNames = text.match(namePattern) || [];
     
     const validNames: string[] = [];
     for (const name of potentialNames) {
-      if (this.isValidPersonName(name)) {
+      if (this.isLikelyPersonName(name)) {
         validNames.push(name);
       }
     }
     
-    return [...new Set(validNames)];
+    return Array.from(new Set(validNames));
   }
 
-  private extractCompanies(text: string): string[] {
+  private findCompanyNames(text: string): string[] {
     const companyPatterns = [
       /\b([A-Z][a-zA-Z\s&]+ Inc\.?)\b/g,
       /\b([A-Z][a-zA-Z\s&]+ LLC)\b/g,
       /\b([A-Z][a-zA-Z\s&]+ Corp\.?)\b/g,
-      /\b([A-Z][a-zA-Z\s&]+ Ltd\.?)\b/g
+      /\b([A-Z][a-zA-Z\s&]+ Ltd\.?)\b/g,
+      /\b([A-Z][a-zA-Z\s&]+ Co\.?)\b/g
     ];
     
     const companies: string[] = [];
@@ -107,134 +123,153 @@ export class ComprehensiveLeadExtractor {
       companies.push(...matches);
     }
     
-    return [...new Set(companies)];
+    return Array.from(new Set(companies));
   }
 
-  private isValidPersonName(name: string): boolean {
-    const invalidTerms = [
-      'LinkedIn', 'Twitter', 'Facebook', 'Google', 'Microsoft', 'Apple',
-      'Inc', 'LLC', 'Corp', 'Company', 'Solutions', 'Services'
-    ];
+  private isValidEmail(email: string): boolean {
+    const disposableProviders = ['tempmail', '10minutemail', 'guerrillamail'];
+    return !disposableProviders.some(provider => email.includes(provider));
+  }
+
+  private isLikelyPersonName(name: string): boolean {
+    const words = name.split(' ');
+    if (words.length !== 2) return false;
     
-    return !invalidTerms.some(term => name.includes(term)) && 
-           name.split(' ').length === 2 &&
-           name.length > 5;
+    const businessTerms = ['inc', 'llc', 'corp', 'ltd', 'company', 'group', 'solutions', 'services'];
+    const lowerName = name.toLowerCase();
+    
+    if (businessTerms.some(term => lowerName.includes(term))) {
+      return false;
+    }
+    
+    return words.every(word => !this.commonWords.has(word.toLowerCase()));
   }
 
-  private getDomainFromUrl(url: string): string | null {
+  private inferEmailFromDomain(url: string): string | null {
     try {
       const urlObj = new URL(url);
-      return urlObj.hostname.replace('www.', '');
+      const domain = urlObj.hostname.replace('www.', '');
+      
+      const socialDomains = ['linkedin.com', 'reddit.com', 'twitter.com', 'facebook.com'];
+      if (socialDomains.includes(domain)) {
+        return null;
+      }
+      
+      return `contact@${domain}`;
     } catch {
       return null;
     }
   }
 
-  private isBusinessDomain(domain: string): boolean {
-    const socialDomains = ['linkedin.com', 'reddit.com', 'twitter.com', 'facebook.com', 'instagram.com'];
-    return !socialDomains.includes(domain);
+  private cleanPhoneNumber(phone: string): string {
+    return phone.replace(/[^\d+]/g, '');
   }
 
-  private hasValidContactData(data: ExtractedContactData): boolean {
-    return data.emails.length > 0 || data.names.length > 0 || data.companies.length > 0;
+  private hasValidContacts(info: ContactInfo): boolean {
+    return info.emails.length > 0 || info.names.length > 0 || info.companies.length > 0;
   }
 
-  private createBaseLead(
-    data: ExtractedContactData, 
+  private buildBaseLead(
+    info: ContactInfo, 
     pageContent: any, 
     criteria: LeadSearchCriteria, 
     platform: string
   ): Lead | null {
-    if (!this.hasValidContactData(data)) {
+    
+    if (!this.hasValidContacts(info)) {
       return null;
     }
 
-    const leadId = `lead-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const url = pageContent.link || '';
+    const leadId = `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const sourceUrl = pageContent.link || '';
     
     return {
       id: leadId,
-      name: data.names[0] || this.generateDefaultName(),
-      company: data.companies[0] || this.inferCompanyFromUrl(url) || 'Unknown Company',
-      jobTitle: criteria.jobTitle || this.inferJobTitle(pageContent.title),
-      email: data.emails[0],
-      phone: data.phones[0],
-      location: criteria.location.city || 'Not Specified',
-      industry: criteria.industry[0] || 'Professional Services',
-      linkedinUrl: platform.includes('linkedin') ? url : undefined,
-      companySize: '10-50',
-      score: 50, // Base score, will be calculated later
-      sourceUrl: url,
+      name: info.names[0] || this.generatePlaceholderName(),
+      company: info.companies[0] || this.extractCompanyFromUrl(sourceUrl) || 'Unknown',
+      jobTitle: criteria.jobTitle || this.guessJobTitle(pageContent.title || ''),
+      email: info.emails[0],
+      phone: info.phones[0],
+      location: criteria.location.city || 'Not specified',
+      industry: criteria.industry[0] || 'General',
+      linkedinUrl: platform.includes('linkedin') ? sourceUrl : undefined,
+      companySize: '1-50',
+      score: 40, // Base score
+      sourceUrl: sourceUrl,
       platform: platform,
-      extractedData: data
+      extractedData: info
     };
   }
 
-  private generateDefaultName(): string {
-    const defaultNames = ['John Smith', 'Jane Doe', 'Michael Johnson', 'Sarah Wilson', 'David Brown'];
-    return defaultNames[Math.floor(Math.random() * defaultNames.length)];
+  private generatePlaceholderName(): string {
+    const names = ['Alex Johnson', 'Sarah Chen', 'Michael Rodriguez', 'Emily Davis', 'James Wilson'];
+    return names[Math.floor(Math.random() * names.length)];
   }
 
-  private inferCompanyFromUrl(url: string): string | null {
-    const domain = this.getDomainFromUrl(url);
-    if (!domain || !this.isBusinessDomain(domain)) return null;
-    
-    const companyName = domain.split('.')[0];
-    return companyName.charAt(0).toUpperCase() + companyName.slice(1);
+  private extractCompanyFromUrl(url: string): string | null {
+    try {
+      const urlObj = new URL(url);
+      const domain = urlObj.hostname.replace('www.', '');
+      const companyName = domain.split('.')[0];
+      return companyName.charAt(0).toUpperCase() + companyName.slice(1);
+    } catch {
+      return null;
+    }
   }
 
-  private inferJobTitle(title: string): string {
-    const jobTitles = ['CEO', 'CTO', 'CFO', 'Manager', 'Director', 'VP', 'Lead', 'Senior'];
+  private guessJobTitle(title: string): string {
+    const titleKeywords = ['ceo', 'cto', 'manager', 'director', 'lead', 'senior', 'head'];
+    const lowerTitle = title.toLowerCase();
     
-    for (const jobTitle of jobTitles) {
-      if (title.toLowerCase().includes(jobTitle.toLowerCase())) {
-        return jobTitle;
+    for (const keyword of titleKeywords) {
+      if (lowerTitle.includes(keyword)) {
+        return keyword.charAt(0).toUpperCase() + keyword.slice(1);
       }
     }
     
     return 'Professional';
   }
 
-  private calculateLeadScore(lead: Lead, criteria: LeadSearchCriteria): Lead {
-    let score = 40; // Base score
+  private scoreLeadQuality(lead: Lead, criteria: LeadSearchCriteria): Lead {
+    let score = 30; // Base score
     
     // Contact information scoring
-    if (lead.email) score += 25;
-    if (lead.phone) score += 15;
+    if (lead.email && !lead.email.includes('contact@')) score += 25;
+    if (lead.phone) score += 20;
     
-    // Quality scoring
-    if (lead.name && !lead.name.includes('John') && !lead.name.includes('Jane')) score += 10;
-    if (lead.company && lead.company !== 'Unknown Company') score += 10;
+    // Data quality scoring
+    if (lead.name && !lead.name.includes('Johnson') && !lead.name.includes('Chen')) score += 15;
+    if (lead.company && lead.company !== 'Unknown') score += 10;
     
     // Criteria matching
     if (criteria.industry.some(industry => 
       lead.industry.toLowerCase().includes(industry.toLowerCase())
     )) {
-      score += 15;
+      score += 20;
     }
     
     if (criteria.location.city && 
       lead.location.toLowerCase().includes(criteria.location.city.toLowerCase())
     ) {
-      score += 10;
+      score += 15;
     }
     
     if (criteria.jobTitle && 
       lead.jobTitle.toLowerCase().includes(criteria.jobTitle.toLowerCase())
     ) {
-      score += 15;
+      score += 20;
     }
     
     return { ...lead, score: Math.min(score, 100) };
   }
 
-  private async enhanceWithAI(lead: Lead, pageContent: any): Promise<Lead | null> {
+  private async enhanceLeadWithAI(lead: Lead, pageContent: any): Promise<Lead | null> {
     if (!this.geminiApiKey) return null;
     
     try {
-      const prompt = `Enhance this lead profile with professional information:
+      const prompt = `Enhance this lead profile based on the source content:
       
-      Current Lead: ${JSON.stringify({
+      Lead: ${JSON.stringify({
         name: lead.name,
         company: lead.company,
         jobTitle: lead.jobTitle,
@@ -242,9 +277,9 @@ export class ComprehensiveLeadExtractor {
         industry: lead.industry
       }, null, 2)}
       
-      Source Content: ${pageContent.title} - ${pageContent.snippet}
+      Source: ${pageContent.title} - ${pageContent.snippet}
       
-      Return only missing professional details in JSON format. Be realistic.`;
+      Return enhanced details in JSON format only.`;
 
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${this.geminiApiKey}`,
@@ -260,7 +295,7 @@ export class ComprehensiveLeadExtractor {
       if (response.ok) {
         const data = await response.json();
         const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        const enhancement = this.parseAIEnhancement(aiText);
+        const enhancement = this.parseAIResponse(aiText);
         
         if (enhancement && Object.keys(enhancement).length > 0) {
           return { ...lead, ...enhancement };
@@ -273,25 +308,24 @@ export class ComprehensiveLeadExtractor {
     return null;
   }
 
-  private parseAIEnhancement(text: string): Partial<Lead> {
+  private parseAIResponse(text: string): Partial<Lead> {
     try {
       const jsonMatch = text.match(/\{[\s\S]*?\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
-        // Only return valid Lead properties
-        const validKeys = ['name', 'company', 'jobTitle', 'location', 'industry', 'companySize'];
-        const filteredResult: Partial<Lead> = {};
+        const allowedFields = ['name', 'company', 'jobTitle', 'location', 'industry', 'companySize'];
+        const result: Partial<Lead> = {};
         
-        for (const key of validKeys) {
-          if (parsed[key] && typeof parsed[key] === 'string') {
-            (filteredResult as any)[key] = parsed[key];
+        for (const field of allowedFields) {
+          if (parsed[field] && typeof parsed[field] === 'string') {
+            (result as any)[field] = parsed[field];
           }
         }
         
-        return filteredResult;
+        return result;
       }
     } catch (error) {
-      console.error('❌ Failed to parse AI enhancement:', error);
+      console.error('❌ AI response parsing failed:', error);
     }
     
     return {};
