@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from './ui/card';
@@ -37,10 +36,14 @@ const Contact = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...formData,
+          name: formData.name,
+          email: formData.email,
+          company: formData.company,
+          phone: formData.phone,
+          service: formData.service,
+          message: formData.message,
           _replyto: formData.email,
-          _subject: `Contact Form Submission - ${formData.service || 'General Inquiry'}`,
-          _to: 'sanskardubeydev@gmail.com'
+          _subject: `Contact Form Submission from ${formData.name} - ${formData.service || 'General Inquiry'}`,
         }),
       });
 
@@ -64,9 +67,10 @@ const Contact = () => {
         throw new Error('Failed to send message');
       }
     } catch (error) {
+      console.error('Form submission error:', error);
       toast({
         title: "Error sending message",
-        description: "There was an issue sending your message. Please try again or contact us directly.",
+        description: "There was an issue sending your message. Please try again or contact us directly at sanskardubeydev@gmail.com",
         variant: "destructive",
       });
     } finally {
