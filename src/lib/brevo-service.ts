@@ -1,59 +1,109 @@
-// Note: This is a frontend service. In production, you should move this to a backend API
-// to keep API keys secure and handle CORS issues.
+
+interface EmailRecipient {
+  email: string;
+  name: string;
+}
+
+interface EmailSender {
+  name: string;
+  email: string;
+}
 
 interface EmailData {
-  sender: { name: string; email: string };
-  to: Array<{ email: string; name: string }>;
+  to: EmailRecipient;
   subject: string;
   htmlContent: string;
 }
 
-export const brevoService = {
-  async sendTransactionalEmail(emailData: EmailData) {
-    // In a real implementation, this would call your backend API
-    // which would then use the Brevo API with the server-side API key
-    
-    console.log('Email would be sent via Brevo API:', emailData);
-    
-    // Simulate API call for demo purposes
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Simulate success/failure randomly for demo
-        if (Math.random() > 0.1) {
-          resolve({ messageId: `msg_${Date.now()}` });
-        } else {
-          reject(new Error('Simulated API error'));
-        }
-      }, 1000 + Math.random() * 2000);
-    });
+interface BulkEmailRequest {
+  sender: EmailSender;
+  emails: EmailData[];
+}
+
+interface EmailResult {
+  success: boolean;
+  error?: string;
+}
+
+export const sendBulkEmails = async (request: BulkEmailRequest): Promise<EmailResult[]> => {
+  const results: EmailResult[] = [];
+  
+  // Get API key from environment
+  const apiKey = import.meta.env.VITE_BREVO_API_KEY;
+  
+  if (!apiKey) {
+    console.error('Brevo API key not found in environment variables');
+    return request.emails.map(() => ({
+      success: false,
+      error: 'Brevo API key not configured'
+    }));
   }
+
+  // Send emails individually using Brevo transactional API
+  for (const emailData of request.emails) {
+    try {
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'api-key': apiKey
+        },
+        body: JSON.stringify({
+          sender: {
+            name: request.sender.name,
+            email: request.sender.email
+          },
+          to: [{
+            email: emailData.to.email,
+            name: emailData.to.name
+          }],
+          subject: emailData.subject,
+          htmlContent: emailData.htmlContent
+        })
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log(`✅ Email sent successfully to ${emailData.to.email}:`, responseData);
+        results.push({ success: true });
+      } else {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        console.error(`❌ Failed to send email to ${emailData.to.email}:`, errorData);
+        results.push({ 
+          success: false, 
+          error: errorData.message || `HTTP ${response.status}` 
+        });
+      }
+    } catch (error) {
+      console.error(`❌ Error sending email to ${emailData.to.email}:`, error);
+      results.push({ 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Network error' 
+      });
+    }
+
+    // Add a small delay between emails to avoid rate limiting
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+
+  return results;
 };
 
-// Example of how the backend implementation would look:
-/*
-// Backend Node.js implementation (for reference):
-const SibApiV3Sdk = require('sib-api-v3-sdk');
-require('dotenv').config();
-
-const defaultClient = SibApiV3Sdk.ApiClient.instance;
-const apiKey = defaultClient.authentications['api-key'];
-apiKey.apiKey = process.env.BREVO_API_KEY;
-
-const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
-
-export async function sendEmail(emailData) {
-  const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+export const sendSingleEmail = async (
+  sender: EmailSender,
+  recipient: EmailRecipient,
+  subject: string,
+  htmlContent: string
+): Promise<EmailResult> => {
+  const result = await sendBulkEmails({
+    sender,
+    emails: [{
+      to: recipient,
+      subject,
+      htmlContent
+    }]
+  });
   
-  sendSmtpEmail.sender = emailData.sender;
-  sendSmtpEmail.to = emailData.to;
-  sendSmtpEmail.subject = emailData.subject;
-  sendSmtpEmail.htmlContent = emailData.htmlContent;
-  
-  try {
-    const result = await apiInstance.sendTransacEmail(sendSmtpEmail);
-    return result;
-  } catch (error) {
-    throw error;
-  }
-}
-*/
+  return result[0] || { success: false, error: 'Unknown error' };
+};
