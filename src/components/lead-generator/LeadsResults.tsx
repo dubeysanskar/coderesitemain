@@ -78,6 +78,20 @@ const LeadsResults: React.FC<LeadsResultsProps> = ({ results, onBackToSearch }) 
     return 'bg-red-500';
   };
 
+  const formatLocation = (location: any) => {
+    if (typeof location === 'string') {
+      return location;
+    }
+    if (typeof location === 'object' && location !== null) {
+      const parts = [];
+      if (location.city) parts.push(location.city);
+      if (location.state) parts.push(location.state);
+      if (location.country) parts.push(location.country);
+      return parts.join(', ') || 'Location not specified';
+    }
+    return 'Location not specified';
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -111,10 +125,10 @@ const LeadsResults: React.FC<LeadsResultsProps> = ({ results, onBackToSearch }) 
           <div className="flex flex-wrap gap-4 items-center justify-between">
             <div className="flex gap-2 flex-wrap">
               <Badge variant="secondary" className="bg-green-500/20 text-green-400">
-                {results.searchCriteria.industry || 'All Industries'}
+                {results.searchCriteria.industry.length > 0 ? results.searchCriteria.industry.join(', ') : 'All Industries'}
               </Badge>
               <Badge variant="secondary" className="bg-blue-500/20 text-blue-400">
-                {results.searchCriteria.location || 'All Locations'}
+                {formatLocation(results.searchCriteria.location)}
               </Badge>
               {results.searchCriteria.companySize && (
                 <Badge variant="secondary" className="bg-purple-500/20 text-purple-400">
