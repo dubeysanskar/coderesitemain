@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,13 +18,11 @@ export function ResumePreview({ resumeData, onOptimize }: ResumePreviewProps) {
     try {
       setIsDownloading(true);
       
-      // Create a new window with the resume content
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
         throw new Error('Popup blocked');
       }
 
-      // Generate HTML content for PDF
       const htmlContent = `
         <!DOCTYPE html>
         <html>
@@ -196,7 +193,6 @@ export function ResumePreview({ resumeData, onOptimize }: ResumePreviewProps) {
       printWindow.document.write(htmlContent);
       printWindow.document.close();
       
-      // Wait for content to load then print
       setTimeout(() => {
         printWindow.print();
         printWindow.close();
@@ -406,10 +402,11 @@ export function ResumePreview({ resumeData, onOptimize }: ResumePreviewProps) {
               <Button 
                 onClick={handleDownloadPDF}
                 disabled={isDownloading}
-                className="w-full bg-white text-black hover:bg-gray-100 border-none"
+                className="w-full border-none"
+                style={{ backgroundColor: 'white', color: 'black' }}
               >
                 <Download className="w-4 h-4 mr-2" />
-                {isDownloading ? "Preparing..." : "Download PDF"}
+                {isDownloading ? "Preparing..." : "Download Original Version"}
               </Button>
               
               <Button 

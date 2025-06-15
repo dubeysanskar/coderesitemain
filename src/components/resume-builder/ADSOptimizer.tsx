@@ -3,8 +3,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, TrendingUp, CheckCircle, AlertCircle, Zap, Download } from "lucide-react";
+import { Zap, Download, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
 import { ResumeData, JDAnalysis, ADSOptimization } from "@/lib/resume-types";
 import { geminiResumeService } from "@/lib/gemini-resume-service";
 import { useToast } from "@/hooks/use-toast";
@@ -17,19 +16,21 @@ interface ADSOptimizerProps {
 }
 
 export function ADSOptimizer({ resumeData, originalResumeData, jdAnalysis, onOptimized }: ADSOptimizerProps) {
-  const [analyzing, setAnalyzing] = useState(false);
-  const [optimizing, setOptimizing] = useState(false);
   const [adsScore, setAdsScore] = useState<ADSOptimization | null>(null);
-  const [isOptimized, setIsOptimized] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [optimizedResume, setOptimizedResume] = useState<ResumeData | null>(null);
+  const [isDownloadingOriginal, setIsDownloadingOriginal] = useState(false);
+  const [isDownloadingOptimized, setIsDownloadingOptimized] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    calculateADSScore();
-  }, [resumeData]);
+    calculateADS();
+  }, []);
 
-  const calculateADSScore = async () => {
+  const calculateADS = async () => {
+    setIsAnalyzing(true);
     try {
-      setAnalyzing(true);
       const score = await geminiResumeService.calculateADSScore(resumeData, jdAnalysis);
       setAdsScore(score);
     } catch (error) {
@@ -40,21 +41,16 @@ export function ADSOptimizer({ resumeData, originalResumeData, jdAnalysis, onOpt
         variant: "destructive"
       });
     } finally {
-      setAnalyzing(false);
+      setIsAnalyzing(false);
     }
   };
 
-  const optimizeResume = async () => {
+  const handleOptimize = async () => {
+    setIsOptimizing(true);
     try {
-      setOptimizing(true);
-      const optimizedResume = await geminiResumeService.optimizeResume(resumeData, jdAnalysis);
-      onOptimized(optimizedResume);
-      setIsOptimized(true);
-      
-      // Recalculate score with optimized resume
-      const newScore = await geminiResumeService.calculateADSScore(optimizedResume, jdAnalysis);
-      setAdsScore(newScore);
-      
+      const optimized = await geminiResumeService.optimizeResume(resumeData, jdAnalysis);
+      setOptimizedResume(optimized);
+      onOptimized(optimized);
       toast({
         title: "Resume Optimized",
         description: "Your resume has been enhanced with AI recommendations!"
@@ -67,24 +63,25 @@ export function ADSOptimizer({ resumeData, originalResumeData, jdAnalysis, onOpt
         variant: "destructive"
       });
     } finally {
-      setOptimizing(false);
+      setIsOptimizing(false);
     }
   };
 
-  const downloadOriginalResume = () => {
+  const handleDownloadPDF = async (resumeToDownload: ResumeData, isOriginal: boolean = false) => {
+    const setDownloadState = isOriginal ? setIsDownloadingOriginal : setIsDownloadingOptimized;
     try {
-      // Create a new window with the original resume content
+      setDownloadState(true);
+      
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
         throw new Error('Popup blocked');
       }
 
-      // Generate HTML content for original resume PDF
       const htmlContent = `
         <!DOCTYPE html>
         <html>
         <head>
-          <title>${originalResumeData.personalInfo.fullName} - Original Resume</title>
+          <title>${resumeToDownload.personalInfo.fullName} - Resume${isOriginal ? ' (Original)' : ' (AI Optimized)'}</title>
           <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { 
@@ -131,47 +128,47 @@ export function ADSOptimizer({ resumeData, originalResumeData, jdAnalysis, onOpt
         </head>
         <body>
           <div class="header">
-            <div class="name">${originalResumeData.personalInfo.fullName}</div>
+            <div class="name">${resumeToDownload.personalInfo.fullName}</div>
             <div class="contact">
-              ${originalResumeData.personalInfo.phone ? `${originalResumeData.personalInfo.phone} • ` : ''}
-              ${originalResumeData.personalInfo.email || ''}
+              ${resumeToDownload.personalInfo.phone ? `${resumeToDownload.personalInfo.phone} • ` : ''}
+              ${resumeToDownload.personalInfo.email || ''}
             </div>
             <div class="contact">
-              ${originalResumeData.personalInfo.linkedin ? `<a href="${originalResumeData.personalInfo.linkedin}">LinkedIn</a> • ` : ''}
-              ${originalResumeData.personalInfo.github ? `<a href="${originalResumeData.personalInfo.github}">GitHub</a> • ` : ''}
-              ${originalResumeData.personalInfo.portfolio ? `<a href="${originalResumeData.personalInfo.portfolio}">Portfolio</a>` : ''}
+              ${resumeToDownload.personalInfo.linkedin ? `<a href="${resumeToDownload.personalInfo.linkedin}">LinkedIn</a> • ` : ''}
+              ${resumeToDownload.personalInfo.github ? `<a href="${resumeToDownload.personalInfo.github}">GitHub</a> • ` : ''}
+              ${resumeToDownload.personalInfo.portfolio ? `<a href="${resumeToDownload.personalInfo.portfolio}">Portfolio</a>` : ''}
             </div>
           </div>
 
-          ${originalResumeData.summary ? `
+          ${resumeToDownload.summary ? `
           <div class="section">
             <div class="section-title">Professional Summary</div>
-            <p>${originalResumeData.summary}</p>
+            <p>${resumeToDownload.summary}</p>
           </div>
           ` : ''}
 
-          ${originalResumeData.education.degree ? `
+          ${resumeToDownload.education.degree ? `
           <div class="section">
             <div class="section-title">Education</div>
             <div class="experience-item">
               <div class="job-header">
                 <div>
-                  <div class="job-title">${originalResumeData.education.degree}</div>
-                  <div class="company">${originalResumeData.education.university}</div>
+                  <div class="job-title">${resumeToDownload.education.degree}</div>
+                  <div class="company">${resumeToDownload.education.university}</div>
                 </div>
                 <div class="duration-location">
-                  <div>${originalResumeData.education.duration}</div>
-                  <div>${originalResumeData.education.location}</div>
+                  <div>${resumeToDownload.education.duration}</div>
+                  <div>${resumeToDownload.education.location}</div>
                 </div>
               </div>
             </div>
           </div>
           ` : ''}
 
-          ${originalResumeData.experience.length > 0 && originalResumeData.experience[0].title ? `
+          ${resumeToDownload.experience.length > 0 && resumeToDownload.experience[0].title ? `
           <div class="section">
             <div class="section-title">Experience</div>
-            ${originalResumeData.experience.map(exp => `
+            ${resumeToDownload.experience.map(exp => `
               <div class="experience-item">
                 <div class="job-header">
                   <div>
@@ -193,10 +190,25 @@ export function ADSOptimizer({ resumeData, originalResumeData, jdAnalysis, onOpt
           </div>
           ` : ''}
 
+          ${resumeToDownload.projects.length > 0 && resumeToDownload.projects[0].title ? `
+          <div class="section">
+            <div class="section-title">Projects</div>
+            ${resumeToDownload.projects.map(project => `
+              <div class="project-item">
+                <div class="project-header">
+                  <div class="project-title">${project.title}</div>
+                  ${project.url && project.linkLabel ? `<a href="${project.url}" class="project-link">${project.linkLabel}</a>` : ''}
+                </div>
+                <p>${project.description}</p>
+              </div>
+            `).join('')}
+          </div>
+          ` : ''}
+
           <div class="section">
             <div class="section-title">Technical Skills</div>
             <div class="skills-grid">
-              ${Object.entries(originalResumeData.skills).filter(([key, skills]) => skills.length > 0).map(([key, skills]) => `
+              ${Object.entries(resumeToDownload.skills).filter(([key, skills]) => skills.length > 0).map(([key, skills]) => `
                 <div class="skill-category">
                   <span class="skill-label">${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</span>
                   <span class="skill-list">${skills.join(', ')}</span>
@@ -204,6 +216,30 @@ export function ADSOptimizer({ resumeData, originalResumeData, jdAnalysis, onOpt
               `).join('')}
             </div>
           </div>
+
+          ${resumeToDownload.achievements.length > 0 && resumeToDownload.achievements[0].title ? `
+          <div class="section">
+            <div class="section-title">Achievements</div>
+            ${resumeToDownload.achievements.map(achievement => `
+              <div class="achievement-item">
+                <div class="project-title">${achievement.title}</div>
+                <p>${achievement.description}</p>
+              </div>
+            `).join('')}
+          </div>
+          ` : ''}
+
+          ${resumeToDownload.positions.length > 0 && resumeToDownload.positions[0].role ? `
+          <div class="section">
+            <div class="section-title">Positions of Responsibility</div>
+            ${resumeToDownload.positions.map(position => `
+              <div class="achievement-item">
+                <div class="project-title">${position.role} - ${position.organization}</div>
+                <p>${position.description}</p>
+              </div>
+            `).join('')}
+          </div>
+          ` : ''}
         </body>
         </html>
       `;
@@ -211,7 +247,6 @@ export function ADSOptimizer({ resumeData, originalResumeData, jdAnalysis, onOpt
       printWindow.document.write(htmlContent);
       printWindow.document.close();
       
-      // Wait for content to load then print
       setTimeout(() => {
         printWindow.print();
         printWindow.close();
@@ -219,197 +254,137 @@ export function ADSOptimizer({ resumeData, originalResumeData, jdAnalysis, onOpt
 
       toast({
         title: "Download Started",
-        description: "Original resume is being prepared for download."
+        description: `Your ${isOriginal ? 'original' : 'optimized'} resume is being prepared for download.`
       });
     } catch (error) {
-      console.error("Original resume download failed:", error);
+      console.error("PDF download failed:", error);
       toast({
         title: "Download Failed",
-        description: "Failed to download original resume. Please try again.",
+        description: "Failed to download PDF. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setDownloadState(false);
     }
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-500";
-    if (score >= 60) return "text-yellow-500";
-    return "text-red-500";
-  };
-
-  if (analyzing) {
-    return (
-      <div className="min-h-screen bg-gray-900 p-6">
-        <Card className="bg-gray-800 border-gray-700">
-          <CardContent className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-green-500" />
-              <p className="text-white">Analyzing your resume against the job requirements...</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-900 p-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* ADS Score */}
+      <div className="max-w-4xl mx-auto space-y-6">
         <Card className="bg-gray-800 border-gray-700">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" />
-              ATS Optimization Score
-              {isOptimized && <Badge className="bg-green-600 text-white">Optimized</Badge>}
+              <Zap className="w-5 h-5" />
+              ATS Compatibility Score
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {adsScore && (
+          <CardContent className="space-y-4">
+            {isAnalyzing ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+                <p className="text-gray-300">Analyzing your resume...</p>
+              </div>
+            ) : adsScore ? (
               <>
                 <div className="text-center">
-                  <div className={`text-6xl font-bold ${getScoreColor(adsScore.score)} mb-2`}>
-                    {adsScore.score}
-                  </div>
-                  <p className="text-gray-400">out of 100</p>
-                  <Progress 
-                    value={adsScore.score} 
-                    className="mt-4 h-3"
-                  />
+                  <div className="text-4xl font-bold text-white mb-2">{adsScore.score}/100</div>
+                  <Progress value={adsScore.score} className="w-full h-3 mb-4" />
+                  <p className="text-gray-300">
+                    {adsScore.score >= 80 ? "Excellent!" : 
+                     adsScore.score >= 60 ? "Good, but can be improved" : 
+                     "Needs significant improvement"}
+                  </p>
                 </div>
 
+                {adsScore.recommendations.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5" />
+                      Recommendations
+                    </h3>
+                    <ul className="space-y-2">
+                      {adsScore.recommendations.map((rec, index) => (
+                        <li key={index} className="text-gray-300 flex items-start gap-2">
+                          <span className="text-yellow-500 mt-1">•</span>
+                          {rec}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 {adsScore.missingKeywords.length > 0 && (
-                  <div>
-                    <h4 className="font-semibold text-red-400 mb-3 flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4" />
-                      Missing Keywords
-                    </h4>
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold text-white mb-3">Missing Keywords</h3>
                     <div className="flex flex-wrap gap-2">
                       {adsScore.missingKeywords.map((keyword, index) => (
-                        <Badge key={index} variant="destructive" className="text-xs">
+                        <span key={index} className="bg-red-600 text-white px-3 py-1 rounded-full text-sm">
                           {keyword}
-                        </Badge>
+                        </span>
                       ))}
                     </div>
                   </div>
                 )}
 
-                <div>
-                  <h4 className="font-semibold text-blue-400 mb-3 flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4" />
-                    AI Recommendations
-                  </h4>
-                  <ul className="space-y-2">
-                    {adsScore.recommendations.map((recommendation, index) => (
-                      <li key={index} className="text-sm text-gray-300 flex items-start gap-2">
-                        <span className="text-blue-400 mt-1">•</span>
-                        {recommendation}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="space-y-3">
-                  <Button 
-                    onClick={optimizeResume}
-                    disabled={optimizing}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    {optimizing ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Optimizing Resume...
-                      </>
-                    ) : (
-                      <>
-                        <Zap className="w-4 h-4 mr-2" />
-                        {isOptimized ? "Re-optimize Resume" : "Apply AI Optimizations"}
-                      </>
-                    )}
-                  </Button>
-
-                  {isOptimized && (
+                <div className="flex gap-4 mt-6">
+                  {!optimizedResume ? (
                     <Button 
-                      onClick={downloadOriginalResume}
-                      className="w-full bg-white text-black hover:bg-gray-100 border-none"
+                      onClick={handleOptimize}
+                      disabled={isOptimizing}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                     >
-                      <Download className="w-4 h-4 mr-2" />
-                      Download Original Version
+                      <Zap className="w-4 h-4 mr-2" />
+                      {isOptimizing ? "Optimizing..." : "Apply AI Optimization"}
                     </Button>
+                  ) : (
+                    <div className="flex items-center gap-2 flex-1 text-green-400">
+                      <CheckCircle className="w-5 h-5" />
+                      <span>Resume Optimized Successfully!</span>
+                    </div>
                   )}
                 </div>
               </>
-            )}
+            ) : null}
           </CardContent>
         </Card>
 
-        {/* Optimization Preview */}
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white">AI Optimization Preview</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {adsScore?.improvedSections && (
-              <>
-                {adsScore.improvedSections.summary && (
-                  <div>
-                    <h4 className="font-semibold text-green-400 mb-2">Improved Summary</h4>
-                    <div className="bg-gray-700 p-3 rounded text-sm text-gray-300">
-                      {adsScore.improvedSections.summary}
-                    </div>
-                  </div>
-                )}
+        {/* Download Options */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white text-center">Original Version</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={() => handleDownloadPDF(originalResumeData, true)}
+                disabled={isDownloadingOriginal}
+                className="w-full bg-white text-black border-none"
+                style={{ backgroundColor: 'white', color: 'black' }}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {isDownloadingOriginal ? "Preparing..." : "Download Original Version"}
+              </Button>
+            </CardContent>
+          </Card>
 
-                {adsScore.improvedSections.experience && (
-                  <div>
-                    <h4 className="font-semibold text-green-400 mb-2">Enhanced Experience Points</h4>
-                    <div className="bg-gray-700 p-3 rounded text-sm text-gray-300 space-y-2">
-                      {adsScore.improvedSections.experience.map((exp, index) => (
-                        <div key={index} className="flex items-start gap-2">
-                          <span className="text-green-400 mt-1">•</span>
-                          {exp}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {adsScore.improvedSections.skills && (
-                  <div>
-                    <h4 className="font-semibold text-green-400 mb-2">Suggested Additional Skills</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {adsScore.improvedSections.skills.map((skill, index) => (
-                        <Badge key={index} className="bg-green-600 text-white text-xs">
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-
-            <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-400 mb-2">How ATS Scoring Works</h4>
-              <ul className="text-sm text-gray-300 space-y-1">
-                <li>• Keyword matching: 40%</li>
-                <li>• Skills alignment: 30%</li>
-                <li>• Experience relevance: 20%</li>
-                <li>• Format & structure: 10%</li>
-              </ul>
-            </div>
-
-            {!jdAnalysis && (
-              <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-4">
-                <h4 className="font-semibold text-yellow-400 mb-2">Note</h4>
-                <p className="text-sm text-gray-300">
-                  Without a job description, scoring is based on general resume completeness and quality. 
-                  For role-specific optimization, return to step 1 and analyze a job description.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white text-center">AI Optimized Version</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={() => handleDownloadPDF(optimizedResume || resumeData, false)}
+                disabled={!optimizedResume || isDownloadingOptimized}
+                className="w-full bg-white text-black border-none"
+                style={{ backgroundColor: 'white', color: 'black' }}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {isDownloadingOptimized ? "Preparing..." : 
+                 !optimizedResume ? "Optimize First" : "Download Optimized Version"}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
