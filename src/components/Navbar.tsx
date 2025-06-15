@@ -68,7 +68,7 @@ const Navbar = () => {
               <img 
                 src="/logo.png" 
                 alt="CodeResite" 
-                className="h-12 w-auto"
+                className="h-16 w-auto"
               />
             </motion.div>
           </div>
