@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,6 +19,8 @@ const PromptGuideApp = () => {
   const [showChatbot, setShowChatbot] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
+  
+  const editSectionRef = useRef<HTMLDivElement>(null);
 
   const handleRefinePrompt = async () => {
     if (!rawInput.trim()) {
@@ -142,6 +145,10 @@ Return only the updated prompt, nothing else.`;
   const startEditing = () => {
     setIsEditing(true);
     setEditablePrompt(refinedPrompt);
+    // Scroll to the edit section smoothly
+    setTimeout(() => {
+      editSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
   };
 
   const cancelEditing = () => {
@@ -184,7 +191,7 @@ Return only the updated prompt, nothing else.`;
               <Textarea
                 placeholder="Enter your raw idea or messy instructions here...
 
-Example: 'i want to build a tool that take excel upload and send email with different names using brevo. it should have dynamic fields like name and message. should be automated.'"
+Example: 'I want to build a tool that takes Excel upload and sends email with different names using Brevo. It should have dynamic fields like name and message. Should be automated.'"
                 value={rawInput}
                 onChange={(e) => setRawInput(e.target.value)}
                 className="min-h-[200px] bg-gray-800/80 border-gray-600 text-white placeholder-gray-400"
@@ -197,7 +204,7 @@ Example: 'i want to build a tool that take excel upload and send email with diff
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="gemini" className="text-white">Google Gemini 2.0 Flash (use it for now)</SelectItem>
+                    <SelectItem value="gemini" className="text-white">Google Gemini 2.0 Flash (recommended)</SelectItem>
                     <SelectItem value="chatgpt" className="text-white">OpenAI ChatGPT</SelectItem>
                     <SelectItem value="claude" className="text-white">Anthropic Claude</SelectItem>
                     <SelectItem value="general" className="text-white">General Purpose</SelectItem>
@@ -241,7 +248,7 @@ Example: 'i want to build a tool that take excel upload and send email with diff
           </Card>
 
           {/* Output Section */}
-          <Card className="bg-gray-900/80 border-gray-700 backdrop-blur-sm">
+          <Card className="bg-gray-900/80 border-gray-700 backdrop-blur-sm" ref={editSectionRef}>
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <span className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-sm">2</span>
@@ -279,8 +286,7 @@ Example: 'i want to build a tool that take excel upload and send email with diff
                         </Button>
                         <Button
                           onClick={cancelEditing}
-                          variant="outline"
-                          className="flex-1 border-gray-600 text-white hover:bg-gray-700"
+                          className="flex-1 border-gray-600 text-black bg-white"
                         >
                           Cancel
                         </Button>
@@ -298,16 +304,14 @@ Example: 'i want to build a tool that take excel upload and send email with diff
                       <div className="flex gap-2">
                         <Button
                           onClick={() => copyToClipboard(refinedPrompt)}
-                          variant="outline"
-                          className="flex-1 border-gray-600 text-black bg-white hover:bg-white hover:text-black"
+                          className="flex-1 border-gray-600 text-black bg-white"
                         >
                           <Copy className="h-4 w-4 mr-2" />
                           Copy
                         </Button>
                         <Button
                           onClick={downloadPrompt}
-                          variant="outline"
-                          className="flex-1 border-gray-600 text-black bg-white hover:bg-white hover:text-black"
+                          className="flex-1 border-gray-600 text-black bg-white"
                         >
                           Download
                         </Button>
@@ -315,8 +319,7 @@ Example: 'i want to build a tool that take excel upload and send email with diff
                       
                       <Button
                         onClick={startEditing}
-                        variant="outline"
-                        className="w-full border-green-600 text-black bg-white hover:bg-white hover:text-black"
+                        className="w-full border-green-600 text-black bg-white"
                       >
                         <Edit className="h-4 w-4 mr-2" />
                         Edit This Prompt
@@ -347,7 +350,7 @@ Example: 'i want to build a tool that take excel upload and send email with diff
                   onClick={() => setShowChatbot(false)}
                   variant="ghost"
                   size="icon"
-                  className="text-gray-400 hover:text-white"
+                  className="text-gray-400"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -391,8 +394,7 @@ Example: 'i want to build a tool that take excel upload and send email with diff
                   </Button>
                   <Button
                     onClick={() => setShowChatbot(false)}
-                    variant="outline"
-                    className="border-gray-600 text-white hover:bg-gray-700"
+                    className="border-gray-600 text-black bg-white"
                   >
                     Cancel
                   </Button>
@@ -460,7 +462,7 @@ Example: 'i want to build a tool that take excel upload and send email with diff
               </div>
             </div>
           </CardContent>
-        </Card>
+        </div>
       </div>
     </div>
   );
