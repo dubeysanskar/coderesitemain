@@ -1,3 +1,4 @@
+
 import { Lead, LeadSearchCriteria } from './lead-types';
 
 export class ComprehensiveLeadExtractor {
@@ -96,26 +97,43 @@ export class ComprehensiveLeadExtractor {
   }
 
   private extractNames(title: string, snippet: string): string[] {
-    const namePatterns = [
-      /([A-Z][a-z]+ [A-Z][a-z]+)/g, // First Last
-      /([A-Z][a-z]+ [A-Z]\. [A-Z][a-z]+)/g, // First M. Last
-      /([A-Z][a-z]+(?:\s[A-Z][a-z]+){1,2})/g // First Middle Last
-    ];
-    
-    const names: string[] = [];
     const combinedText = `${title} ${snippet}`;
+    const names: string[] = [];
     
-    namePatterns.forEach(pattern => {
-      let match;
-      while ((match = pattern.exec(combinedText)) !== null) {
-        const name = match[1];
-        if (name && 
-            !this.isCommonWord(name) && 
-            name.split(' ').length >= 2) {
-          names.push(name);
+    // Use match with global flag to get all matches at once
+    const firstLastPattern = /\b([A-Z][a-z]+ [A-Z][a-z]+)\b/g;
+    const firstMiddleLastPattern = /\b([A-Z][a-z]+ [A-Z]\. [A-Z][a-z]+)\b/g;
+    const fullNamePattern = /\b([A-Z][a-z]+(?:\s[A-Z][a-z]+){1,2})\b/g;
+    
+    // Extract first-last names
+    const firstLastMatches = combinedText.match(firstLastPattern);
+    if (firstLastMatches) {
+      firstLastMatches.forEach(match => {
+        if (!this.isCommonWord(match) && match.split(' ').length >= 2) {
+          names.push(match);
         }
-      }
-    });
+      });
+    }
+    
+    // Extract first-middle-last names
+    const firstMiddleLastMatches = combinedText.match(firstMiddleLastPattern);
+    if (firstMiddleLastMatches) {
+      firstMiddleLastMatches.forEach(match => {
+        if (!this.isCommonWord(match) && match.split(' ').length >= 2) {
+          names.push(match);
+        }
+      });
+    }
+    
+    // Extract full names
+    const fullNameMatches = combinedText.match(fullNamePattern);
+    if (fullNameMatches) {
+      fullNameMatches.forEach(match => {
+        if (!this.isCommonWord(match) && match.split(' ').length >= 2) {
+          names.push(match);
+        }
+      });
+    }
     
     return [...new Set(names)];
   }
