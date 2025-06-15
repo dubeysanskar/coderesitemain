@@ -1,11 +1,10 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Download, ExternalLink } from 'lucide-react';
+import { Search, Download, ArrowLeft, X } from 'lucide-react';
 
 const roleBased = [
   "Frontend", "Backend", "DevOps", "Full Stack", "AI Engineer", "Data Scientist", 
@@ -24,14 +23,12 @@ const skillBased = [
   "PHP", "Cloudflare", "AI Agents", "AI"
 ];
 
-interface RoadmapCardProps {
-  title: string;
-  category: 'role' | 'skill';
-}
+export function LearningGuideApp() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
+  const [selectedRoadmap, setSelectedRoadmap] = useState<string | null>(null);
 
-const RoadmapCard: React.FC<RoadmapCardProps> = ({ title, category }) => {
   const getImagePath = (title: string) => {
-    // Convert title to lowercase and replace spaces with hyphens for file names
     const fileName = title.toLowerCase()
       .replace(/\s+/g, '-')
       .replace(/&/g, '')
@@ -40,85 +37,21 @@ const RoadmapCard: React.FC<RoadmapCardProps> = ({ title, category }) => {
     return `/roadmaps/${fileName}.png`;
   };
 
-  const handleDownload = () => {
+  const handleDownload = (title: string) => {
     const link = document.createElement('a');
     link.href = getImagePath(title);
     link.download = `${title.toLowerCase().replace(/\s+/g, '-')}-roadmap.png`;
     link.click();
   };
 
-  const handleViewFullSize = () => {
-    window.open(getImagePath(title), '_blank');
+  const handleRoadmapClick = (title: string) => {
+    setSelectedRoadmap(title);
   };
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02, y: -5 }}
-      className="h-full"
-    >
-      <Card className="bg-black/40 border-white/20 backdrop-blur-sm hover:border-green-400/50 transition-all duration-300 h-full overflow-hidden">
-        <CardContent className="p-0 h-full flex flex-col">
-          <div className="relative">
-            <img 
-              src={getImagePath(title)}
-              alt={`${title} Roadmap`}
-              className="w-full h-48 object-cover"
-              onError={(e) => {
-                // Fallback to a placeholder if image doesn't exist
-                const target = e.target as HTMLImageElement;
-                target.src = `https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=300&fit=crop`;
-              }}
-            />
-            <div className="absolute top-2 right-2">
-              <span className={`px-2 py-1 text-xs rounded-full ${
-                category === 'role' 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-green-500 text-black'
-              }`}>
-                {category === 'role' ? 'Role' : 'Skill'}
-              </span>
-            </div>
-          </div>
-          
-          <div className="p-4 flex-grow flex flex-col justify-between">
-            <div>
-              <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
-              <p className="text-gray-300 text-sm mb-4">
-                Complete learning roadmap for {title.toLowerCase()} development
-              </p>
-            </div>
-            
-            <div className="flex gap-2">
-              <Button 
-                onClick={handleViewFullSize}
-                size="sm"
-                className="flex-1 bg-green-500 hover:bg-green-600 text-black font-medium"
-              >
-                <ExternalLink className="w-4 h-4 mr-1" />
-                View
-              </Button>
-              <Button 
-                onClick={handleDownload}
-                size="sm"
-                variant="outline"
-                className="flex-1 border-white/20 text-white hover:bg-white/10"
-              >
-                <Download className="w-4 h-4 mr-1" />
-                Download
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-};
-
-export function LearningGuideApp() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
+  const handleBackToHome = () => {
+    setSelectedRoadmap(null);
+    setSearchTerm('');
+  };
 
   const filteredRoadmaps = useMemo(() => {
     let allRoadmaps = [
@@ -141,8 +74,67 @@ export function LearningGuideApp() {
     return allRoadmaps;
   }, [searchTerm, activeTab]);
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (filteredRoadmaps.length > 0) {
+      setSelectedRoadmap(filteredRoadmaps[0].title);
+    }
+  };
+
+  // Image viewer component
+  if (selectedRoadmap) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8 pt-24">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-black/60 backdrop-blur-sm rounded-lg p-6"
+        >
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-white">{selectedRoadmap} Roadmap</h2>
+            <Button
+              onClick={() => setSelectedRoadmap(null)}
+              className="bg-white text-black hover:bg-gray-200"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          <div className="mb-6 text-center">
+            <img 
+              src={getImagePath(selectedRoadmap)}
+              alt={`${selectedRoadmap} Roadmap`}
+              className="max-w-full h-auto mx-auto rounded-lg shadow-lg"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = `https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800&h=600&fit=crop`;
+              }}
+            />
+          </div>
+          
+          <div className="flex gap-4 justify-center">
+            <Button 
+              onClick={handleBackToHome}
+              className="bg-white text-black hover:bg-gray-200"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </Button>
+            <Button 
+              onClick={() => handleDownload(selectedRoadmap)}
+              className="bg-green-500 text-black hover:bg-green-600"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Download Image
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 py-8 pt-24">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -157,7 +149,7 @@ export function LearningGuideApp() {
         </p>
 
         {/* Search Bar */}
-        <div className="relative max-w-md mx-auto mb-8">
+        <form onSubmit={handleSearchSubmit} className="relative max-w-md mx-auto mb-8">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             type="text"
@@ -166,55 +158,61 @@ export function LearningGuideApp() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 bg-black/40 border-white/20 text-white placeholder-gray-400"
           />
-        </div>
+        </form>
       </motion.div>
 
       {/* Filter Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
         <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 bg-black/40">
-          <TabsTrigger value="all" className="text-white data-[state=active]:bg-green-600">
+          <TabsTrigger value="all" className="text-white data-[state=active]:bg-green-600 data-[state=active]:text-black">
             All ({roleBased.length + skillBased.length})
           </TabsTrigger>
-          <TabsTrigger value="roles" className="text-white data-[state=active]:bg-green-600">
+          <TabsTrigger value="roles" className="text-white data-[state=active]:bg-green-600 data-[state=active]:text-black">
             Roles ({roleBased.length})
           </TabsTrigger>
-          <TabsTrigger value="skills" className="text-white data-[state=active]:bg-green-600">
+          <TabsTrigger value="skills" className="text-white data-[state=active]:bg-green-600 data-[state=active]:text-black">
             Skills ({skillBased.length})
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="mt-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredRoadmaps.map((roadmap, index) => (
-              <RoadmapCard 
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+            {filteredRoadmaps.map((roadmap) => (
+              <Button
                 key={`${roadmap.category}-${roadmap.title}`}
-                title={roadmap.title}
-                category={roadmap.category}
-              />
+                onClick={() => handleRoadmapClick(roadmap.title)}
+                className="bg-white text-black hover:bg-gray-200 h-auto py-3 px-2 text-sm font-medium"
+              >
+                {roadmap.title}
+              </Button>
             ))}
           </div>
         </TabsContent>
 
         <TabsContent value="roles" className="mt-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredRoadmaps.map((roadmap, index) => (
-              <RoadmapCard 
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+            {filteredRoadmaps.map((roadmap) => (
+              <Button
                 key={`${roadmap.category}-${roadmap.title}`}
-                title={roadmap.title}
-                category={roadmap.category}
-              />
+                onClick={() => handleRoadmapClick(roadmap.title)}
+                className="bg-white text-black hover:bg-gray-200 h-auto py-3 px-2 text-sm font-medium"
+              >
+                {roadmap.title}
+              </Button>
             ))}
           </div>
         </TabsContent>
 
         <TabsContent value="skills" className="mt-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredRoadmaps.map((roadmap, index) => (
-              <RoadmapCard 
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+            {filteredRoadmaps.map((roadmap) => (
+              <Button
                 key={`${roadmap.category}-${roadmap.title}`}
-                title={roadmap.title}
-                category={roadmap.category}
-              />
+                onClick={() => handleRoadmapClick(roadmap.title)}
+                className="bg-white text-black hover:bg-gray-200 h-auto py-3 px-2 text-sm font-medium"
+              >
+                {roadmap.title}
+              </Button>
             ))}
           </div>
         </TabsContent>
