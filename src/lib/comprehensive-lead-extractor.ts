@@ -102,13 +102,13 @@ export class ComprehensiveLeadExtractor {
       /([A-Z][a-z]+(?:\s[A-Z][a-z]+){1,2})/g // First Middle Last
     ];
     
-    const names: string[] = [];
+    const names: string[] = []; // Explicitly type as string[]
     const combinedText = `${title} ${snippet}`;
     
     for (const pattern of namePatterns) {
       const matches = combinedText.match(pattern);
       if (matches) {
-        const validNames = matches.filter(name => 
+        const validNames: string[] = matches.filter(name => 
           !this.isCommonWord(name) && 
           name.split(' ').length >= 2
         );
