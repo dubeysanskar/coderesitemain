@@ -135,9 +135,10 @@ export class ComprehensiveLeadExtractor {
     for (const pattern of companyPatterns) {
       const matches = combinedText.match(pattern);
       if (matches) {
-        companies.push(...matches.map(match => 
+        const processedMatches = matches.map(match => 
           match.replace(/^(at|works at|-)\s+/i, '').trim()
-        ));
+        ).filter(match => match.length > 0);
+        companies.push(...processedMatches);
       }
     }
     
