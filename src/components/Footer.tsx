@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Twitter, Linkedin, Github } from 'lucide-react';
 
 const Footer = () => {
   const scrollToSection = (sectionId: string) => {
@@ -75,7 +76,7 @@ const Footer = () => {
           >
             <h3 className="text-lg font-bold text-white mb-4">Contact Info</h3>
             <div className="space-y-2 text-gray-400">
-              <p>📧 contact@coderesite.com</p>
+              <p>📧 sanskardubeydev@gmail.com</p>
               <p>📱 +91 79920 89454</p>
               <p>🌍 India</p>
             </div>
@@ -102,14 +103,29 @@ const Footer = () => {
               </li>
             </ul>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-green-400 transition-colors text-xl">
-                🐦
+              <a 
+                href="https://x.com/DubeySansk48167" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-green-400 transition-colors"
+              >
+                <Twitter size={20} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-green-400 transition-colors text-xl">
-                💼
+              <a 
+                href="https://www.linkedin.com/groups/14714464/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-green-400 transition-colors"
+              >
+                <Linkedin size={20} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-green-400 transition-colors text-xl">
-                🐙
+              <a 
+                href="https://github.com/dubeysanskar" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-green-400 transition-colors"
+              >
+                <Github size={20} />
               </a>
             </div>
           </motion.div>

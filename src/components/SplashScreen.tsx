@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const greetings = [
   'Hello',      // English
   'Hola',       // Spanish
+  'Bonjour',    // French
   'नमस्ते',      // Hindi
   'こんにちは',    // Japanese
   'नमस्ते'       // Hindi (Namaste - final)
@@ -20,12 +21,12 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % greetings.length);
-    }, 50); // Change greeting every 50ms for smooth cycling
+    }, 250); // Change greeting every 250ms for smoother cycling
 
     const timeout = setTimeout(() => {
       clearInterval(interval);
       onComplete();
-    }, 1000); // Show for 1 second total
+    }, 1500); // Show for 1.5 seconds total
 
     return () => {
       clearInterval(interval);
@@ -38,16 +39,20 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black"
     >
       <div className="relative">
         <AnimatePresence mode="wait">
           <motion.h1
             key={currentIndex}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.2 }}
-            transition={{ duration: 0.05 }}
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 1.1, y: -20 }}
+            transition={{ 
+              duration: 0.2,
+              ease: "easeInOut"
+            }}
             className="text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 text-center"
           >
             {greetings[currentIndex]}
@@ -66,7 +71,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                 opacity: [0, 1, 0],
               }}
               transition={{
-                duration: 1,
+                duration: 1.5,
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
