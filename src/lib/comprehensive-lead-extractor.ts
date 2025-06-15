@@ -1,3 +1,4 @@
+
 import { Lead, LeadSearchCriteria } from './lead-types';
 
 export class ComprehensiveLeadExtractor {
@@ -102,7 +103,7 @@ export class ComprehensiveLeadExtractor {
       /([A-Z][a-z]+(?:\s[A-Z][a-z]+){1,2})/g // First Middle Last
     ];
     
-    const names: string[] = [];
+    const names: string[] = []; // Explicitly type as string[]
     const combinedText = `${title} ${snippet}`;
     
     for (const pattern of namePatterns) {
