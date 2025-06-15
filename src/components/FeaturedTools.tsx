@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from './ui/card';
@@ -76,7 +75,12 @@ const FeaturedTools = () => {
           icon: '📋',
           onClick: () => navigate('/report-generator'),
         },
-        { title: 'Learning Guide', description: 'Personalized study materials', icon: '📚' },
+        { 
+          title: 'Learning Guide', 
+          description: 'Personalized study materials', 
+          icon: '📚',
+          onClick: () => navigate('/learning-guide'),
+        },
       ],
     },
     {
