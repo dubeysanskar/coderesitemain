@@ -85,7 +85,12 @@ const FeaturedTools = () => {
           icon: '📧',
           onClick: () => navigate('/mail-merger'),
         },
-        { title: 'Prompt Guide', description: 'AI prompting strategies', icon: '💬' },
+        { 
+          title: 'Prompt Guide', 
+          description: 'AI prompting strategies', 
+          icon: '💬',
+          onClick: () => navigate('/prompt-guide'),
+        },
       ],
     },
     {
