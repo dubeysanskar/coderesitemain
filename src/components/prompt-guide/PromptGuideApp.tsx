@@ -63,6 +63,14 @@ const PromptGuideApp = () => {
     toast.success('Prompt downloaded!');
   };
 
+  // Function to format text with proper markdown rendering
+  const formatText = (text: string) => {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\n/g, '<br />');
+  };
+
   return (
     <div className="min-h-screen bg-black pt-24 pb-12 px-4">
       <div className="max-w-6xl mx-auto">
@@ -103,7 +111,7 @@ Example: 'i want to build a tool that take excel upload and send email with diff
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="gemini" className="text-white">Google Gemini (use it for now)</SelectItem>
+                    <SelectItem value="gemini" className="text-white">Google Gemini 2.0 Flash (use it for now)</SelectItem>
                     <SelectItem value="chatgpt" className="text-white">OpenAI ChatGPT</SelectItem>
                     <SelectItem value="claude" className="text-white">Anthropic Claude</SelectItem>
                     <SelectItem value="general" className="text-white">General Purpose</SelectItem>
@@ -143,16 +151,17 @@ Example: 'i want to build a tool that take excel upload and send email with diff
               {refinedPrompt ? (
                 <>
                   <div className="bg-gray-800/80 border border-gray-600 rounded-lg p-4 min-h-[200px]">
-                    <pre className="text-gray-200 whitespace-pre-wrap text-sm leading-relaxed">
-                      {refinedPrompt}
-                    </pre>
+                    <div 
+                      className="text-gray-200 whitespace-pre-wrap text-sm leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: formatText(refinedPrompt) }}
+                    />
                   </div>
                   
                   <div className="flex gap-2">
                     <Button
                       onClick={() => copyToClipboard(refinedPrompt)}
                       variant="outline"
-                      className="flex-1 border-gray-600 text-white hover:bg-gray-700"
+                      className="flex-1 border-gray-600 text-black bg-white hover:bg-white hover:text-black"
                     >
                       <Copy className="h-4 w-4 mr-2" />
                       Copy
@@ -160,7 +169,7 @@ Example: 'i want to build a tool that take excel upload and send email with diff
                     <Button
                       onClick={downloadPrompt}
                       variant="outline"
-                      className="flex-1 border-gray-600 text-white hover:bg-gray-700"
+                      className="flex-1 border-gray-600 text-black bg-white hover:bg-white hover:text-black"
                     >
                       Download
                     </Button>
@@ -196,7 +205,10 @@ Example: 'i want to build a tool that take excel upload and send email with diff
                 <div>
                   <h4 className="text-sm font-medium text-green-400 mb-3">AFTER (Refined Prompt)</h4>
                   <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-4">
-                    <pre className="text-gray-300 text-sm whitespace-pre-wrap">{refinedPrompt}</pre>
+                    <div 
+                      className="text-gray-300 text-sm whitespace-pre-wrap"
+                      dangerouslySetInnerHTML={{ __html: formatText(refinedPrompt) }}
+                    />
                   </div>
                 </div>
               </div>
