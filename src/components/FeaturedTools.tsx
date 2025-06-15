@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { useNavigate } from 'react-router-dom';
+import { SignedIn, SignedOut, SignInButton } from '@clerk/clerk-react';
 
 const FeaturedTools = () => {
   const navigate = useNavigate();
@@ -194,13 +195,28 @@ const FeaturedTools = () => {
                             </span>
                           </h4>
                           <p className="text-gray-300 mb-6 max-w-lg mx-auto text-lg leading-relaxed">{section.signatureTool.description}</p>
-                          <Button 
-                            size="lg"
-                            className="bg-green-500 hover:bg-green-600 text-black font-medium px-8 py-3 rounded-full hover:scale-105 transition-all duration-200"
-                            onClick={section.signatureTool.onClick}
-                          >
-                            {section.signatureTool.comingSoon ? 'Coming Soon' : 'Try Now'}
-                          </Button>
+                          
+                          <SignedIn>
+                            <Button 
+                              size="lg"
+                              className="bg-green-500 hover:bg-green-600 text-black font-medium px-8 py-3 rounded-full hover:scale-105 transition-all duration-200"
+                              onClick={section.signatureTool.onClick}
+                              disabled={section.signatureTool.comingSoon}
+                            >
+                              {section.signatureTool.comingSoon ? 'Coming Soon' : 'Try Now'}
+                            </Button>
+                          </SignedIn>
+                          
+                          <SignedOut>
+                            <SignInButton mode="modal">
+                              <Button 
+                                size="lg"
+                                className="bg-green-500 hover:bg-green-600 text-black font-medium px-8 py-3 rounded-full hover:scale-105 transition-all duration-200"
+                              >
+                                Login to Try
+                              </Button>
+                            </SignInButton>
+                          </SignedOut>
                         </CardContent>
                       </Card>
                     </motion.div>
@@ -225,14 +241,29 @@ const FeaturedTools = () => {
                               <h4 className="text-lg font-bold text-white mb-3">{tool.title}</h4>
                               <p className="text-gray-200 text-sm mb-4">{tool.description}</p>
                             </div>
-                            <Button 
-                              size="sm"
-                              className="bg-green-500 hover:bg-green-600 text-black font-medium rounded-full w-full hover:scale-105 transition-all duration-200"
-                              onClick={tool.onClick}
-                              disabled={tool.comingSoon}
-                            >
-                              {tool.comingSoon ? 'Coming Soon' : 'Try It'}
-                            </Button>
+                            
+                            <SignedIn>
+                              <Button 
+                                size="sm"
+                                className="bg-green-500 hover:bg-green-600 text-black font-medium rounded-full w-full hover:scale-105 transition-all duration-200"
+                                onClick={tool.onClick}
+                                disabled={tool.comingSoon}
+                              >
+                                {tool.comingSoon ? 'Coming Soon' : 'Try It'}
+                              </Button>
+                            </SignedIn>
+                            
+                            <SignedOut>
+                              <SignInButton mode="modal">
+                                <Button 
+                                  size="sm"
+                                  className="bg-green-500 hover:bg-green-600 text-black font-medium rounded-full w-full hover:scale-105 transition-all duration-200"
+                                  disabled={tool.comingSoon}
+                                >
+                                  {tool.comingSoon ? 'Coming Soon' : 'Login to Try'}
+                                </Button>
+                              </SignInButton>
+                            </SignedOut>
                           </CardContent>
                         </Card>
                       </motion.div>
