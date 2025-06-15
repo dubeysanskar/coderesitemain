@@ -130,7 +130,11 @@ const Founders = () => {
                         <img 
                           src={founder.avatar} 
                           alt={founder.name}
-                          className="w-full h-full object-cover transition-all duration-300 group-hover:blur-sm group-hover:scale-110"
+                          className={`w-full h-full transition-all duration-300 group-hover:blur-sm group-hover:scale-110 ${
+                            founder.name === 'Balkrishna Garg' || founder.name === 'Adarsh Shukla' 
+                              ? 'object-contain' 
+                              : 'object-cover'
+                          }`}
                         />
                         
                         {/* Hover overlay */}
