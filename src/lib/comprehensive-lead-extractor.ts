@@ -1,4 +1,3 @@
-
 import { Lead, LeadSearchCriteria } from './lead-types';
 
 export class ComprehensiveLeadExtractor {
@@ -109,7 +108,7 @@ export class ComprehensiveLeadExtractor {
     for (const pattern of namePatterns) {
       const matches = combinedText.match(pattern);
       if (matches && matches.length > 0) {
-        const validNames = matches.filter((name: string) => 
+        const validNames: string[] = matches.filter((name: string) => 
           !this.isCommonWord(name) && 
           name.split(' ').length >= 2
         );
