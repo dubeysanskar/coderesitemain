@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Upload, Mail, Eye, Send, FileSpreadsheet, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, Mail, Eye, Send, FileSpreadsheet, CheckCircle, AlertCircle, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Contact {
   name: string;
@@ -43,6 +44,8 @@ Your Name`);
   const [isSending, setIsSending] = useState(false);
   const [emailResults, setEmailResults] = useState<EmailResult[]>([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [availableFields, setAvailableFields] = useState<string[]>([]);
+  const [selectedField, setSelectedField] = useState<string>('');
   const { toast } = useToast();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,6 +94,7 @@ Your Name`);
       }
 
       setContacts(parsedContacts);
+      setAvailableFields(headers);
       toast({
         title: "File Uploaded Successfully",
         description: `Loaded ${parsedContacts.length} contacts.`
@@ -104,6 +108,26 @@ Your Name`);
       });
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const insertField = () => {
+    if (!selectedField) return;
+    
+    const placeholder = `{{${selectedField}}}`;
+    const textarea = document.getElementById('email-template') as HTMLTextAreaElement;
+    if (textarea) {
+      const cursorPosition = textarea.selectionStart;
+      const textBefore = emailTemplate.substring(0, cursorPosition);
+      const textAfter = emailTemplate.substring(cursorPosition);
+      const newTemplate = textBefore + placeholder + textAfter;
+      setEmailTemplate(newTemplate);
+      
+      // Reset cursor position after the inserted placeholder
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(cursorPosition + placeholder.length, cursorPosition + placeholder.length);
+      }, 0);
     }
   };
 
@@ -139,46 +163,77 @@ Your Name`);
     setIsSending(true);
     const results: EmailResult[] = [];
 
-    for (const contact of contacts) {
-      try {
-        const personalizedContent = replaceTemplate(emailTemplate, contact);
-        
-        // Simulate Brevo API call
-        const response = await fetch('/api/send-email', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            sender: { name: senderName, email: senderEmail },
-            to: [{ email: contact.email, name: contact.name }],
-            subject: emailSubject,
-            htmlContent: personalizedContent.replace(/\n/g, '<br>')
-          })
-        });
+    try {
+      // Import the brevo service
+      const { sendBulkEmails } = await import('@/lib/brevo-service');
+      
+      // Prepare emails data
+      const emailsData = contacts.map(contact => ({
+        to: { email: contact.email, name: contact.name },
+        subject: emailSubject,
+        htmlContent: replaceTemplate(emailTemplate, contact).replace(/\n/g, '<br>')
+      }));
 
-        if (response.ok) {
-          results.push({
-            email: contact.email,
-            name: contact.name,
-            status: 'success',
-            message: 'Email sent successfully'
+      const emailResults = await sendBulkEmails({
+        sender: { name: senderName, email: senderEmail },
+        emails: emailsData
+      });
+
+      // Process results
+      emailResults.forEach((result, index) => {
+        const contact = contacts[index];
+        results.push({
+          email: contact.email,
+          name: contact.name,
+          status: result.success ? 'success' : 'error',
+          message: result.success ? 'Email sent successfully' : result.error || 'Failed to send email'
+        });
+      });
+
+    } catch (error) {
+      console.error('Bulk email sending error:', error);
+      // If bulk sending fails, fall back to individual sending
+      for (const contact of contacts) {
+        try {
+          const personalizedContent = replaceTemplate(emailTemplate, contact);
+          
+          const response = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              sender: { name: senderName, email: senderEmail },
+              to: [{ email: contact.email, name: contact.name }],
+              subject: emailSubject,
+              htmlContent: personalizedContent.replace(/\n/g, '<br>')
+            })
           });
-        } else {
+
+          if (response.ok) {
+            results.push({
+              email: contact.email,
+              name: contact.name,
+              status: 'success',
+              message: 'Email sent successfully'
+            });
+          } else {
+            const errorData = await response.json().catch(() => ({}));
+            results.push({
+              email: contact.email,
+              name: contact.name,
+              status: 'error',
+              message: errorData.message || 'Failed to send email'
+            });
+          }
+        } catch (emailError) {
           results.push({
             email: contact.email,
             name: contact.name,
             status: 'error',
-            message: 'Failed to send email'
+            message: `Error: ${emailError instanceof Error ? emailError.message : 'Unknown error'}`
           });
         }
-      } catch (error) {
-        results.push({
-          email: contact.email,
-          name: contact.name,
-          status: 'error',
-          message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
-        });
       }
     }
 
@@ -188,7 +243,8 @@ Your Name`);
     const successCount = results.filter(r => r.status === 'success').length;
     toast({
       title: "Email Campaign Complete",
-      description: `${successCount} out of ${results.length} emails sent successfully.`
+      description: `${successCount} out of ${results.length} emails sent successfully.`,
+      variant: successCount > 0 ? "default" : "destructive"
     });
   };
 
@@ -200,7 +256,7 @@ Your Name`);
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 py-12 px-4">
+    <div className="min-h-screen bg-gray-900 pt-20 py-12 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500">
@@ -314,9 +370,40 @@ Your Name`);
                 <p className="text-gray-400 text-sm">
                   Use placeholders like {`{{name}}`}, {`{{email}}`}, {`{{certificate}}`}, etc.
                 </p>
+                
+                {/* Field Insertion */}
+                {availableFields.length > 0 && (
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <Label className="text-gray-200 text-xs">Insert Field</Label>
+                      <Select value={selectedField} onValueChange={setSelectedField}>
+                        <SelectTrigger className="bg-gray-700 border-gray-600 text-white h-8">
+                          <SelectValue placeholder="Select field to insert" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-700 border-gray-600">
+                          {availableFields.map(field => (
+                            <SelectItem key={field} value={field} className="text-white hover:bg-gray-600">
+                              {field}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button
+                      onClick={insertField}
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700 h-8"
+                      disabled={!selectedField}
+                    >
+                      <Plus className="w-3 h-3 mr-1" />
+                      Insert
+                    </Button>
+                  </div>
+                )}
               </CardHeader>
               <CardContent>
                 <Textarea
+                  id="email-template"
                   value={emailTemplate}
                   onChange={(e) => setEmailTemplate(e.target.value)}
                   rows={12}
