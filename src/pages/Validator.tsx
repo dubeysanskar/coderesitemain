@@ -26,6 +26,7 @@ const Validator = () => {
   });
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationResult, setVerificationResult] = useState<CertificateData | null>(null);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [certificatesData, setCertificatesData] = useState<CertificateData[]>([]);
   const { toast } = useToast();
 
@@ -62,9 +63,9 @@ const Validator = () => {
           certificateId: cleanString(row['Certificate ID'] || row['CertificateID'] || row['certificateId'] || row['ID'] || row['Certificate_ID']),
           email: cleanString(row['Email'] || row['EMAIL'] || row['email'] || row['Email Address'] || row['Email_Address']),
           holderName: cleanString(row['Holder Name'] || row['HolderName'] || row['holderName'] || row['Name'] || row['Student Name'] || row['Student_Name']),
-          issuanceDate: cleanString(row['Issuance Date'] || row['IssuanceDate'] || row['issuanceDate'] || row['Date'] || row['Issue Date'] || row['Issue_Date']),
+          issuanceDate: 'July 2025', // Default issue date for all certificates
           issuer: cleanString(row['Issuer'] || row['issuer'] || row['Issued By'] || row['Issued_By'] || row['Organization']) || 'CodeResite',
-          certificateType: cleanString(row['Certificate Type'] || row['CertificateType'] || row['certificateType'] || row['Type'] || row['Course'] || row['Certificate_Type']),
+          certificateType: 'Intern', // Default certificate type for all certificates
           status: cleanString(row['Status'] || row['status']) || 'Valid'
         };
         
@@ -100,6 +101,7 @@ const Validator = () => {
     e.preventDefault();
     setIsVerifying(true);
     setVerificationResult(null);
+    setHasSubmitted(true);
 
     try {
       const searchCertId = formData.certificateId.trim().toLowerCase();
@@ -234,15 +236,7 @@ const Validator = () => {
                   </Button>
                 </form>
 
-                {/* Debug info for testing */}
-                {certificatesData.length > 0 && (
-                  <div className="mt-4 p-4 bg-gray-800/50 rounded-lg text-xs text-gray-400">
-                    <p>Debug: {certificatesData.length} certificates loaded</p>
-                    <p>Sample certificate IDs: {certificatesData.slice(0, 3).map(c => c.certificateId).join(', ')}</p>
-                  </div>
-                )}
-
-                {verificationResult && (
+                {hasSubmitted && verificationResult && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -281,7 +275,7 @@ const Validator = () => {
                   </motion.div>
                 )}
 
-                {!verificationResult && formData.certificateId && formData.email && !isVerifying && (
+                {hasSubmitted && !verificationResult && !isVerifying && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
