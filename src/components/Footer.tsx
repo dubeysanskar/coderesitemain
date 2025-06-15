@@ -76,7 +76,7 @@ const Footer = () => {
           >
             <h3 className="text-lg font-bold text-white mb-4">Contact Info</h3>
             <div className="space-y-2 text-gray-400">
-              <p>📧 sanskardubeydev@gmail.com</p>
+              <p>📧 contact@coderesite.com</p>
               <p>📱 +91 79920 89454</p>
               <p>🌍 India</p>
             </div>
