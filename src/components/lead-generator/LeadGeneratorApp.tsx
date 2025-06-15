@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { LeadSearchCriteria, LeadGenerationResult } from '@/lib/lead-types';
-import { leadGenerationService } from '@/lib/lead-generation-service';
+import { newLeadGenerationService } from '@/lib/new-lead-generation-service';
 import AdvancedLeadSearchForm from './AdvancedLeadSearchForm';
 import LeadsResults from './LeadsResults';
 import GoogleDorkPreview from './GoogleDorkPreview';
@@ -39,7 +39,7 @@ const LeadGeneratorApp: React.FC = () => {
 
   const handlePreviewDork = () => {
     try {
-      const preview = leadGenerationService.generateGoogleDorkPreview(searchCriteria);
+      const preview = newLeadGenerationService.generateDorkPreview(searchCriteria);
       setDorkPreview(preview);
       setShowDorkPreview(true);
     } catch (error) {
@@ -64,17 +64,17 @@ const LeadGeneratorApp: React.FC = () => {
     setIsSearching(true);
     try {
       toast({
-        title: "Starting Advanced Search",
-        description: `Crawling pages 1-${searchCriteria.searchDepth} with AI-powered extraction...`,
+        title: "🚀 Advanced Google Dorking Started",
+        description: "Using advanced search patterns to find qualified leads with AI extraction...",
       });
 
-      const searchResults = await leadGenerationService.generateLeads(searchCriteria);
+      const searchResults = await newLeadGenerationService.generateLeads(searchCriteria);
       setResults(searchResults);
       setCurrentStep('results');
       
       toast({
-        title: "Smart Leads Generated!",
-        description: `Found ${searchResults.totalCount} qualified leads with contact information.`,
+        title: "🎯 Smart Leads Generated!",
+        description: `Found ${searchResults.totalCount} qualified leads using Google dorking techniques.`,
       });
     } catch (error) {
       console.error('Error generating leads:', error);
