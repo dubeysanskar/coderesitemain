@@ -75,7 +75,7 @@ const Navbar = () => {
               <img 
                 src="/logo.png" 
                 alt="CodeResite" 
-                className="h-20 w-auto" // Increased logo size
+                className="h-12 w-auto" // Reduced logo size to be balanced
               />
             </motion.div>
           </div>
