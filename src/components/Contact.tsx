@@ -30,43 +30,43 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      // Create mailto link with form data
-      const subject = `Contact Form Submission - ${formData.service || 'General Inquiry'}`;
-      const body = `
-Name: ${formData.name}
-Email: ${formData.email}
-Company: ${formData.company || 'Not provided'}
-Phone: ${formData.phone || 'Not provided'}
-Service Required: ${formData.service}
-
-Message:
-${formData.message}
-      `.trim();
-
-      const mailtoLink = `mailto:sanskardubeydev@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      
-      // Open default email client
-      window.location.href = mailtoLink;
-      
-      toast({
-        title: "Email client opened",
-        description: "Your default email client should open with the message pre-filled. Please send the email to complete your submission.",
-        duration: 5000,
+      // Using Formspree service to handle form submissions
+      const response = await fetch('https://formspree.io/f/xgvejbyl', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          _replyto: formData.email,
+          _subject: `Contact Form Submission - ${formData.service || 'General Inquiry'}`,
+          _to: 'sanskardubeydev@gmail.com'
+        }),
       });
 
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        company: '',
-        phone: '',
-        service: '',
-        message: '',
-      });
+      if (response.ok) {
+        toast({
+          title: "Message sent successfully!",
+          description: "Thank you for contacting us. We'll get back to you soon.",
+          duration: 5000,
+        });
+
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          company: '',
+          phone: '',
+          service: '',
+          message: '',
+        });
+      } else {
+        throw new Error('Failed to send message');
+      }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "There was an issue opening your email client. Please try again or contact us directly.",
+        title: "Error sending message",
+        description: "There was an issue sending your message. Please try again or contact us directly.",
         variant: "destructive",
       });
     } finally {
@@ -210,7 +210,7 @@ ${formData.message}
                     disabled={isSubmitting}
                     className="w-full bg-green-500 hover:bg-green-600 text-black font-medium py-3 rounded-lg hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isSubmitting ? 'Opening Email Client...' : 'Send Message'}
+                    {isSubmitting ? 'Sending Message...' : 'Send Message'}
                   </Button>
                 </form>
               </CardContent>
