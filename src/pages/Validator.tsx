@@ -52,14 +52,20 @@ const Validator = () => {
       
       // Map the data to our expected format with multiple possible column name variations
       const certificates: CertificateData[] = jsonData.map((row: any) => {
+        // Clean and normalize the data
+        const cleanString = (str: any) => {
+          if (!str) return '';
+          return String(str).trim().replace(/\s+/g, ' ');
+        };
+
         const cert = {
-          certificateId: row['Certificate ID'] || row['CertificateID'] || row['certificateId'] || row['ID'] || row['Certificate_ID'] || '',
-          email: row['Email'] || row['EMAIL'] || row['email'] || row['Email Address'] || row['Email_Address'] || '',
-          holderName: row['Holder Name'] || row['HolderName'] || row['holderName'] || row['Name'] || row['Student Name'] || row['Student_Name'] || '',
-          issuanceDate: row['Issuance Date'] || row['IssuanceDate'] || row['issuanceDate'] || row['Date'] || row['Issue Date'] || row['Issue_Date'] || '',
-          issuer: row['Issuer'] || row['issuer'] || row['Issued By'] || row['Issued_By'] || row['Organization'] || 'CodeResite',
-          certificateType: row['Certificate Type'] || row['CertificateType'] || row['certificateType'] || row['Type'] || row['Course'] || row['Certificate_Type'] || '',
-          status: row['Status'] || row['status'] || 'Valid'
+          certificateId: cleanString(row['Certificate ID'] || row['CertificateID'] || row['certificateId'] || row['ID'] || row['Certificate_ID']),
+          email: cleanString(row['Email'] || row['EMAIL'] || row['email'] || row['Email Address'] || row['Email_Address']),
+          holderName: cleanString(row['Holder Name'] || row['HolderName'] || row['holderName'] || row['Name'] || row['Student Name'] || row['Student_Name']),
+          issuanceDate: cleanString(row['Issuance Date'] || row['IssuanceDate'] || row['issuanceDate'] || row['Date'] || row['Issue Date'] || row['Issue_Date']),
+          issuer: cleanString(row['Issuer'] || row['issuer'] || row['Issued By'] || row['Issued_By'] || row['Organization']) || 'CodeResite',
+          certificateType: cleanString(row['Certificate Type'] || row['CertificateType'] || row['certificateType'] || row['Type'] || row['Course'] || row['Certificate_Type']),
+          status: cleanString(row['Status'] || row['status']) || 'Valid'
         };
         
         console.log('Mapped certificate:', cert);
@@ -68,6 +74,7 @@ const Validator = () => {
       
       setCertificatesData(certificates);
       console.log('Final certificates data:', certificates);
+      console.log('Total certificates loaded:', certificates.length);
       
       // Log available columns for debugging
       if (jsonData.length > 0) {
@@ -92,22 +99,40 @@ const Validator = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsVerifying(true);
+    setVerificationResult(null);
 
     try {
+      const searchCertId = formData.certificateId.trim().toLowerCase();
+      const searchEmail = formData.email.trim().toLowerCase();
+      
       console.log('Searching for:', { 
-        certificateId: formData.certificateId.toLowerCase(), 
-        email: formData.email.toLowerCase() 
+        certificateId: searchCertId, 
+        email: searchEmail,
+        totalCertificates: certificatesData.length
+      });
+      
+      // Debug: Log all certificate IDs and emails for comparison
+      console.log('All certificates in database:');
+      certificatesData.forEach((cert, index) => {
+        console.log(`${index + 1}. ID: "${cert.certificateId.toLowerCase()}" | Email: "${cert.email.toLowerCase()}"`);
       });
       
       // Find matching certificate
       const matchingCertificate = certificatesData.find(cert => {
-        const certIdMatch = cert.certificateId.toLowerCase().trim() === formData.certificateId.toLowerCase().trim();
-        const emailMatch = cert.email.toLowerCase().trim() === formData.email.toLowerCase().trim();
+        const certId = cert.certificateId.toLowerCase().trim();
+        const certEmail = cert.email.toLowerCase().trim();
+        
+        const certIdMatch = certId === searchCertId;
+        const emailMatch = certEmail === searchEmail;
         
         console.log('Checking certificate:', {
-          cert: cert.certificateId,
-          email: cert.email,
+          originalCertId: cert.certificateId,
+          normalizedCertId: certId,
+          searchCertId: searchCertId,
           certIdMatch,
+          originalEmail: cert.email,
+          normalizedEmail: certEmail,
+          searchEmail: searchEmail,
           emailMatch,
           bothMatch: certIdMatch && emailMatch
         });
@@ -208,6 +233,14 @@ const Validator = () => {
                     {isVerifying ? 'Verifying...' : 'Verify Certificate'}
                   </Button>
                 </form>
+
+                {/* Debug info for testing */}
+                {certificatesData.length > 0 && (
+                  <div className="mt-4 p-4 bg-gray-800/50 rounded-lg text-xs text-gray-400">
+                    <p>Debug: {certificatesData.length} certificates loaded</p>
+                    <p>Sample certificate IDs: {certificatesData.slice(0, 3).map(c => c.certificateId).join(', ')}</p>
+                  </div>
+                )}
 
                 {verificationResult && (
                   <motion.div
