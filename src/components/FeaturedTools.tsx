@@ -64,9 +64,15 @@ const FeaturedTools = () => {
         description: 'Our AI-powered Lead Generation tool helps you target, engage, and convert with ease',
         icon: '🎯',
         featured: true,
+        onClick: () => navigate('/lead-generator'),
       },
       tools: [
-        { title: 'Lead Generation Tool', description: 'Automated lead discovery', icon: '🎯' },
+        { 
+          title: 'Lead Generation Tool', 
+          description: 'Automated lead discovery', 
+          icon: '🎯',
+          onClick: () => navigate('/lead-generator'),
+        },
         { title: 'Presentation Maker', description: 'Professional marketing slides', icon: '📈' },
         { title: 'ATS Enhancer', description: 'Resume optimization for ATS', icon: '🔍' },
         { title: 'Prompt Guide', description: 'AI prompting strategies', icon: '💬' },
