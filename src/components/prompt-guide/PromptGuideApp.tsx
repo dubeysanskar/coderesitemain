@@ -23,12 +23,18 @@ const PromptGuideApp = () => {
 
     setIsLoading(true);
     try {
+      console.log('🔄 Starting prompt refinement...');
+      console.log('Raw input:', rawInput);
+      console.log('Target model:', targetModel);
+      
       const refined = await refinePrompt(rawInput, targetModel);
+      console.log('✅ Refined prompt received:', refined);
+      
       setRefinedPrompt(refined);
       setShowComparison(true);
       toast.success('Prompt refined successfully!');
     } catch (error) {
-      console.error('Error refining prompt:', error);
+      console.error('❌ Error refining prompt:', error);
       toast.error('Failed to refine prompt. Please try again.');
     } finally {
       setIsLoading(false);
@@ -58,12 +64,12 @@ const PromptGuideApp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 pt-24 pb-12 px-4">
+    <div className="min-h-screen bg-black pt-24 pb-12 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <Wand2 className="h-8 w-8 text-blue-400" />
+            <Wand2 className="h-8 w-8 text-green-400" />
             <h1 className="text-4xl font-bold text-white">Prompt Guide</h1>
           </div>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
@@ -73,10 +79,10 @@ const PromptGuideApp = () => {
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Input Section */}
-          <Card className="bg-black/60 border-white/30 backdrop-blur-sm">
+          <Card className="bg-gray-900/80 border-gray-700 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
-                <span className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-sm">1</span>
+                <span className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-sm">1</span>
                 Raw Input
               </CardTitle>
             </CardHeader>
@@ -87,20 +93,20 @@ const PromptGuideApp = () => {
 Example: 'i want to build a tool that take excel upload and send email with different names using brevo. it should have dynamic fields like name and message. should be automated.'"
                 value={rawInput}
                 onChange={(e) => setRawInput(e.target.value)}
-                className="min-h-[200px] bg-gray-800/50 border-gray-600 text-white placeholder-gray-400"
+                className="min-h-[200px] bg-gray-800/80 border-gray-600 text-white placeholder-gray-400"
               />
               
               <div className="space-y-3">
-                <label className="text-sm text-gray-300">Target AI Model:</label>
+                <label className="text-sm text-gray-300">Available Models:</label>
                 <Select value={targetModel} onValueChange={setTargetModel}>
-                  <SelectTrigger className="bg-gray-800/50 border-gray-600 text-white">
+                  <SelectTrigger className="bg-gray-800/80 border-gray-600 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="gemini">Google Gemini</SelectItem>
-                    <SelectItem value="chatgpt">OpenAI ChatGPT</SelectItem>
-                    <SelectItem value="claude">Anthropic Claude</SelectItem>
-                    <SelectItem value="general">General Purpose</SelectItem>
+                  <SelectContent className="bg-gray-800 border-gray-600">
+                    <SelectItem value="gemini" className="text-white">Google Gemini (use it for now)</SelectItem>
+                    <SelectItem value="chatgpt" className="text-white">OpenAI ChatGPT</SelectItem>
+                    <SelectItem value="claude" className="text-white">Anthropic Claude</SelectItem>
+                    <SelectItem value="general" className="text-white">General Purpose</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -108,7 +114,7 @@ Example: 'i want to build a tool that take excel upload and send email with diff
               <Button 
                 onClick={handleRefinePrompt}
                 disabled={isLoading || !rawInput.trim()}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
               >
                 {isLoading ? (
                   <div className="flex items-center gap-2">
@@ -126,7 +132,7 @@ Example: 'i want to build a tool that take excel upload and send email with diff
           </Card>
 
           {/* Output Section */}
-          <Card className="bg-black/60 border-white/30 backdrop-blur-sm">
+          <Card className="bg-gray-900/80 border-gray-700 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <span className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-sm">2</span>
@@ -136,7 +142,7 @@ Example: 'i want to build a tool that take excel upload and send email with diff
             <CardContent className="space-y-4">
               {refinedPrompt ? (
                 <>
-                  <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-4 min-h-[200px]">
+                  <div className="bg-gray-800/80 border border-gray-600 rounded-lg p-4 min-h-[200px]">
                     <pre className="text-gray-200 whitespace-pre-wrap text-sm leading-relaxed">
                       {refinedPrompt}
                     </pre>
@@ -172,10 +178,10 @@ Example: 'i want to build a tool that take excel upload and send email with diff
 
         {/* Before & After Comparison */}
         {showComparison && rawInput && refinedPrompt && (
-          <Card className="mt-8 bg-black/60 border-white/30 backdrop-blur-sm">
+          <Card className="mt-8 bg-gray-900/80 border-gray-700 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
-                <ArrowRight className="h-5 w-5 text-blue-400" />
+                <ArrowRight className="h-5 w-5 text-green-400" />
                 Before → After Comparison
               </CardTitle>
             </CardHeader>
@@ -199,7 +205,7 @@ Example: 'i want to build a tool that take excel upload and send email with diff
         )}
 
         {/* Tips Section */}
-        <Card className="mt-8 bg-black/60 border-white/30 backdrop-blur-sm">
+        <Card className="mt-8 bg-gray-900/80 border-gray-700 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-white">💡 Tips for Better Prompts</CardTitle>
           </CardHeader>
