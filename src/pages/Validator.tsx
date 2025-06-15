@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import Layout from '@/components/Layout';
+import * as XLSX from 'xlsx';
+
+interface CertificateData {
+  certificateId: string;
+  email: string;
+  holderName: string;
+  issuanceDate: string;
+  issuer: string;
+  certificateType: string;
+  status: string;
+}
 
 const Validator = () => {
   const [formData, setFormData] = useState({
@@ -14,8 +25,50 @@ const Validator = () => {
     email: '',
   });
   const [isVerifying, setIsVerifying] = useState(false);
-  const [verificationResult, setVerificationResult] = useState<any>(null);
+  const [verificationResult, setVerificationResult] = useState<CertificateData | null>(null);
+  const [certificatesData, setCertificatesData] = useState<CertificateData[]>([]);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Load the Excel file when component mounts
+    loadCertificatesData();
+  }, []);
+
+  const loadCertificatesData = async () => {
+    try {
+      const response = await fetch('/certifi cr.xlsx');
+      const arrayBuffer = await response.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      
+      // Assuming the data is in the first sheet
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      
+      // Convert to JSON
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      
+      // Map the data to our expected format
+      const certificates: CertificateData[] = jsonData.map((row: any) => ({
+        certificateId: row['Certificate ID'] || row['certificateId'] || '',
+        email: row['Email'] || row['email'] || '',
+        holderName: row['Holder Name'] || row['holderName'] || '',
+        issuanceDate: row['Issuance Date'] || row['issuanceDate'] || '',
+        issuer: row['Issuer'] || row['issuer'] || '',
+        certificateType: row['Certificate Type'] || row['certificateType'] || '',
+        status: row['Status'] || row['status'] || 'Valid'
+      }));
+      
+      setCertificatesData(certificates);
+      console.log('Loaded certificates:', certificates);
+    } catch (error) {
+      console.error('Error loading certificates data:', error);
+      toast({
+        title: "Error loading certificates",
+        description: "Could not load the certificates database. Please try again later.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -26,25 +79,37 @@ const Validator = () => {
     e.preventDefault();
     setIsVerifying(true);
 
-    // Simulate certificate verification
-    setTimeout(() => {
-      const mockResult = {
-        valid: true,
-        holderName: 'John Doe',
-        issuanceDate: '2024-01-15',
-        issuer: 'CodeResite Academy',
-        certificateType: 'AI Development Certification',
-        status: 'Valid',
-      };
+    try {
+      // Find matching certificate
+      const matchingCertificate = certificatesData.find(cert => 
+        cert.certificateId.toLowerCase() === formData.certificateId.toLowerCase() &&
+        cert.email.toLowerCase() === formData.email.toLowerCase()
+      );
 
-      setVerificationResult(mockResult);
-      setIsVerifying(false);
-      
+      if (matchingCertificate) {
+        setVerificationResult(matchingCertificate);
+        toast({
+          title: "Certificate Verified Successfully!",
+          description: "The certificate is valid and matches our records.",
+        });
+      } else {
+        setVerificationResult(null);
+        toast({
+          title: "Certificate Not Found",
+          description: "No matching certificate found for the provided ID and email combination.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Verification error:', error);
       toast({
-        title: "Certificate Verified Successfully!",
-        description: "The certificate is valid and active.",
+        title: "Verification Error",
+        description: "An error occurred during verification. Please try again.",
+        variant: "destructive",
       });
-    }, 2000);
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   return (
@@ -148,6 +213,25 @@ const Validator = () => {
                           <span className="text-green-400 font-bold">{verificationResult.status}</span>
                         </div>
                       </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {!verificationResult && formData.certificateId && formData.email && !isVerifying && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                    className="mt-8 p-6 bg-red-500/20 border border-red-400/30 rounded-lg"
+                  >
+                    <div className="text-center">
+                      <div className="text-4xl mb-4">❌</div>
+                      <h3 className="text-xl font-bold text-white mb-2">
+                        Certificate Not Found
+                      </h3>
+                      <p className="text-gray-300 text-sm">
+                        No matching certificate found for the provided credentials.
+                      </p>
                     </div>
                   </motion.div>
                 )}
