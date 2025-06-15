@@ -21,7 +21,7 @@ const LeadGeneratorApp: React.FC = () => {
     location: {
       city: '',
       state: '',
-      country: 'United States'
+      // Removed the default "United States" country
     },
     companySize: '',
     jobTitle: '',
@@ -34,6 +34,7 @@ const LeadGeneratorApp: React.FC = () => {
   });
 
   const handleCriteriaChange = (criteria: LeadSearchCriteria) => {
+    console.log('🔄 Criteria changed:', criteria);
     setSearchCriteria(criteria);
   };
 
@@ -52,6 +53,8 @@ const LeadGeneratorApp: React.FC = () => {
   };
 
   const handleSearch = async () => {
+    console.log('🎯 Starting search with criteria:', searchCriteria);
+    
     if (searchCriteria.industry.length === 0 && !searchCriteria.location.city) {
       toast({
         title: "Missing Information",
@@ -69,15 +72,19 @@ const LeadGeneratorApp: React.FC = () => {
       });
 
       const searchResults = await newLeadGenerationService.generateLeads(searchCriteria);
+      console.log('📊 Search completed:', searchResults);
+      
       setResults(searchResults);
       setCurrentStep('results');
       
       toast({
-        title: "🎯 Leads Found!",
-        description: `Found ${searchResults.totalCount} qualified leads across multiple platforms.`,
+        title: searchResults.totalCount > 0 ? "🎯 Leads Found!" : "🔍 Search Completed",
+        description: searchResults.totalCount > 0 
+          ? `Found ${searchResults.totalCount} qualified leads across multiple platforms.`
+          : "No leads found with current criteria. Try adjusting your search parameters.",
       });
     } catch (error) {
-      console.error('Error generating leads:', error);
+      console.error('❌ Error generating leads:', error);
       toast({
         title: "Search Failed",
         description: "Failed to generate leads. Please check your API configuration and try again.",
