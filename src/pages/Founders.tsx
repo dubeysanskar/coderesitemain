@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,74 +12,68 @@ const Founders = () => {
   const founders = [
     {
       name: 'Balkrishna Garg',
-      role: 'Founder & CEO',
-      description: 'Certified Ethical Hacker with expertise in Linux, Arch, Offensive & Defensive Security',
-      skills: ['Ethical Hacking', 'Linux', 'Arch Linux', 'Cybersecurity', 'Penetration Testing'],
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face',
+      role: 'Founder and CEO',
+      description: 'Certified Ethical Hacker, Linux, Arch, Offensive & Defensive security',
+      skills: ['Ethical Hacking', 'Linux', 'Security'],
+      avatar: '/balkrishna.jpg',
       social: {
-        linkedin: '#',
-        github: '#',
-        twitter: '#',
+        linkedin: 'https://linkedin.com/in/balkrishna-garg-119704294',
+        email: 'balkrishnagarg@coderesite.com',
       },
     },
     {
       name: 'Sanskar Dubey',
-      role: 'Founder & Director',
-      description: 'MediaWiki Contributor, MERN Stack Developer, and AI Engineer with innovative solutions',
-      skills: ['MERN Stack', 'AI Engineering', 'MediaWiki', 'Full-Stack Development', 'Machine Learning'],
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop&crop=face',
+      role: 'Founder and Director',
+      description: 'MediaWiki Open source Contributor, MERN Stack developer, AI Engineer',
+      skills: ['MERN Stack', 'AI', 'Open Source'],
+      avatar: '/sanskar.jpg',
       social: {
-        linkedin: '#',
-        github: '#',
-        twitter: '#',
+        linkedin: 'https://linkedin.com/in/sanskardev',
+        email: 'sanskardubeydev@gmail.com',
       },
     },
     {
       name: 'Mohd Zaid Sayyed',
-      role: 'Co-founder & MD',
-      description: 'GDG Prayagraj Ambassador, Hackathon Winner, Flutter/Dart Developer',
-      skills: ['Flutter', 'Dart', 'Mobile Development', 'GDG Ambassador', 'Hackathon Winner'],
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop&crop=face',
+      role: 'Co-founder and Managing Director',
+      description: '@GDG Prayagraj | Hackathons Winner | App Developer (Flutter/Dart)',
+      skills: ['Flutter', 'Dart', 'Mobile Development'],
+      avatar: '/zaid.jpg',
       social: {
-        linkedin: '#',
-        github: '#',
-        twitter: '#',
+        linkedin: 'https://linkedin.com/in/zaid-sayyed',
+        email: 'zaidsayyed07869@gmail.com',
       },
     },
     {
       name: 'Shiva Pandey',
-      role: 'COO',
-      description: 'Next.js expert, Python specialist in Gen AI/ML/DL, and Hackathon Winner',
-      skills: ['Next.js', 'Python', 'AI/ML/DL', 'Generative AI', 'Full-Stack Development'],
-      avatar: 'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?w=300&h=300&fit=crop&crop=face',
+      role: 'Chief Operating Officer (COO)',
+      description: 'Next Js Web developer || Python (Gen AI / ML / Deep Learning) || Hackathon Winner',
+      skills: ['Next.js', 'Python', 'AI/ML'],
+      avatar: '/shiva.jpg',
       social: {
-        linkedin: '#',
-        github: '#',
-        twitter: '#',
+        linkedin: 'https://linkedin.com/in/shiva-pandey-dev',
+        email: 'shivapandey9898@gmail.com',
       },
     },
     {
       name: 'Devendra Singh',
-      role: 'CTO',
-      description: 'Full-Stack Developer, Python & ML Enthusiast, GSSoC\'24 Contributor',
-      skills: ['Full-Stack', 'Python', 'Machine Learning', 'Open Source', 'GSSoC Contributor'],
-      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&h=300&fit=crop&crop=face',
+      role: 'Chief Technology Officer',
+      description: 'Full Stack Web Developer || Python & ML enthusiast || GSSoC\'24 || Building Scalable Web Project\'s',
+      skills: ['Full Stack', 'Python', 'ML'],
+      avatar: '/dev.jpg',
       social: {
-        linkedin: '#',
-        github: '#',
-        twitter: '#',
+        linkedin: 'https://linkedin.com/in/geekydev',
+        email: 'ds450974@gmail.com',
       },
     },
     {
       name: 'Adarsh Shukla',
-      role: 'CMO',
-      description: 'Data Analytics expert, Data Visualization specialist, Microsoft Products Expert',
-      skills: ['Data Analytics', 'Data Visualization', 'Microsoft Products', 'Business Intelligence', 'Marketing'],
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face',
+      role: 'Chief Marketing Officer (CMO)',
+      description: 'Data analytics | Data visualisation | Microsoft products propensity',
+      skills: ['Data Analytics', 'Marketing', 'Microsoft'],
+      avatar: '/adarsh.jpg',
       social: {
-        linkedin: '#',
-        github: '#',
-        twitter: '#',
+        linkedin: 'https://linkedin.com/in/adarsh-shukla-1517b327b',
+        email: 'Adarshshukla.contact@gmail.com',
       },
     },
   ];
@@ -152,6 +147,8 @@ const Founders = () => {
                           <div className="flex justify-center space-x-4 mb-3">
                             <motion.a
                               href={founder.social.linkedin}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               whileHover={{ scale: 1.2 }}
                               whileTap={{ scale: 0.9 }}
                               className="text-white hover:text-green-400 transition-colors text-xl"
@@ -159,20 +156,12 @@ const Founders = () => {
                               💼
                             </motion.a>
                             <motion.a
-                              href={founder.social.github}
+                              href={`mailto:${founder.social.email}`}
                               whileHover={{ scale: 1.2 }}
                               whileTap={{ scale: 0.9 }}
                               className="text-white hover:text-green-400 transition-colors text-xl"
                             >
-                              🐙
-                            </motion.a>
-                            <motion.a
-                              href={founder.social.twitter}
-                              whileHover={{ scale: 1.2 }}
-                              whileTap={{ scale: 0.9 }}
-                              className="text-white hover:text-green-400 transition-colors text-xl"
-                            >
-                              🐦
+                              📧
                             </motion.a>
                           </div>
                           <p className="text-gray-200 text-xs text-center leading-tight">{founder.description}</p>
