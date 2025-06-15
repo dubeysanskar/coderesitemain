@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from './ui/card';
@@ -9,14 +10,51 @@ const FeaturedTools = () => {
 
   const toolSections = [
     {
+      id: 'marketing',
+      title: '📊 Marketing',
+      signatureTool: {
+        title: 'Mail Merger Tool',
+        description: 'Merge your mail to automate workflow with dynamic fields and personalization',
+        icon: '📧',
+        featured: true,
+        onClick: () => navigate('/mail-merger'),
+      },
+      tools: [
+        { 
+          title: 'Lead Generation Tool', 
+          description: 'Automated lead discovery', 
+          icon: '🎯',
+          onClick: () => navigate('/lead-generator'),
+        },
+        { 
+          title: 'Presentation Maker', 
+          description: 'Professional marketing slides', 
+          icon: '📈',
+          onClick: () => navigate('/ppt-generator'),
+        },
+        { 
+          title: 'Mail Merger tool', 
+          description: 'Merge your mail to automate workflow', 
+          icon: '📧',
+          onClick: () => navigate('/mail-merger'),
+        },
+        { 
+          title: 'Prompt Guide', 
+          description: 'AI prompting strategies', 
+          icon: '💬',
+          onClick: () => navigate('/prompt-guide'),
+        },
+      ],
+    },
+    {
       id: 'students',
       title: '🎓 Students',
       signatureTool: {
-        title: 'PPT Generator',
-        description: 'Create professional presentations instantly with AI-powered content generation',
-        icon: '📊',
+        title: 'Resume Builder',
+        description: 'Create ATS-optimized resumes tailored to specific job descriptions using AI',
+        icon: '📄',
         featured: true,
-        onClick: () => navigate('/ppt-generator'),
+        onClick: () => navigate('/resume-builder'),
       },
       tools: [
         { 
@@ -48,49 +86,13 @@ const FeaturedTools = () => {
         description: 'Edit stunning video clips instantly with AI-powered editing features',
         icon: '🎬',
         featured: true,
+        comingSoon: true,
       },
       tools: [
-        { title: 'Face & Body Clone AI', description: 'Advanced AI cloning technology', icon: '🎭' },
-        { title: 'Voice Clone AI', description: 'Realistic voice synthesis', icon: '🎤' },
-        { title: 'Short Clips AI', description: 'Automated video generation', icon: '🎬' },
-        { title: 'Caption Writing AI', description: 'Engaging caption creation', icon: '✍️' },
-      ],
-    },
-    {
-      id: 'marketing',
-      title: '📊 Marketing',
-      signatureTool: {
-        title: 'Lead Generation Tool',
-        description: 'Our AI-powered Lead Generation tool helps you target, engage, and convert with ease',
-        icon: '🎯',
-        featured: true,
-        onClick: () => navigate('/lead-generator'),
-      },
-      tools: [
-        { 
-          title: 'Lead Generation Tool', 
-          description: 'Automated lead discovery', 
-          icon: '🎯',
-          onClick: () => navigate('/lead-generator'),
-        },
-        { 
-          title: 'Presentation Maker', 
-          description: 'Professional marketing slides', 
-          icon: '📈',
-          onClick: () => navigate('/ppt-generator'),
-        },
-        { 
-          title: 'Mail Merger tool', 
-          description: 'Merge your mail to automate workflow', 
-          icon: '📧',
-          onClick: () => navigate('/mail-merger'),
-        },
-        { 
-          title: 'Prompt Guide', 
-          description: 'AI prompting strategies', 
-          icon: '💬',
-          onClick: () => navigate('/prompt-guide'),
-        },
+        { title: 'Face & Body Clone AI', description: 'Advanced AI cloning technology', icon: '🎭', comingSoon: true },
+        { title: 'Voice Clone AI', description: 'Realistic voice synthesis', icon: '🎤', comingSoon: true },
+        { title: 'Short Clips AI', description: 'Automated video generation', icon: '🎬', comingSoon: true },
+        { title: 'Caption Writing AI', description: 'Engaging caption creation', icon: '✍️', comingSoon: true },
       ],
     },
     {
@@ -120,10 +122,10 @@ const FeaturedTools = () => {
               </p>
               <Button 
                 onClick={() => {
-                  // Create a link to download the PDF
                   const link = document.createElement('a');
-                  link.href = '/CyberSecurity.pdf'; // This should be placed in public folder
-                  link.download = 'CyberSecurity.pdf';
+                  link.href = '/cybersecurity.pdf';
+                  link.target = '_blank';
+                  link.rel = 'noopener noreferrer';
                   link.click();
                 }}
                 className="bg-green-500 hover:bg-green-600 text-black font-medium px-8 py-3 rounded-full hover:scale-105 transition-all duration-200"
@@ -176,7 +178,7 @@ const FeaturedTools = () => {
                 section.customContent
               ) : (
                 <>
-                  {/* Signature Tool - Cybersecurity Style */}
+                  {/* Signature Tool */}
                   {section.signatureTool && (
                     <motion.div
                       whileHover={{ scale: 1.02 }}
@@ -197,7 +199,7 @@ const FeaturedTools = () => {
                             className="bg-green-500 hover:bg-green-600 text-black font-medium px-8 py-3 rounded-full hover:scale-105 transition-all duration-200"
                             onClick={section.signatureTool.onClick}
                           >
-                            Try Now
+                            {section.signatureTool.comingSoon ? 'Coming Soon' : 'Try Now'}
                           </Button>
                         </CardContent>
                       </Card>
@@ -227,8 +229,9 @@ const FeaturedTools = () => {
                               size="sm"
                               className="bg-green-500 hover:bg-green-600 text-black font-medium rounded-full w-full hover:scale-105 transition-all duration-200"
                               onClick={tool.onClick}
+                              disabled={tool.comingSoon}
                             >
-                              Try It
+                              {tool.comingSoon ? 'Coming Soon' : 'Try It'}
                             </Button>
                           </CardContent>
                         </Card>

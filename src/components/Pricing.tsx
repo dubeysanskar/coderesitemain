@@ -56,6 +56,10 @@ const Pricing = () => {
     },
   ];
 
+  const handleGetStarted = () => {
+    window.open('https://forms.gle/D4yHohi9b6DCGHPf9', '_blank');
+  };
+
   return (
     <section id="pricing" className="py-20 px-4">
       <div className="max-w-7xl mx-auto">
@@ -148,13 +152,14 @@ const Pricing = () => {
                   </div>
 
                   <Button 
+                    onClick={handleGetStarted}
                     className={`w-full rounded-full font-medium hover:scale-105 transition-all duration-200 ${
                       plan.popular
                         ? 'bg-green-500 hover:bg-green-600 text-black'
                         : 'bg-transparent border border-green-400 text-green-400 hover:bg-green-400 hover:text-black'
                     }`}
                   >
-                    {plan.name === 'Enterprise' ? 'Contact Sales' : 'Get Started'}
+                    Get Started
                   </Button>
                 </CardContent>
               </Card>
