@@ -8,6 +8,9 @@ function MetaHead() {
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="canonical" href="https://www.coderesite.com" />
 
+      {/* Title - Set first to prevent any temporary titles */}
+      <title>CodeResite – AI Tools, Automation, Web Development & Cybersecurity</title>
+
       {/* Favicon & Web App Icons */}
       <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
       <link rel="icon" type="image/png" sizes="96x96" href="/assets/favicon-96x96.png" />
@@ -23,9 +26,6 @@ function MetaHead() {
 
       {/* Bing Site Verification (optional) */}
       <meta name="msvalidate.01" content="YOUR_BING_VERIFICATION_CODE" />
-
-      {/* Title */}
-      <title>CodeResite – AI Tools, Automation, Web Development & Cybersecurity</title>
 
       {/* Meta Description & Keywords */}
       <meta
