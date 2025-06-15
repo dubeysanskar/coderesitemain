@@ -233,7 +233,7 @@ ${formData.message}
                     <div className="text-2xl">📧</div>
                     <div>
                       <h4 className="text-lg font-semibold text-white">Email</h4>
-                      <p className="text-gray-300">sanskardubeydev@gmail.com</p>
+                      <p className="text-gray-300">contact@coderesite.com</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-4">
