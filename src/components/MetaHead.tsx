@@ -8,12 +8,18 @@ function MetaHead() {
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="canonical" href="https://www.coderesite.com" />
 
-      {/* Favicon & Manifest */}
-      <link rel="manifest" href="/manifest.json" />
-      <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon_io/apple-touch-icon.png" />
-      <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_io/favicon-32x32.png" />
-      <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon_io/favicon-16x16.png" />
-      <link rel="manifest" href="/assets/favicon_io/site.webmanifest" />
+      {/* Favicon & Web App Icons */}
+      <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
+      <link rel="icon" type="image/png" sizes="96x96" href="/assets/favicon-96x96.png" />
+      <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+      <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+
+      {/* Web App Manifest */}
+      <link rel="manifest" href="/assets/site.webmanifest" />
+
+      {/* Optional PWA Icons */}
+      <link rel="icon" type="image/png" sizes="192x192" href="/assets/web-app-manifest-192x192.png" />
+      <link rel="icon" type="image/png" sizes="512x512" href="/assets/web-app-manifest-512x512.png" />
 
       {/* Bing Site Verification (optional) */}
       <meta name="msvalidate.01" content="YOUR_BING_VERIFICATION_CODE" />
