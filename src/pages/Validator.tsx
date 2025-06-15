@@ -47,19 +47,33 @@ const Validator = () => {
       // Convert to JSON
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
       
-      // Map the data to our expected format
-      const certificates: CertificateData[] = jsonData.map((row: any) => ({
-        certificateId: row['Certificate ID'] || row['certificateId'] || '',
-        email: row['Email'] || row['email'] || '',
-        holderName: row['Holder Name'] || row['holderName'] || '',
-        issuanceDate: row['Issuance Date'] || row['issuanceDate'] || '',
-        issuer: row['Issuer'] || row['issuer'] || '',
-        certificateType: row['Certificate Type'] || row['certificateType'] || '',
-        status: row['Status'] || row['status'] || 'Valid'
-      }));
+      console.log('Raw Excel data:', jsonData);
+      console.log('First row keys:', jsonData.length > 0 ? Object.keys(jsonData[0]) : 'No data');
+      
+      // Map the data to our expected format with multiple possible column name variations
+      const certificates: CertificateData[] = jsonData.map((row: any) => {
+        const cert = {
+          certificateId: row['Certificate ID'] || row['CertificateID'] || row['certificateId'] || row['ID'] || row['Certificate_ID'] || '',
+          email: row['Email'] || row['EMAIL'] || row['email'] || row['Email Address'] || row['Email_Address'] || '',
+          holderName: row['Holder Name'] || row['HolderName'] || row['holderName'] || row['Name'] || row['Student Name'] || row['Student_Name'] || '',
+          issuanceDate: row['Issuance Date'] || row['IssuanceDate'] || row['issuanceDate'] || row['Date'] || row['Issue Date'] || row['Issue_Date'] || '',
+          issuer: row['Issuer'] || row['issuer'] || row['Issued By'] || row['Issued_By'] || row['Organization'] || 'CodeResite',
+          certificateType: row['Certificate Type'] || row['CertificateType'] || row['certificateType'] || row['Type'] || row['Course'] || row['Certificate_Type'] || '',
+          status: row['Status'] || row['status'] || 'Valid'
+        };
+        
+        console.log('Mapped certificate:', cert);
+        return cert;
+      });
       
       setCertificatesData(certificates);
-      console.log('Loaded certificates:', certificates);
+      console.log('Final certificates data:', certificates);
+      
+      // Log available columns for debugging
+      if (jsonData.length > 0) {
+        console.log('Available columns in Excel:', Object.keys(jsonData[0]));
+      }
+      
     } catch (error) {
       console.error('Error loading certificates data:', error);
       toast({
@@ -80,11 +94,28 @@ const Validator = () => {
     setIsVerifying(true);
 
     try {
+      console.log('Searching for:', { 
+        certificateId: formData.certificateId.toLowerCase(), 
+        email: formData.email.toLowerCase() 
+      });
+      
       // Find matching certificate
-      const matchingCertificate = certificatesData.find(cert => 
-        cert.certificateId.toLowerCase() === formData.certificateId.toLowerCase() &&
-        cert.email.toLowerCase() === formData.email.toLowerCase()
-      );
+      const matchingCertificate = certificatesData.find(cert => {
+        const certIdMatch = cert.certificateId.toLowerCase().trim() === formData.certificateId.toLowerCase().trim();
+        const emailMatch = cert.email.toLowerCase().trim() === formData.email.toLowerCase().trim();
+        
+        console.log('Checking certificate:', {
+          cert: cert.certificateId,
+          email: cert.email,
+          certIdMatch,
+          emailMatch,
+          bothMatch: certIdMatch && emailMatch
+        });
+        
+        return certIdMatch && emailMatch;
+      });
+
+      console.log('Matching certificate found:', matchingCertificate);
 
       if (matchingCertificate) {
         setVerificationResult(matchingCertificate);
