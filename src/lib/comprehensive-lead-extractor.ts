@@ -108,10 +108,11 @@ export class ComprehensiveLeadExtractor {
     for (const pattern of namePatterns) {
       const matches = combinedText.match(pattern);
       if (matches) {
-        names.push(...matches.filter(name => 
+        const validNames = matches.filter(name => 
           !this.isCommonWord(name) && 
           name.split(' ').length >= 2
-        ));
+        );
+        names.push(...validNames);
       }
     }
     
