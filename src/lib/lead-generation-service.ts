@@ -1,5 +1,6 @@
 
 import { LeadSearchCriteria, Lead, LeadGenerationResult } from './lead-types';
+import { googleDorkingService } from './google-dorking-service';
 
 class LeadGenerationService {
   private googleApiKey = import.meta.env.VITE_GOOGLE_API_KEY || import.meta.env.GOOGLE_API_KEY;
@@ -7,59 +8,55 @@ class LeadGenerationService {
   private geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
 
   async generateLeads(criteria: LeadSearchCriteria): Promise<LeadGenerationResult> {
-    console.log('Starting lead generation with criteria:', criteria);
+    console.log('Starting advanced lead generation with criteria:', criteria);
     
     try {
-      // Step 1: Search Google for relevant businesses/contacts
-      const searchResults = await this.searchGoogle(criteria);
-      console.log('Google search results:', searchResults);
+      // Generate Google Dork query
+      const dorkQuery = googleDorkingService.generateGoogleDork(criteria);
+      console.log('Generated Google Dork:', dorkQuery);
       
-      // Step 2: Process and enhance results with Gemini AI
-      const processedLeads = await this.processWithGemini(searchResults, criteria);
+      // Search multiple pages (1-5) for comprehensive results
+      const allSearchResults = [];
+      const maxPages = Math.min(criteria.searchDepth || 5, 5);
+      
+      for (let page = 0; page < maxPages; page++) {
+        const startIndex = page * 10 + 1;
+        const pageResults = await this.searchGoogleWithDork(dorkQuery.query, startIndex);
+        allSearchResults.push(...pageResults);
+        
+        // Add delay between requests to avoid rate limiting
+        if (page < maxPages - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+      
+      console.log(`Found ${allSearchResults.length} search results across ${maxPages} pages`);
+      
+      // Process results with enhanced AI
+      const processedLeads = await this.processWithAdvancedAI(allSearchResults, criteria);
       console.log('Processed leads:', processedLeads);
       
       return {
         leads: processedLeads,
         totalCount: processedLeads.length,
         searchCriteria: criteria,
-        generatedAt: new Date().toISOString()
+        generatedAt: new Date().toISOString(),
+        googleDorkQuery: dorkQuery.query
       };
     } catch (error) {
-      console.error('Error in lead generation:', error);
+      console.error('Error in advanced lead generation:', error);
       throw error;
     }
   }
 
-  private async searchGoogle(criteria: LeadSearchCriteria): Promise<any[]> {
+  private async searchGoogleWithDork(dorkQuery: string, startIndex: number = 1): Promise<any[]> {
     if (!this.googleApiKey || !this.googleCx) {
       throw new Error('Google API credentials are missing');
     }
 
-    // Build search query based on criteria
-    let searchQuery = '';
-    
-    if (criteria.industry) {
-      searchQuery += `${criteria.industry} business `;
-    }
-    
-    if (criteria.location) {
-      searchQuery += `in ${criteria.location} `;
-    }
-    
-    if (criteria.jobTitle) {
-      searchQuery += `${criteria.jobTitle} `;
-    }
-    
-    if (criteria.keywords) {
-      searchQuery += `${criteria.keywords} `;
-    }
-    
-    // Add contact information keywords
-    searchQuery += 'contact email phone address';
-    
-    console.log('Search query:', searchQuery);
+    console.log(`Searching with dork query (page ${Math.ceil(startIndex/10)}):`, dorkQuery);
 
-    const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${this.googleApiKey}&cx=${this.googleCx}&q=${encodeURIComponent(searchQuery)}&num=10`;
+    const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${this.googleApiKey}&cx=${this.googleCx}&q=${encodeURIComponent(dorkQuery)}&num=10&start=${startIndex}`;
 
     const response = await fetch(searchUrl);
     if (!response.ok) {
@@ -70,44 +67,66 @@ class LeadGenerationService {
     return data.items || [];
   }
 
-  private async processWithGemini(searchResults: any[], criteria: LeadSearchCriteria): Promise<Lead[]> {
+  private async processWithAdvancedAI(searchResults: any[], criteria: LeadSearchCriteria): Promise<Lead[]> {
     if (!this.geminiApiKey) {
       throw new Error('Gemini API key is missing');
     }
 
     const leads: Lead[] = [];
+    const maxResults = Math.min(searchResults.length, 50); // Process up to 50 results
 
-    for (let i = 0; i < Math.min(searchResults.length, 10); i++) {
+    for (let i = 0; i < maxResults; i++) {
       const result = searchResults[i];
       
       try {
         const prompt = `
-        Extract business lead information from this search result:
+        Extract professional lead information from this search result that matches the specific criteria:
+        
+        SEARCH RESULT:
         Title: ${result.title}
         Snippet: ${result.snippet}
         URL: ${result.link}
         
-        Search criteria:
-        - Industry: ${criteria.industry}
-        - Location: ${criteria.location}
-        - Job Title: ${criteria.jobTitle}
+        TARGET CRITERIA:
+        - Industries: ${criteria.industry.join(', ')}
+        - Location: ${criteria.location.city || ''} ${criteria.location.state || ''} ${criteria.location.country || ''}
+        - Role: ${criteria.jobTitle}
+        - Field/Domain: ${criteria.field}
+        - Keywords: ${criteria.keywords.join(', ')}
+        - Custom Tags: ${criteria.customTags.join(', ')}
         - Company Size: ${criteria.companySize}
         
-        Please extract and format as JSON:
+        REQUIREMENTS:
+        - MUST have both email AND phone (mandatory)
+        - Extract only real, verified contact information
+        - Assign relevance score based on criteria match
+        
+        Extract and format as JSON:
         {
-          "name": "Contact person name (if available, otherwise use company name)",
-          "company": "Company name",
-          "jobTitle": "Job title or role",
-          "email": "Email if found",
-          "phone": "Phone if found",
-          "location": "Location/address",
-          "industry": "Industry category",
-          "companySize": "Estimated company size",
-          "score": "Match score 1-100 based on criteria",
-          "linkedinUrl": "LinkedIn URL if found"
+          "name": "Full name of the professional",
+          "company": "Company/Organization name",
+          "jobTitle": "Exact job title or role",
+          "email": "Valid email address (REQUIRED)",
+          "phone": "Phone number with country code (REQUIRED)",
+          "location": "City, State, Country format",
+          "industry": "Primary industry category",
+          "field": "Specific domain/field expertise",
+          "companySize": "Estimated company size range",
+          "score": "Relevance score 1-100 based on criteria match",
+          "linkedinUrl": "LinkedIn profile URL if available",
+          "sourceUrl": "${result.link}",
+          "matchingKeywords": ["list", "of", "matching", "keywords"],
+          "verified": "true/false based on information reliability"
         }
         
-        If information is not available, use reasonable estimates or leave empty strings.
+        VALIDATION RULES:
+        - Only return results with BOTH email AND phone
+        - Email must follow valid format
+        - Phone must include country code
+        - Score based on exact criteria matching
+        - Mark as verified only if information appears authentic
+        
+        If contact information is missing or criteria don't match well, return empty object {}.
         `;
 
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${this.geminiApiKey}`, {
@@ -134,26 +153,31 @@ class LeadGenerationService {
         
         if (generatedText) {
           try {
-            // Extract JSON from the response
             const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               const leadData = JSON.parse(jsonMatch[0]);
               
+              // Validate required fields
+              if (!leadData.email || !leadData.phone || Object.keys(leadData).length < 5) {
+                continue;
+              }
+              
               const lead: Lead = {
                 id: `lead-${Date.now()}-${i}`,
-                name: leadData.name || `Contact ${i + 1}`,
-                company: leadData.company || result.title.split(' - ')[0],
-                jobTitle: leadData.jobTitle || criteria.jobTitle || 'Business Owner',
-                email: leadData.email || undefined,
-                phone: leadData.phone || undefined,
-                location: leadData.location || criteria.location || 'India',
-                industry: leadData.industry || criteria.industry || 'Business',
+                name: leadData.name || `Professional ${i + 1}`,
+                company: leadData.company || 'Unknown Company',
+                jobTitle: leadData.jobTitle || criteria.jobTitle || 'Professional',
+                email: leadData.email,
+                phone: leadData.phone,
+                location: leadData.location || `${criteria.location.city || ''} ${criteria.location.state || ''}`.trim(),
+                industry: leadData.industry || criteria.industry[0] || 'Professional Services',
                 linkedinUrl: leadData.linkedinUrl || undefined,
                 companySize: leadData.companySize || criteria.companySize || '10-50',
-                score: Math.min(100, Math.max(60, parseInt(leadData.score) || 75))
+                score: Math.min(100, Math.max(60, parseInt(leadData.score) || 75)),
+                sourceUrl: leadData.sourceUrl || result.link
               };
 
-              // Filter based on requirements
+              // Apply strict filtering
               if (criteria.emailRequired && !lead.email) continue;
               if (criteria.phoneRequired && !lead.phone) continue;
 
@@ -163,8 +187,11 @@ class LeadGenerationService {
             console.error('Error parsing Gemini response:', parseError);
           }
         }
+        
+        // Add delay between AI requests
+        await new Promise(resolve => setTimeout(resolve, 500));
       } catch (error) {
-        console.error('Error processing result with Gemini:', error);
+        console.error('Error processing result with AI:', error);
       }
     }
 
@@ -173,25 +200,29 @@ class LeadGenerationService {
 
   async exportLeads(leads: Lead[], format: 'csv' | 'xlsx'): Promise<string> {
     if (format === 'csv') {
-      const headers = ['Name', 'Company', 'Job Title', 'Email', 'Phone', 'Location', 'Industry', 'Score'];
+      const headers = ['Name', 'Role', 'Industry', 'Location', 'Email', 'Phone', 'Source URL'];
       const csvContent = [
         headers.join(','),
         ...leads.map(lead => [
           lead.name,
-          lead.company,
           lead.jobTitle,
+          lead.industry,
+          lead.location,
           lead.email || '',
           lead.phone || '',
-          lead.location,
-          lead.industry,
-          lead.score
-        ].join(','))
+          lead.sourceUrl || ''
+        ].map(field => `"${field}"`).join(','))
       ].join('\n');
       
       return csvContent;
     }
     
     return 'XLSX export would be implemented with a proper library';
+  }
+
+  generateGoogleDorkPreview(criteria: LeadSearchCriteria): string {
+    const dorkQuery = googleDorkingService.generateGoogleDork(criteria);
+    return googleDorkingService.formatQueryForDisplay(dorkQuery);
   }
 }
 

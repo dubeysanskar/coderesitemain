@@ -3,35 +3,56 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { LeadSearchCriteria, LeadGenerationResult } from '@/lib/lead-types';
 import { leadGenerationService } from '@/lib/lead-generation-service';
-import LeadSearchForm from './LeadSearchForm';
+import AdvancedLeadSearchForm from './AdvancedLeadSearchForm';
 import LeadsResults from './LeadsResults';
+import GoogleDorkPreview from './GoogleDorkPreview';
 import { useToast } from '@/hooks/use-toast';
 
 const LeadGeneratorApp: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<'search' | 'results'>('search');
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<LeadGenerationResult | null>(null);
+  const [showDorkPreview, setShowDorkPreview] = useState(false);
+  const [dorkPreview, setDorkPreview] = useState('');
   const { toast } = useToast();
 
   const [searchCriteria, setSearchCriteria] = useState<LeadSearchCriteria>({
-    industry: '',
-    location: '',
+    industry: [],
+    location: {
+      city: '',
+      state: '',
+      country: 'India'
+    },
     companySize: '',
     jobTitle: '',
-    keywords: '',
-    emailRequired: false,
-    phoneRequired: false
+    keywords: [],
+    field: '',
+    customTags: [],
+    emailRequired: true,
+    phoneRequired: true,
+    searchDepth: 3
   });
 
-  const handleCriteriaChange = (field: keyof LeadSearchCriteria, value: string | boolean) => {
-    setSearchCriteria(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const handleCriteriaChange = (criteria: LeadSearchCriteria) => {
+    setSearchCriteria(criteria);
+  };
+
+  const handlePreviewDork = () => {
+    try {
+      const preview = leadGenerationService.generateGoogleDorkPreview(searchCriteria);
+      setDorkPreview(preview);
+      setShowDorkPreview(true);
+    } catch (error) {
+      toast({
+        title: "Preview Error",
+        description: "Unable to generate Google Dork preview. Please check your search criteria.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSearch = async () => {
-    if (!searchCriteria.industry && !searchCriteria.location && !searchCriteria.jobTitle) {
+    if (searchCriteria.industry.length === 0 && !searchCriteria.location.city && !searchCriteria.jobTitle) {
       toast({
         title: "Missing Information",
         description: "Please fill in at least one search criteria (Industry, Location, or Job Title).",
@@ -42,18 +63,24 @@ const LeadGeneratorApp: React.FC = () => {
 
     setIsSearching(true);
     try {
+      toast({
+        title: "Starting Advanced Search",
+        description: `Crawling pages 1-${searchCriteria.searchDepth} with AI-powered extraction...`,
+      });
+
       const searchResults = await leadGenerationService.generateLeads(searchCriteria);
       setResults(searchResults);
       setCurrentStep('results');
+      
       toast({
-        title: "Leads Generated Successfully!",
-        description: `Found ${searchResults.totalCount} potential leads matching your criteria.`,
+        title: "Smart Leads Generated!",
+        description: `Found ${searchResults.totalCount} qualified leads with contact information.`,
       });
     } catch (error) {
       console.error('Error generating leads:', error);
       toast({
         title: "Search Failed",
-        description: "Failed to generate leads. Please try again.",
+        description: "Failed to generate leads. Please check your API configuration and try again.",
         variant: "destructive",
       });
     } finally {
@@ -74,10 +101,11 @@ const LeadGeneratorApp: React.FC = () => {
         className="container mx-auto max-w-6xl"
       >
         {currentStep === 'search' ? (
-          <LeadSearchForm
+          <AdvancedLeadSearchForm
             searchCriteria={searchCriteria}
             onCriteriaChange={handleCriteriaChange}
             onSearch={handleSearch}
+            onPreviewDork={handlePreviewDork}
             isSearching={isSearching}
           />
         ) : (
@@ -87,6 +115,13 @@ const LeadGeneratorApp: React.FC = () => {
               onBackToSearch={handleBackToSearch}
             />
           )
+        )}
+
+        {showDorkPreview && (
+          <GoogleDorkPreview
+            dorkPreview={dorkPreview}
+            onClose={() => setShowDorkPreview(false)}
+          />
         )}
       </motion.div>
     </div>
