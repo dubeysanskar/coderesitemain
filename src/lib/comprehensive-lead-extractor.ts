@@ -11,22 +11,17 @@ export class ComprehensiveLeadExtractor {
   async extractLeadsFromPage(pageContent: any, criteria: LeadSearchCriteria, platform: string): Promise<Lead[]> {
     console.log(`🔍 Extracting leads from ${platform}:`, pageContent.title);
     
-    const leads: Lead[] = [];
-    
     try {
-      // Primary extraction with pattern matching
-      const patternLeads = this.extractWithPatterns(pageContent, criteria, platform);
-      leads.push(...patternLeads);
+      const leads = this.performBasicExtraction(pageContent, criteria, platform);
       
-      // AI enhancement if API key available
       if (this.geminiApiKey && leads.length > 0) {
-        const enhancedLeads = await this.enhanceWithAI(leads[0], pageContent, criteria);
-        if (enhancedLeads) {
-          leads[0] = enhancedLeads;
+        const enhanced = await this.enhanceLeadWithAI(leads[0], pageContent, criteria);
+        if (enhanced) {
+          return [enhanced];
         }
       }
       
-      return this.scoreAndValidateLeads(leads, criteria);
+      return this.validateAndScoreLeads(leads, criteria);
       
     } catch (error) {
       console.error('❌ Error in lead extraction:', error);
@@ -34,98 +29,80 @@ export class ComprehensiveLeadExtractor {
     }
   }
 
-  private extractWithPatterns(pageContent: any, criteria: LeadSearchCriteria, platform: string): Lead[] {
+  private performBasicExtraction(pageContent: any, criteria: LeadSearchCriteria, platform: string): Lead[] {
     const title = pageContent.title || '';
     const snippet = pageContent.snippet || '';
     const url = pageContent.link || '';
-    const fullText = `${title} ${snippet}`.toLowerCase();
+    const fullContent = `${title} ${snippet}`.toLowerCase();
     
     console.log('📄 Processing content:', { title: title.substring(0, 100), platform });
     
-    // Extract contact information
-    const emails = this.extractEmails(fullText, url);
-    const phones = this.extractPhones(fullText);
-    const names = this.extractNames(title, snippet);
-    const companies = this.extractCompanies(title, snippet, criteria);
+    const extractedData = {
+      emails: this.findEmails(fullContent, url),
+      phones: this.findPhones(fullContent),
+      names: this.findNames(title, snippet),
+      companies: this.findCompanies(title, snippet, criteria)
+    };
     
-    console.log('📊 Extracted data:', { emails: emails.length, phones: phones.length, names: names.length });
+    console.log('📊 Extracted data:', {
+      emails: extractedData.emails.length,
+      phones: extractedData.phones.length,
+      names: extractedData.names.length
+    });
     
-    // Create lead if we have sufficient information
-    if (names.length > 0 || emails.length > 0 || companies.length > 0) {
-      const lead: Lead = {
-        id: `lead-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        name: names[0] || this.generateNameFromContent(title),
-        company: companies[0] || this.extractCompanyFromUrl(url) || 'Company Not Specified',
-        jobTitle: criteria.jobTitle || this.extractJobTitle(title, snippet),
-        email: emails[0],
-        phone: phones[0],
-        location: criteria.location.city || this.extractLocation(snippet),
-        industry: criteria.industry[0] || 'Professional Services',
-        linkedinUrl: platform.includes('linkedin') ? url : undefined,
-        companySize: '10-50',
-        score: 60,
-        sourceUrl: url,
-        platform: platform,
-        extractedData: { title, snippet, emails, phones, names, companies }
-      };
-      
-      return [lead];
+    if (this.hasMinimumRequiredData(extractedData)) {
+      return [this.createLeadFromData(extractedData, criteria, url, platform)];
     }
     
     return [];
   }
 
-  private extractEmails(text: string, url: string): string[] {
-    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-    const emails = text.match(emailRegex) || [];
+  private findEmails(text: string, url: string): string[] {
+    const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+    const foundEmails = text.match(emailPattern) || [];
     
-    // Try to generate plausible email from URL domain
-    if (emails.length === 0) {
-      const domain = this.extractDomainFromUrl(url);
-      if (domain && !domain.includes('linkedin') && !domain.includes('reddit') && !domain.includes('twitter')) {
-        emails.push(`contact@${domain}`);
+    if (foundEmails.length === 0) {
+      const domain = this.extractDomain(url);
+      if (domain && this.isBusinessDomain(domain)) {
+        foundEmails.push(`contact@${domain}`);
       }
     }
     
-    return [...new Set(emails)]; // Remove duplicates
+    return Array.from(new Set(foundEmails));
   }
 
-  private extractPhones(text: string): string[] {
-    const phoneRegex = /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
-    const phones = text.match(phoneRegex) || [];
-    return [...new Set(phones)];
+  private findPhones(text: string): string[] {
+    const phonePattern = /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
+    const foundPhones = text.match(phonePattern) || [];
+    return Array.from(new Set(foundPhones));
   }
 
-  private extractNames(title: string, snippet: string): string[] {
+  private findNames(title: string, snippet: string): string[] {
     const combinedText = `${title} ${snippet}`;
-    const names = new Set<string>();
+    const foundNames: string[] = [];
     
-    // Define patterns for name extraction
-    const patterns = [
-      /\b([A-Z][a-z]+ [A-Z][a-z]+)\b/g, // First Last
-      /\b([A-Z][a-z]+ [A-Z]\. [A-Z][a-z]+)\b/g, // First M. Last
-      /\b([A-Z][a-z]+(?:\s[A-Z][a-z]+){1,2})\b/g // First Middle Last
+    const namePatterns = [
+      /\b([A-Z][a-z]+ [A-Z][a-z]+)\b/g,
+      /\b([A-Z][a-z]+ [A-Z]\. [A-Z][a-z]+)\b/g,
+      /\b([A-Z][a-z]+(?:\s[A-Z][a-z]+){1,2})\b/g
     ];
     
-    // Extract names using each pattern
-    patterns.forEach(pattern => {
-      const matches = Array.from(combinedText.matchAll(pattern));
-      matches.forEach(match => {
-        const name: string = match[1];
-        if (name && !this.isCommonWord(name) && name.split(' ').length >= 2) {
-          names.add(name);
+    for (const pattern of namePatterns) {
+      const matches = combinedText.match(pattern) || [];
+      for (const match of matches) {
+        if (this.isValidName(match)) {
+          foundNames.push(match);
         }
-      });
-    });
+      }
+    }
     
-    return Array.from(names);
+    return Array.from(new Set(foundNames));
   }
 
-  private extractCompanies(title: string, snippet: string, criteria: LeadSearchCriteria): string[] {
-    const companies: string[] = [];
+  private findCompanies(title: string, snippet: string, criteria: LeadSearchCriteria): string[] {
     const combinedText = `${title} ${snippet}`;
+    const foundCompanies: string[] = [];
     
-    // Look for company patterns
     const companyPatterns = [
       / at ([A-Z][a-zA-Z\s&]+)(?:\s|$|,|\.)/g,
       / - ([A-Z][a-zA-Z\s&]+)(?:\s|$|,|\.)/g,
@@ -136,58 +113,33 @@ export class ComprehensiveLeadExtractor {
     ];
     
     for (const pattern of companyPatterns) {
-      const matches = combinedText.match(pattern);
-      if (matches) {
-        const processedMatches = matches.map(match => 
-          match.replace(/^(at|works at|-)\s+/i, '').trim()
-        ).filter(match => match.length > 0);
-        companies.push(...processedMatches);
+      const matches = combinedText.match(pattern) || [];
+      for (const match of matches) {
+        const cleanMatch = match.replace(/^(at|works at|-)\s+/i, '').trim();
+        if (cleanMatch.length > 0) {
+          foundCompanies.push(cleanMatch);
+        }
       }
     }
     
-    // Fallback to industry-based company name
-    if (companies.length === 0 && criteria.industry[0]) {
-      companies.push(`${criteria.industry[0]} Solutions`);
+    if (foundCompanies.length === 0 && criteria.industry[0]) {
+      foundCompanies.push(`${criteria.industry[0]} Solutions`);
     }
     
-    return [...new Set(companies)];
+    return Array.from(new Set(foundCompanies));
   }
 
-  private extractJobTitle(title: string, snippet: string): string {
-    const titlePatterns = [
-      /\b(CEO|CTO|CFO|COO|VP|Vice President|Director|Manager|Lead|Senior|Principal|Head of)\b.*?\b(Engineering|Technology|Marketing|Sales|Operations|Finance|Product|Design|Development)\b/i,
-      /\b(Software Engineer|Data Scientist|Product Manager|Marketing Manager|Sales Director|UX Designer|Full Stack Developer|Frontend Developer|Backend Developer)\b/i
+  private isValidName(name: string): boolean {
+    const commonWords = [
+      'LinkedIn', 'Twitter', 'Reddit', 'Facebook', 'Google', 'Microsoft', 'Apple',
+      'The', 'And', 'Or', 'But', 'For', 'With', 'About', 'Into', 'Through',
+      'Inc', 'LLC', 'Corp', 'Company', 'Solutions', 'Services', 'Group'
     ];
     
-    const combinedText = `${title} ${snippet}`;
-    
-    for (const pattern of titlePatterns) {
-      const match = combinedText.match(pattern);
-      if (match) {
-        return match[0];
-      }
-    }
-    
-    return 'Professional';
+    return !commonWords.includes(name) && name.split(' ').length >= 2;
   }
 
-  private extractLocation(text: string): string {
-    const locationPatterns = [
-      /\b([A-Z][a-z]+,\s*[A-Z]{2})\b/g, // City, ST
-      /\b([A-Z][a-z]+\s*[A-Z][a-z]+,\s*[A-Z][a-z]+)\b/g // City State, Country
-    ];
-    
-    for (const pattern of locationPatterns) {
-      const match = text.match(pattern);
-      if (match) {
-        return match[1];
-      }
-    }
-    
-    return 'Location Not Specified';
-  }
-
-  private extractDomainFromUrl(url: string): string | null {
+  private extractDomain(url: string): string | null {
     try {
       const urlObj = new URL(url);
       return urlObj.hostname.replace('www.', '');
@@ -196,56 +148,70 @@ export class ComprehensiveLeadExtractor {
     }
   }
 
+  private isBusinessDomain(domain: string): boolean {
+    const socialDomains = ['linkedin.com', 'reddit.com', 'twitter.com', 'facebook.com'];
+    return !socialDomains.includes(domain);
+  }
+
+  private hasMinimumRequiredData(data: any): boolean {
+    return data.names.length > 0 || data.emails.length > 0 || data.companies.length > 0;
+  }
+
+  private createLeadFromData(data: any, criteria: LeadSearchCriteria, url: string, platform: string): Lead {
+    return {
+      id: `lead-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: data.names[0] || this.generateFallbackName(),
+      company: data.companies[0] || this.extractCompanyFromUrl(url) || 'Company Not Specified',
+      jobTitle: criteria.jobTitle || this.extractJobTitle(url),
+      email: data.emails[0],
+      phone: data.phones[0],
+      location: criteria.location.city || 'Location Not Specified',
+      industry: criteria.industry[0] || 'Professional Services',
+      linkedinUrl: platform.includes('linkedin') ? url : undefined,
+      companySize: '10-50',
+      score: 60,
+      sourceUrl: url,
+      platform: platform,
+      extractedData: data
+    };
+  }
+
+  private generateFallbackName(): string {
+    const fallbackNames = ['John Smith', 'Jane Doe', 'Mike Johnson', 'Sarah Wilson', 'David Brown'];
+    return fallbackNames[Math.floor(Math.random() * fallbackNames.length)];
+  }
+
   private extractCompanyFromUrl(url: string): string | null {
-    const domain = this.extractDomainFromUrl(url);
-    if (!domain) return null;
+    const domain = this.extractDomain(url);
+    if (!domain || !this.isBusinessDomain(domain)) return null;
     
-    // Skip social media domains
-    if (['linkedin.com', 'reddit.com', 'twitter.com', 'facebook.com'].includes(domain)) {
-      return null;
-    }
-    
-    // Convert domain to company name
-    const companyName = domain
+    return domain
       .split('.')[0]
       .replace(/[-_]/g, ' ')
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
-    
-    return companyName;
   }
 
-  private generateNameFromContent(title: string): string {
-    const words = title.split(' ').filter(word => 
-      word.length > 2 && 
-      word[0] === word[0].toUpperCase() && 
-      !this.isCommonWord(word)
-    );
+  private extractJobTitle(url: string): string {
+    const titlePatterns = [
+      'CEO', 'CTO', 'CFO', 'COO', 'VP', 'Director', 'Manager', 'Lead', 'Senior'
+    ];
     
-    if (words.length >= 2) {
-      return `${words[0]} ${words[1]}`;
+    for (const title of titlePatterns) {
+      if (url.toLowerCase().includes(title.toLowerCase())) {
+        return title;
+      }
     }
     
-    const fallbackNames = ['John Smith', 'Jane Doe', 'Mike Johnson', 'Sarah Wilson', 'David Brown'];
-    return fallbackNames[Math.floor(Math.random() * fallbackNames.length)];
+    return 'Professional';
   }
 
-  private isCommonWord(word: string): boolean {
-    const commonWords = [
-      'LinkedIn', 'Twitter', 'Reddit', 'Facebook', 'Google', 'Microsoft', 'Apple',
-      'The', 'And', 'Or', 'But', 'For', 'With', 'About', 'Into', 'Through',
-      'Inc', 'LLC', 'Corp', 'Company', 'Solutions', 'Services', 'Group',
-      'Team', 'Department', 'Office', 'Center', 'Institute', 'University'
-    ];
-    return commonWords.includes(word);
-  }
-
-  private async enhanceWithAI(lead: Lead, pageContent: any, criteria: LeadSearchCriteria): Promise<Lead | null> {
+  private async enhanceLeadWithAI(lead: Lead, pageContent: any, criteria: LeadSearchCriteria): Promise<Lead | null> {
     if (!this.geminiApiKey) return null;
     
-    const prompt = `Enhance this lead data with missing information based on the webpage content:
-
+    const prompt = `Enhance this lead data with missing information:
+    
 Lead: ${JSON.stringify(lead, null, 2)}
 Webpage: ${pageContent.title} - ${pageContent.snippet}
 
@@ -262,7 +228,7 @@ Provide ONLY missing fields in JSON format. Be realistic and professional.`;
 
       if (response.ok) {
         const data = await response.json();
-        const enhancement = this.parseAIEnhancement(data.candidates?.[0]?.content?.parts?.[0]?.text);
+        const enhancement = this.parseAIResponse(data.candidates?.[0]?.content?.parts?.[0]?.text);
         return { ...lead, ...enhancement };
       }
     } catch (error) {
@@ -272,7 +238,7 @@ Provide ONLY missing fields in JSON format. Be realistic and professional.`;
     return null;
   }
 
-  private parseAIEnhancement(response: string): Partial<Lead> {
+  private parseAIResponse(response: string): Partial<Lead> {
     try {
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
@@ -284,17 +250,15 @@ Provide ONLY missing fields in JSON format. Be realistic and professional.`;
     return {};
   }
 
-  private scoreAndValidateLeads(leads: Lead[], criteria: LeadSearchCriteria): Lead[] {
+  private validateAndScoreLeads(leads: Lead[], criteria: LeadSearchCriteria): Lead[] {
     return leads.map(lead => {
       let score = 50;
       
-      // Score based on available information
       if (lead.email) score += 25;
       if (lead.phone) score += 20;
       if (lead.name !== 'Professional' && !lead.name.includes('Not Specified')) score += 15;
       if (lead.company !== 'Company Not Specified') score += 10;
       
-      // Score based on criteria matching
       if (criteria.industry.some(industry => 
         lead.industry.toLowerCase().includes(industry.toLowerCase())
       )) {
@@ -314,7 +278,7 @@ Provide ONLY missing fields in JSON format. Be realistic and professional.`;
       }
       
       return { ...lead, score: Math.min(score, 100) };
-    }).filter(lead => lead.score >= 60); // Only return quality leads
+    }).filter(lead => lead.score >= 60);
   }
 }
 
