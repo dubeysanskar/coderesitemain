@@ -1,3 +1,4 @@
+
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const getApiKey = () => {
@@ -15,7 +16,7 @@ export const refinePrompt = async (rawInput: string, targetModel: string = 'gene
     console.log('🚀 Starting prompt refinement process...');
     const apiKey = getApiKey();
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     console.log('✅ Gemini model initialized');
 
     const systemPrompt = `You are a professional prompt engineer. Your job is to take raw or messy instructions from users and rewrite them as structured, high-quality prompts suitable for AI models like ${targetModel === 'gemini' ? 'Google Gemini' : targetModel === 'chatgpt' ? 'OpenAI ChatGPT' : targetModel === 'claude' ? 'Anthropic Claude' : 'any AI model'}.
