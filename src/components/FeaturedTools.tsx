@@ -27,10 +27,10 @@ const FeaturedTools = () => {
           onClick: () => navigate('/lead-generator'),
         },
         { 
-          title: 'Presentation Maker', 
-          description: 'Professional marketing slides', 
-          icon: '📈',
-          onClick: () => navigate('/ppt-generator'),
+          title: 'AI Website Builder', 
+          description: 'Create accessible websites instantly with AI', 
+          icon: '🌐',
+          onClick: () => navigate('/website-builder'),
         },
         { 
           title: 'Mail Merger tool', 
