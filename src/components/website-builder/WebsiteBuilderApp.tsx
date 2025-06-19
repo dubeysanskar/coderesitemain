@@ -24,7 +24,7 @@ export function WebsiteBuilderApp() {
   const [updatePrompt, setUpdatePrompt] = useState('');
   const { toast } = useToast();
 
-  // ✅ Voice input without autocorrect/predict
+  // Voice input without autocorrect/predict
   useEffect(() => {
     const button = document.getElementById('voice-btn');
     if (!('webkitSpeechRecognition' in window) || !button) return;
@@ -34,9 +34,7 @@ export function WebsiteBuilderApp() {
     recognition.interimResults = false;
     recognition.lang = 'en-US';
 
-    button.onclick = () => {
-      recognition.start();
-    };
+    button.onclick = () => recognition.start();
 
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
@@ -71,14 +69,9 @@ export function WebsiteBuilderApp() {
 
   const handleGenerate = async () => {
     if (!description.trim()) {
-      toast({
-        title: 'Description Required',
-        description: 'Please describe the website you want.',
-        variant: 'destructive'
-      });
+      toast({ title: 'Description Required', description: 'Please describe the website you want.', variant: 'destructive' });
       return;
     }
-
     setLoading(true);
     try {
       const result = await geminiWebsiteService.generateWebsite(description);
@@ -90,7 +83,6 @@ export function WebsiteBuilderApp() {
         instructions: result.instructions,
         timestamp: new Date().toISOString()
       };
-
       setGeneratedWebsite(newSite);
       setHistory(prev => [newSite, ...prev.slice(0, 9)]);
       setUpdateMode(false);
@@ -98,11 +90,7 @@ export function WebsiteBuilderApp() {
       toast({ title: 'Website Generated!', description: 'Your website is ready.' });
     } catch (e) {
       console.error(e);
-      toast({
-        title: 'Generation Failed',
-        description: 'Please try again.',
-        variant: 'destructive'
-      });
+      toast({ title: 'Generation Failed', description: 'Please try again.', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -110,14 +98,9 @@ export function WebsiteBuilderApp() {
 
   const handleUpdate = async () => {
     if (!updatePrompt.trim() || !generatedWebsite) {
-      toast({
-        title: 'Update Prompt Required',
-        description: 'Please describe your changes.',
-        variant: 'destructive'
-      });
+      toast({ title: 'Update Prompt Required', description: 'Please describe your changes.', variant: 'destructive' });
       return;
     }
-
     setLoading(true);
     try {
       const prompt = `Update: "${generatedWebsite.description}". HTML: ${generatedWebsite.html} Changes: ${updatePrompt}`;
@@ -129,18 +112,13 @@ export function WebsiteBuilderApp() {
         instructions: result.instructions,
         timestamp: new Date().toISOString()
       };
-
       setGeneratedWebsite(updated);
       setHistory(prev => [updated, ...prev.slice(0, 9)]);
       setUpdatePrompt('');
       toast({ title: 'Website Updated!', description: 'Your website has been updated.' });
     } catch (e) {
       console.error(e);
-      toast({
-        title: 'Update Failed',
-        description: 'Please try again.',
-        variant: 'destructive'
-      });
+      toast({ title: 'Update Failed', description: 'Please try again.', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -179,12 +157,11 @@ export function WebsiteBuilderApp() {
     URL.revokeObjectURL(url);
   };
 
-  // 🧠 Simple markdown to HTML for instructions panel
   const renderInstructionsHTML = (text: string) => {
     return text
-      .replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold mb-2">$1</h3>')
-      .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold mb-2">$1</h2>')
-      .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold mb-2">$1</h1>')
+      .replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold text-white mb-2">$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-white mb-2">$1</h2>')
+      .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold text-white mb-2">$1</h1>')
       .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
       .replace(/\n/g, '<br>');
   };
@@ -235,12 +212,15 @@ export function WebsiteBuilderApp() {
             <Card className="bg-gray-900/50 border-gray-700 backdrop-blur-sm">
               <CardContent className="p-6 space-y-4">
                 <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold">
+                  <h2 className="text-2xl font-bold text-white">
                     {updateMode ? 'Update Website' : generatedWebsite ? 'Your Website' : 'Describe Your Website'}
                   </h2>
                   <div className="flex gap-2">
                     <Button id="voice-btn" className="bg-white text-black hover:bg-gray-200">
                       <Mic className="mr-2 h-4 w-4" /> Voice
+                    </Button>
+                    <Button onClick={() => recognition && (recognition as any).stop()} className="bg-white text-black hover:bg-gray-200">
+                      ■ Stop
                     </Button>
                     {generatedWebsite && (
                       <>
@@ -279,7 +259,7 @@ export function WebsiteBuilderApp() {
                     />
                     {!generatedWebsite && (
                       <Button onClick={handleGenerate} disabled={loading || !description.trim()} className="w-full bg-gradient-to-r from-green-500 to-blue-500 py-3">
-                        {loading ? 'Generating...' : 'Generate Website'}
+                        {loading ? 'Generating...' : <><Sparkles className="mr-2 h-5 w-5" /> Generate Website</>}
                       </Button>
                     )}
                   </>
@@ -295,7 +275,7 @@ export function WebsiteBuilderApp() {
                     <div className="lg:w-1/3">
                       <Card className="bg-gray-900/50 border-gray-700">
                         <CardContent className="p-6">
-                          <h3 className="text-xl font-bold mb-2">Usage Instructions</h3>
+                          <h3 className="text-xl font-bold text-white mb-2">Usage Instructions</h3>
                           <div
                             className="text-sm text-gray-300"
                             dangerouslySetInnerHTML={{ __html: renderInstructionsHTML(generatedWebsite.instructions) }}
@@ -303,12 +283,11 @@ export function WebsiteBuilderApp() {
                         </CardContent>
                       </Card>
                     </div>
-
                     <div className="lg:w-2/3">
                       <Card className="bg-gray-900/50 border-gray-700">
                         <CardContent className="p-6">
                           <div className="flex justify-between mb-2">
-                            <h3 className="text-2xl font-bold flex items-center gap-2">
+                            <h3 className="text-2xl font-bold text-white flex items-center gap-2">
                               <Globe className="h-6 w-6 text-green-400" /> Preview
                             </h3>
                             <Button onClick={() => downloadZip(generatedWebsite.html, `website_${generatedWebsite.id}`)} className="bg-green-500 text-white hover:bg-green-600">
@@ -331,7 +310,7 @@ export function WebsiteBuilderApp() {
           <div className="lg:col-span-1">
             <Card className="bg-gray-900/50 border-gray-700">
               <CardContent className="p-6">
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                   <History className="h-6 w-6 text-blue-400" /> History
                 </h3>
                 {history.length === 0 ? (
@@ -349,10 +328,7 @@ export function WebsiteBuilderApp() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={e => {
-                            e.stopPropagation();
-                            downloadZip(site.html, `website_${site.id}`);
-                          }}
+                          onClick={e => { e.stopPropagation(); downloadZip(site.html, `website_${site.id}`); }}
                           className="text-green-400 hover:text-green-300 h-6 px-2"
                         >
                           <Download className="h-3 w-3" />
