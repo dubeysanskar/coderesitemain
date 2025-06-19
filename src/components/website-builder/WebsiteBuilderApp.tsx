@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Download, History, Sparkles, Globe, Accessibility, Zap } from 'lucide-react';
+import { Download, History, Sparkles, Globe, Edit, Plus } from 'lucide-react';
 import { geminiWebsiteService } from '@/lib/gemini-website-service';
 
 interface GeneratedWebsite {
@@ -21,6 +21,8 @@ export function WebsiteBuilderApp() {
   const [generatedWebsite, setGeneratedWebsite] = useState<GeneratedWebsite | null>(null);
   const [history, setHistory] = useState<GeneratedWebsite[]>([]);
   const [loading, setLoading] = useState(false);
+  const [updateMode, setUpdateMode] = useState(false);
+  const [updatePrompt, setUpdatePrompt] = useState('');
   const { toast } = useToast();
 
   const examples = [
@@ -58,10 +60,12 @@ export function WebsiteBuilderApp() {
 
       setGeneratedWebsite(newWebsite);
       setHistory(prev => [newWebsite, ...prev.slice(0, 9)]);
+      setUpdateMode(false);
+      setUpdatePrompt('');
       
       toast({
         title: "Website Generated Successfully!",
-        description: "Your accessible website is ready to use."
+        description: "Your website is ready to use."
       });
     } catch (error) {
       console.error('Generation failed:', error);
@@ -75,29 +79,119 @@ export function WebsiteBuilderApp() {
     }
   };
 
-  const downloadHtml = (html: string, filename: string = 'website.html') => {
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
+  const handleUpdate = async () => {
+    if (!updatePrompt.trim() || !generatedWebsite) {
+      toast({
+        title: "Update Prompt Required",
+        description: "Please describe what changes you want to make.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const updateDescription = `Update this existing website: "${generatedWebsite.description}". 
+      Current HTML: ${generatedWebsite.html}
+      
+      Update request: ${updatePrompt}`;
+      
+      const result = await geminiWebsiteService.generateWebsite(updateDescription);
+      
+      const updatedWebsite: GeneratedWebsite = {
+        ...generatedWebsite,
+        html: result.html,
+        instructions: result.instructions,
+        timestamp: new Date().toISOString()
+      };
+
+      setGeneratedWebsite(updatedWebsite);
+      setHistory(prev => [updatedWebsite, ...prev.slice(0, 9)]);
+      setUpdatePrompt('');
+      
+      toast({
+        title: "Website Updated Successfully!",
+        description: "Your website has been updated."
+      });
+    } catch (error) {
+      console.error('Update failed:', error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update website. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const downloadZip = async (html: string, filename: string = 'website') => {
+    // Extract CSS and JS from HTML
+    const cssMatch = html.match(/<style[^>]*>([\s\S]*?)<\/style>/gi);
+    const jsMatch = html.match(/<script[^>]*>([\s\S]*?)<\/script>/gi);
+    
+    let css = '';
+    let js = '';
+    let cleanHtml = html;
+
+    // Extract CSS
+    if (cssMatch) {
+      css = cssMatch.map(style => style.replace(/<\/?style[^>]*>/gi, '')).join('\n');
+      cleanHtml = cleanHtml.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '<link rel="stylesheet" href="styles.css">');
+    }
+
+    // Extract JS
+    if (jsMatch) {
+      js = jsMatch.map(script => script.replace(/<\/?script[^>]*>/gi, '')).join('\n');
+      cleanHtml = cleanHtml.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '<script src="script.js"></script>');
+    }
+
+    // Create zip file content
+    const JSZip = (await import('jszip')).default;
+    const zip = new JSZip();
+    
+    zip.file('index.html', cleanHtml);
+    if (css) zip.file('styles.css', css);
+    if (js) zip.file('script.js', js);
+    
+    // Add README with instructions
+    const readme = `# Website Files
+
+## How to Use:
+1. Extract this ZIP file to a folder
+2. Open the folder in VS Code
+3. Open index.html in a web browser to view your website
+4. Edit the HTML, CSS, and JavaScript files as needed
+
+## Files:
+- index.html: Main HTML structure
+- styles.css: Styling (if applicable)
+- script.js: JavaScript functionality (if applicable)
+
+## Image Placeholders:
+Replace any placeholder images with your own images by updating the src attributes in the HTML file.
+`;
+    
+    zip.file('README.md', readme);
+    
+    const content = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(content);
     const a = document.createElement('a');
     a.href = url;
-    a.download = filename;
+    a.download = `${filename}.zip`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
-  const accessibilityFeatures = [
-    'Semantic HTML structure',
-    'ARIA labels and roles',
-    'Keyboard navigation support',
-    'High contrast colors',
-    'Large touch targets (44px+)',
-    'Screen reader compatibility',
-    'Focus indicators',
-    'Responsive design'
-  ];
+  const resetToNewWebsite = () => {
+    setGeneratedWebsite(null);
+    setDescription('');
+    setUpdateMode(false);
+    setUpdatePrompt('');
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <motion.div
@@ -113,43 +207,44 @@ export function WebsiteBuilderApp() {
             AI Website Builder
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            Transform your ideas into fully accessible web applications instantly. 
-            Simply describe what you need in plain English and watch sophisticated, 
-            WCAG 2.1 AA compliant websites come to life.
+            Transform your ideas into fully functional web applications instantly. 
+            Simply describe what you need and watch sophisticated websites come to life.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-3 space-y-6">
             {/* Examples Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <Card className="bg-black/40 border-white/20 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                    <Zap className="h-6 w-6 text-yellow-400" />
-                    Try These Ideas
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {examples.map((example, index) => (
-                      <motion.button
-                        key={index}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => setDescription(example)}
-                        className="p-3 text-left bg-white/10 hover:bg-white/20 rounded-lg border border-white/20 text-gray-200 text-sm transition-all duration-200"
-                      >
-                        💡 {example}
-                      </motion.button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+            {!generatedWebsite && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <Card className="bg-gray-900/50 border-gray-700 backdrop-blur-sm">
+                  <CardContent className="p-6">
+                    <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                      <Sparkles className="h-6 w-6 text-yellow-400" />
+                      Try These Ideas
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {examples.map((example, index) => (
+                        <motion.button
+                          key={index}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setDescription(example)}
+                          className="p-3 text-left bg-gray-800/50 hover:bg-gray-700/50 rounded-lg border border-gray-600 text-gray-200 text-sm transition-all duration-200"
+                        >
+                          💡 {example}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
 
             {/* Generator Section */}
             <motion.div
@@ -157,40 +252,101 @@ export function WebsiteBuilderApp() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <Card className="bg-black/40 border-white/20 backdrop-blur-sm">
+              <Card className="bg-gray-900/50 border-gray-700 backdrop-blur-sm">
                 <CardContent className="p-6">
-                  <h2 className="text-2xl font-bold text-white mb-4">
-                    Describe Your Website
-                  </h2>
-                  <Textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="I need a voice-controlled shopping list that works with screen readers..."
-                    className="min-h-32 bg-white/10 border-white/20 text-white placeholder-gray-400 resize-none"
-                  />
-                  <Button
-                    onClick={handleGenerate}
-                    disabled={loading || !description.trim()}
-                    className="w-full mt-4 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-medium py-3 text-lg"
-                  >
-                    {loading ? (
-                      <>
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          className="mr-2"
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold text-white">
+                      {updateMode ? 'Update Website' : generatedWebsite ? 'Current Website' : 'Describe Your Website'}
+                    </h2>
+                    {generatedWebsite && (
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => setUpdateMode(!updateMode)}
+                          variant="outline"
+                          className="border-gray-600 text-gray-200 hover:bg-gray-800"
                         >
-                          <Sparkles className="h-5 w-5" />
-                        </motion.div>
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="mr-2 h-5 w-5" />
-                        Generate Accessible Website
-                      </>
+                          <Edit className="mr-2 h-4 w-4" />
+                          {updateMode ? 'Cancel Update' : 'Update Website'}
+                        </Button>
+                        <Button
+                          onClick={resetToNewWebsite}
+                          className="bg-blue-500 hover:bg-blue-600 text-white"
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Create New Website
+                        </Button>
+                      </div>
                     )}
-                  </Button>
+                  </div>
+                  
+                  {updateMode ? (
+                    <>
+                      <Textarea
+                        value={updatePrompt}
+                        onChange={(e) => setUpdatePrompt(e.target.value)}
+                        placeholder="Describe what changes you want to make to the current website..."
+                        className="min-h-24 bg-gray-800/50 border-gray-600 text-white placeholder-gray-400 resize-none mb-4"
+                      />
+                      <Button
+                        onClick={handleUpdate}
+                        disabled={loading || !updatePrompt.trim()}
+                        className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium py-3 text-lg"
+                      >
+                        {loading ? (
+                          <>
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                              className="mr-2"
+                            >
+                              <Sparkles className="h-5 w-5" />
+                            </motion.div>
+                            Updating...
+                          </>
+                        ) : (
+                          <>
+                            <Edit className="mr-2 h-5 w-5" />
+                            Update Website
+                          </>
+                        )}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Textarea
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="I need a voice-controlled shopping list that works with screen readers..."
+                        className="min-h-32 bg-gray-800/50 border-gray-600 text-white placeholder-gray-400 resize-none"
+                        disabled={!!generatedWebsite}
+                      />
+                      {!generatedWebsite && (
+                        <Button
+                          onClick={handleGenerate}
+                          disabled={loading || !description.trim()}
+                          className="w-full mt-4 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-medium py-3 text-lg"
+                        >
+                          {loading ? (
+                            <>
+                              <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                className="mr-2"
+                              >
+                                <Sparkles className="h-5 w-5" />
+                              </motion.div>
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="mr-2 h-5 w-5" />
+                              Generate Website
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
@@ -204,7 +360,7 @@ export function WebsiteBuilderApp() {
                   exit={{ opacity: 0, y: -20 }}
                   className="space-y-6"
                 >
-                  <Card className="bg-black/40 border-white/20 backdrop-blur-sm">
+                  <Card className="bg-gray-900/50 border-gray-700 backdrop-blur-sm">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -212,11 +368,11 @@ export function WebsiteBuilderApp() {
                           Your Website
                         </h3>
                         <Button
-                          onClick={() => downloadHtml(generatedWebsite.html)}
+                          onClick={() => downloadZip(generatedWebsite.html, `website_${generatedWebsite.id}`)}
                           className="bg-green-500 hover:bg-green-600 text-white"
                         >
                           <Download className="mr-2 h-4 w-4" />
-                          Download
+                          Download ZIP
                         </Button>
                       </div>
                       <div className="bg-white rounded-lg p-2">
@@ -226,10 +382,19 @@ export function WebsiteBuilderApp() {
                           className="w-full h-96 border-0 rounded"
                         />
                       </div>
+                      <div className="mt-4 p-4 bg-gray-800/50 rounded-lg border border-gray-600">
+                        <p className="text-sm text-gray-300 mb-2">
+                          <strong>📦 Download Instructions:</strong>
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          You will receive a ZIP file containing HTML, CSS, and JavaScript files. 
+                          Extract the ZIP file and open the folder in VS Code for easy editing and updates.
+                        </p>
+                      </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-black/40 border-white/20 backdrop-blur-sm">
+                  <Card className="bg-gray-900/50 border-gray-700 backdrop-blur-sm">
                     <CardContent className="p-6">
                       <h3 className="text-xl font-bold text-white mb-4">Usage Instructions</h3>
                       <div className="bg-gray-800/50 rounded-lg p-4">
@@ -244,39 +409,14 @@ export function WebsiteBuilderApp() {
             </AnimatePresence>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Accessibility Features */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <Card className="bg-black/40 border-white/20 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                    <Accessibility className="h-6 w-6 text-green-400" />
-                    Accessibility Features
-                  </h3>
-                  <ul className="space-y-2">
-                    {accessibilityFeatures.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-2 text-gray-300 text-sm">
-                        <div className="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></div>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* History */}
+          {/* Sidebar - History */}
+          <div className="lg:col-span-1">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <Card className="bg-black/40 border-white/20 backdrop-blur-sm">
+              <Card className="bg-gray-900/50 border-gray-700 backdrop-blur-sm">
                 <CardContent className="p-6">
                   <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                     <History className="h-6 w-6 text-blue-400" />
@@ -289,7 +429,7 @@ export function WebsiteBuilderApp() {
                       {history.slice(0, 5).map((website) => (
                         <div
                           key={website.id}
-                          className="p-3 bg-white/10 rounded-lg border border-white/20 cursor-pointer hover:bg-white/20 transition-colors"
+                          className="p-3 bg-gray-800/30 rounded-lg border border-gray-600 cursor-pointer hover:bg-gray-700/30 transition-colors"
                           onClick={() => setGeneratedWebsite(website)}
                         >
                           <p className="text-white text-sm font-medium mb-1">
@@ -307,7 +447,7 @@ export function WebsiteBuilderApp() {
                               variant="ghost"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                downloadHtml(website.html, `website_${website.id}.html`);
+                                downloadZip(website.html, `website_${website.id}`);
                               }}
                               className="h-6 px-2 text-xs text-green-400 hover:text-green-300"
                             >
