@@ -24,29 +24,39 @@ export function WebsiteBuilderApp() {
   const [updatePrompt, setUpdatePrompt] = useState('');
   const { toast } = useToast();
 
-  // Voice input without autocorrect/predict
   useEffect(() => {
-    const button = document.getElementById('voice-btn');
-    if (!('webkitSpeechRecognition' in window) || !button) return;
+    const voiceBtn = document.getElementById('voice-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    if (!('webkitSpeechRecognition' in window) || !voiceBtn || !stopBtn) return;
 
     const recognition = new (window as any).webkitSpeechRecognition();
     recognition.continuous = false;
     recognition.interimResults = false;
     recognition.lang = 'en-US';
 
-    button.onclick = () => recognition.start();
+    recognition.onstart = () => {
+      toast({ title: '🎙 Voice Activated', description: 'You can speak now.' });
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance('Voice command activated.'));
+    };
+
+    recognition.onend = () => {
+      toast({ title: '⏹ Voice Stopped', description: 'Voice command has been stopped.' });
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance('Voice command stopped.'));
+    };
 
     recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setDescription(transcript);
+      setDescription(event.results[0][0].transcript);
     };
 
     recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
+      toast({ title: '❗ Voice Error', description: event.error, variant: 'destructive' });
     };
 
+    voiceBtn.onclick = () => recognition.start();
+    stopBtn.onclick = () => recognition.stop();
+
     return () => recognition.stop();
-  }, []);
+  }, [toast]);
 
   const examples = [
     'A voice-controlled shopping list that works with screen readers',
@@ -61,10 +71,7 @@ export function WebsiteBuilderApp() {
 
   const injectViewport = (html: string) => {
     if (html.includes('name="viewport"')) return html;
-    return html.replace(
-      '<head>',
-      '<head><meta name="viewport" content="width=device-width, initial-scale=1">'
-    );
+    return html.replace('<head>', '<head><meta name="viewport" content="width=device-width, initial-scale=1">');
   };
 
   const handleGenerate = async () => {
@@ -85,11 +92,9 @@ export function WebsiteBuilderApp() {
       };
       setGeneratedWebsite(newSite);
       setHistory(prev => [newSite, ...prev.slice(0, 9)]);
-      setUpdateMode(false);
-      setUpdatePrompt('');
-      toast({ title: 'Website Generated!', description: 'Your website is ready.' });
+      toast({ title: '✅ Website Built', description: 'Your site is ready.' });
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance('Your website has been built successfully.'));
     } catch (e) {
-      console.error(e);
       toast({ title: 'Generation Failed', description: 'Please try again.', variant: 'destructive' });
     } finally {
       setLoading(false);
@@ -114,10 +119,9 @@ export function WebsiteBuilderApp() {
       };
       setGeneratedWebsite(updated);
       setHistory(prev => [updated, ...prev.slice(0, 9)]);
-      setUpdatePrompt('');
-      toast({ title: 'Website Updated!', description: 'Your website has been updated.' });
+      toast({ title: '✅ Website Updated', description: 'Your site has been updated.' });
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance('Your website has been updated.'));
     } catch (e) {
-      console.error(e);
       toast({ title: 'Update Failed', description: 'Please try again.', variant: 'destructive' });
     } finally {
       setLoading(false);
@@ -140,14 +144,12 @@ export function WebsiteBuilderApp() {
     clean = clean
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '<link rel="stylesheet" href="styles.css">')
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '<script src="script.js"></script>');
-
     const JSZip = (await import('jszip')).default;
     const zip = new JSZip();
     zip.file('index.html', clean);
     if (css) zip.file('styles.css', css);
     if (js) zip.file('script.js', js);
     zip.file('README.md', `# Website Files\n\n- index.html\n- styles.css\n- script.js`);
-
     const blob = await zip.generateAsync({ type: 'blob' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -157,34 +159,29 @@ export function WebsiteBuilderApp() {
     URL.revokeObjectURL(url);
   };
 
-  const renderInstructionsHTML = (text: string) => {
-    return text
+  const renderInstructionsHTML = (text: string) =>
+    text
       .replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold text-white mb-2">$1</h3>')
       .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-white mb-2">$1</h2>')
       .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold text-white mb-2">$1</h1>')
       .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
       .replace(/\n/g, '<br>');
-  };
 
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Globe className="h-12 w-12 text-green-400" />
             <Sparkles className="h-8 w-8 text-yellow-400" />
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 mb-4">
-            AI Website Builder
-          </h1>
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">AI Website Builder</h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
             Describe your idea, and get a working website instantly.
           </p>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Main Section */}
           <div className="lg:col-span-3 space-y-6">
             {!generatedWebsite && (
               <Card className="bg-gray-900/50 border-gray-700 backdrop-blur-sm">
@@ -219,14 +216,13 @@ export function WebsiteBuilderApp() {
                     <Button id="voice-btn" className="bg-white text-black hover:bg-gray-200">
                       <Mic className="mr-2 h-4 w-4" /> Voice
                     </Button>
-                    <Button onClick={() => recognition && (recognition as any).stop()} className="bg-white text-black hover:bg-gray-200">
+                    <Button id="stop-btn" className="bg-white text-black hover:bg-gray-200">
                       ■ Stop
                     </Button>
                     {generatedWebsite && (
                       <>
                         <Button onClick={() => setUpdateMode(!updateMode)} className="bg-white text-black hover:bg-gray-100">
-                          <Edit className="mr-2 h-4 w-4" />
-                          {updateMode ? 'Cancel' : 'Update Website'}
+                          <Edit className="mr-2 h-4 w-4" /> {updateMode ? 'Cancel' : 'Update Website'}
                         </Button>
                         <Button onClick={resetToNew} className="bg-blue-500 text-white hover:bg-blue-600">
                           <Plus className="mr-2 h-4 w-4" /> New
@@ -238,12 +234,7 @@ export function WebsiteBuilderApp() {
 
                 {updateMode ? (
                   <>
-                    <Textarea
-                      value={updatePrompt}
-                      onChange={e => setUpdatePrompt(e.target.value)}
-                      placeholder="Describe changes..."
-                      className="bg-gray-800/50 text-white"
-                    />
+                    <Textarea value={updatePrompt} onChange={e => setUpdatePrompt(e.target.value)} placeholder="Describe changes..." className="bg-gray-800/50 text-white" />
                     <Button onClick={handleUpdate} disabled={loading} className="w-full bg-gradient-to-r from-orange-500 to-red-500 py-3">
                       {loading ? 'Updating...' : 'Update Website'}
                     </Button>
@@ -267,7 +258,6 @@ export function WebsiteBuilderApp() {
               </CardContent>
             </Card>
 
-            {/* Generated Site Preview */}
             <AnimatePresence>
               {generatedWebsite && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
@@ -276,10 +266,7 @@ export function WebsiteBuilderApp() {
                       <Card className="bg-gray-900/50 border-gray-700">
                         <CardContent className="p-6">
                           <h3 className="text-xl font-bold text-white mb-2">Usage Instructions</h3>
-                          <div
-                            className="text-sm text-gray-300"
-                            dangerouslySetInnerHTML={{ __html: renderInstructionsHTML(generatedWebsite.instructions) }}
-                          />
+                          <div className="text-sm text-gray-300" dangerouslySetInnerHTML={{ __html: renderInstructionsHTML(generatedWebsite.instructions) }} />
                         </CardContent>
                       </Card>
                     </div>
@@ -306,7 +293,6 @@ export function WebsiteBuilderApp() {
             </AnimatePresence>
           </div>
 
-          {/* Sidebar History */}
           <div className="lg:col-span-1">
             <Card className="bg-gray-900/50 border-gray-700">
               <CardContent className="p-6">
@@ -317,20 +303,11 @@ export function WebsiteBuilderApp() {
                   <p className="text-gray-400 text-sm">No websites generated yet.</p>
                 ) : (
                   history.slice(0, 5).map(site => (
-                    <div
-                      key={site.id}
-                      className="p-3 mb-2 bg-gray-800/30 rounded border border-gray-600 cursor-pointer hover:bg-gray-700/30"
-                      onClick={() => setGeneratedWebsite(site)}
-                    >
+                    <div key={site.id} className="p-3 mb-2 bg-gray-800/30 rounded border border-gray-600 cursor-pointer hover:bg-gray-700/30" onClick={() => setGeneratedWebsite(site)}>
                       <p className="text-white text-sm font-medium mb-1">{site.description}</p>
                       <div className="flex justify-between text-gray-400 text-xs">
                         <span>{new Date(site.timestamp).toLocaleDateString()}</span>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={e => { e.stopPropagation(); downloadZip(site.html, `website_${site.id}`); }}
-                          className="text-green-400 hover:text-green-300 h-6 px-2"
-                        >
+                        <Button size="sm" variant="ghost" onClick={e => { e.stopPropagation(); downloadZip(site.html, `website_${site.id}`); }} className="text-green-400 hover:text-green-300 h-6 px-2">
                           <Download className="h-3 w-3" />
                         </Button>
                       </div>
