@@ -26,6 +26,7 @@ export function WebsiteBuilderApp() {
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
+  // Initialize speech recognition
   useEffect(() => {
     if (!('webkitSpeechRecognition' in window)) return;
     const recog = new (window as any).webkitSpeechRecognition() as SpeechRecognition;
@@ -41,13 +42,10 @@ export function WebsiteBuilderApp() {
     recognitionRef.current = recog;
   }, []);
 
-  const startRecognition = () => {
-    recognitionRef.current?.start();
-  };
-  const stopRecognition = () => {
-    recognitionRef.current?.stop();
-  };
+  const startRecognition = () => recognitionRef.current?.start();
+  const stopRecognition = () => recognitionRef.current?.stop();
 
+  // Ensure mobile responsiveness meta tag
   const injectViewport = (html: string) => {
     if (html.includes('name="viewport"')) return html;
     return html.replace(
@@ -56,6 +54,7 @@ export function WebsiteBuilderApp() {
     );
   };
 
+  // Generate new website
   const handleGenerate = async () => {
     if (!description.trim()) {
       toast({ title: 'Description Required', description: 'Please describe what you want.', variant: 'destructive' });
@@ -85,6 +84,7 @@ export function WebsiteBuilderApp() {
     }
   };
 
+  // Update existing website
   const handleUpdate = async () => {
     if (!updatePrompt.trim() || !generatedWebsite) {
       toast({ title: 'Update Prompt Required', description: 'Describe your changes.', variant: 'destructive' });
@@ -92,7 +92,7 @@ export function WebsiteBuilderApp() {
     }
     setLoading(true);
     try {
-      const payload = `Update: "${generatedWebsite.description}". HTML: ${generatedWebsite.html} Changes: ${updatePrompt}`;
+      const payload = `Update: \"${generatedWebsite.description}\". HTML: ${generatedWebsite.html} Changes: ${updatePrompt}`;
       const result = await geminiWebsiteService.generateWebsite(payload);
       const html = injectViewport(result.html);
       const updated = {
@@ -113,6 +113,7 @@ export function WebsiteBuilderApp() {
     }
   };
 
+  // Reset to create new
   const resetToNew = () => {
     setGeneratedWebsite(null);
     setDescription('');
@@ -120,6 +121,7 @@ export function WebsiteBuilderApp() {
     setUpdatePrompt('');
   };
 
+  // Download as ZIP
   const downloadZip = async (html: string, filename = 'website') => {
     const cssMatch = html.match(/<style[^>]*>([\s\S]*?)<\/style>/gi) || [];
     const jsMatch = html.match(/<script[^>]*>([\s\S]*?)<\/script>/gi) || [];
@@ -186,10 +188,8 @@ export function WebsiteBuilderApp() {
                   </div>
                 </div>
                 {!generatedWebsite && (
-                  <Button onClick={handleGenerate} disabled={loading || !description.trim()}
-                    className="w-full bg-gradient-to-r from-green-500 to-blue-500 py-3 text-lg"
-                  >
-                    {loading ? 'Generating…' : <><Sparkles className="mr-2" /> Generate Website</>}
+                  <Button onClick={handleGenerate} disabled={loading || !description.trim()} className="w-full bg-gradient-to-r from-green-500 to-blue-500 py-3 text-lg">
+                    {loading ? 'Generating…' : (<><Sparkles className="mr-2" /> Generate Website</>)}
                   </Button>
                 )}
               </CardContent>
@@ -197,12 +197,7 @@ export function WebsiteBuilderApp() {
 
             <AnimatePresence>
               {generatedWebsite && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="flex flex-col lg:flex-row lg:items-start space-y-6 lg:space-y-0 lg:space-x-6"
-                >
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="flex flex-col lg:flex-row lg:items-start space-y-6 lg:space-y-0 lg:space-x-6">
                   <div className="lg:w-1/3">
                     <Card className="bg-gray-900/50 border-gray-700 backdrop-blur-sm">
                       <CardContent className="p-6">
@@ -223,21 +218,13 @@ export function WebsiteBuilderApp() {
                     <Card className="bg-gray-900/50 border-gray-700 backdrop-blur-sm">
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-2xl font-bold text-white flex items-center gap-2">
-                            <Globe className="h-6 w-6 text-green-400" /> Your Website
-                          </h3>
-                          <Button onClick={() => downloadZip(generatedWebsite.html, `site_${generatedWebsite.id}`)}
-                            className="bg-green-500 hover:bg-green-600 text-white"
-                          >
+                          <h3 className="text-2xl font-bold text-white flex items-center gap-2"><Globe className="h-6 w-6 text-green-400" /> Your Website</h3>
+                          <Button onClick={() => downloadZip(generatedWebsite.html, `site_${generatedWebsite.id}`)} className="bg-green-500 hover:bg-green-600 text-white">
                             <Download className="mr-2" /> Download ZIP
                           </Button>
                         </div>
                         <div className="bg-white rounded-lg p-2">
-                          <iframe
-                            title="Generated"
-                            srcDoc={generatedWebsite.html}
-                            className="w-full h-96 border-0 rounded"
-                          />
+                          <iframe title="Generated" srcDoc={generatedWebsite.html} className="w-full h-96 border-0 rounded" />
                         </div>
                       </CardContent>
                     </Card>
@@ -246,33 +233,18 @@ export function WebsiteBuilderApp() {
               )}
             </AnimatePresence>
           </div>
-
           <div className="lg:col-span-1">
             <Card className="bg-gray-900/50 border-gray-700 backdrop-blur-sm">
               <CardContent className="p-6">
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                  <History className="h-6 w-6 text-blue-400" /> Recent Websites
-                </h3>
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><History className="h-6 w-6 text-blue-400" /> Recent Websites</h3>
                 {history.length === 0 ? (
                   <p className="text-gray-400 text-sm">No history yet.</p>
                 ) : history.slice(0, 5).map(site => (
-                  <div
-                    key={site.id}
-                    className="p-3 bg-gray-800/30 rounded-lg border border-gray-600 mb-2 cursor-pointer hover:bg-gray-700/30"
-                    onClick={() => setGeneratedWebsite(site)}
-                  >
+                  <div key={site.id} className="p-3 bg-gray-800/30 rounded-lg border border-gray-600 mb-2 cursor-pointer hover:bg-gray-700/30" onClick={() => setGeneratedWebsite(site)}>
                     <p className="text-white text-sm font-medium mb-1">{site.description}</p>
                     <div className="flex justify-between items-center text-gray-400 text-xs">
                       <span>{new Date(site.timestamp).toLocaleDateString()}</span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={e => {
-                          e.stopPropagation();
-                          downloadZip(site.html, `site_${site.id}`);
-                        }}
-                        className="h-6 px-2 text-green-400 hover:text-green-300"
-                      >
+                      <Button size="sm" variant="ghost" onClick={e => { e.stopPropagation(); downloadZip(site.html, `site_${site.id}`); }} className="h-6 px-2 text-green-400 hover:text-green-300">
                         <Download className="h-3 w-3" />
                       </Button>
                     </div>
