@@ -10,13 +10,11 @@ import Layout from '@/components/Layout';
 import * as XLSX from 'xlsx';
 
 interface CertificateData {
-  certificateId: string;
+  id: string;
+  name: string;
+  role: string;
   email: string;
-  holderName: string;
-  issuanceDate: string;
-  issuer: string;
-  certificateType: string;
-  status: string;
+  certificateLink: string;
 }
 
 const Validator = () => {
@@ -37,57 +35,31 @@ const Validator = () => {
 
   const loadCertificatesData = async () => {
     try {
-      // Mock certificate data since the Excel file appears to be empty or corrupted
-      const mockCertificates: CertificateData[] = [
-        {
-          certificateId: 'CR0008',
-          email: 'adarshshukla.contact@gmail.com',
-          holderName: 'Adarsh Shukla',
-          issuanceDate: 'July 2025',
-          issuer: 'CodeResite',
-          certificateType: 'Intern',
-          status: 'Valid'
-        },
-        {
-          certificateId: 'CR0047',
-          email: 'tejashwinisharma.0@gmail.com',
-          holderName: 'Tejashwini Sharma',
-          issuanceDate: 'July 2025',
-          issuer: 'CodeResite',
-          certificateType: 'Intern',
-          status: 'Valid'
-        },
-        {
-          certificateId: 'CR0060',
-          email: 'student3@example.com',
-          holderName: 'Student Three',
-          issuanceDate: 'July 2025',
-          issuer: 'CodeResite',
-          certificateType: 'Intern',
-          status: 'Valid'
-        },
-        {
-          certificateId: 'cr012151',
-          email: 'adarshshukla.contact@gmail.com',
-          holderName: 'Adarsh Shukla',
-          issuanceDate: 'July 2025',
-          issuer: 'CodeResite',
-          certificateType: 'Intern',
-          status: 'Valid'
-        },
-        {
-          certificateId: 'cr012135',
-          email: 'tejashwinisharma.0@gmail.com',
-          holderName: 'Tejashwini Sharma',
-          issuanceDate: 'July 2025',
-          issuer: 'CodeResite',
-          certificateType: 'Intern',
-          status: 'Valid'
-        }
-      ];
+      // Fetch data from Google Sheets CSV
+      const csvUrl = 'https://docs.google.com/spreadsheets/d/1_IUIjdegiO-WPTuR5ljdELtm7zEQT623W3gIMwWeb8Y/export?format=csv';
+      const response = await fetch(csvUrl);
+      const csvText = await response.text();
       
-      setCertificatesData(mockCertificates);
-      console.log('Certificate data loaded:', mockCertificates.length, 'certificates');
+      // Parse CSV data
+      const lines = csvText.split('\n');
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      
+      const certificates: CertificateData[] = [];
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+        if (values.length >= 4 && values[0]) {
+          certificates.push({
+            id: values[0],
+            name: values[1] || '',
+            role: values[2] || '',
+            email: values[3] || '',
+            certificateLink: values[4] || ''
+          });
+        }
+      }
+      
+      setCertificatesData(certificates);
+      console.log('Certificate data loaded:', certificates.length, 'certificates');
       
     } catch (error) {
       console.error('Error loading certificates data:', error);
@@ -123,19 +95,21 @@ const Validator = () => {
       // Debug: Log all certificate IDs and emails for comparison
       console.log('All certificates in database:');
       certificatesData.forEach((cert, index) => {
-        console.log(`${index + 1}. ID: "${cert.certificateId.toLowerCase()}" | Email: "${cert.email.toLowerCase()}"`);
+        console.log(`${index + 1}. ID: "${cert.id.toLowerCase()}" | Email: "${cert.email.toLowerCase()}"`);
       });
       
       // Find matching certificate
       const matchingCertificate = certificatesData.find(cert => {
-        const certId = cert.certificateId.toLowerCase().trim();
+        const certId = cert.id.toLowerCase().trim();
         const certEmail = cert.email.toLowerCase().trim();
+        const certName = cert.name.toLowerCase().trim();
         
         const certIdMatch = certId === searchCertId;
         const emailMatch = certEmail === searchEmail;
+        const nameMatch = certName === searchEmail.toLowerCase();
         
         console.log('Checking certificate:', {
-          originalCertId: cert.certificateId,
+          originalCertId: cert.id,
           normalizedCertId: certId,
           searchCertId: searchCertId,
           certIdMatch,
@@ -143,10 +117,11 @@ const Validator = () => {
           normalizedEmail: certEmail,
           searchEmail: searchEmail,
           emailMatch,
-          bothMatch: certIdMatch && emailMatch
+          nameMatch,
+          bothMatch: certIdMatch && (emailMatch || nameMatch)
         });
         
-        return certIdMatch && emailMatch;
+        return certIdMatch && (emailMatch || nameMatch);
       });
 
       console.log('Matching certificate found:', matchingCertificate);
@@ -220,15 +195,14 @@ const Validator = () => {
 
                   <div>
                     <Label htmlFor="email" className="text-white">
-                      Email Address *
+                      Email or Name *
                     </Label>
                     <Input
                       id="email"
                       name="email"
-                      type="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      placeholder="Enter your email"
+                      placeholder="Enter your email or name"
                       required
                       className="mt-1 bg-black/50 border-white/30 text-white placeholder-gray-400"
                     />
@@ -258,26 +232,33 @@ const Validator = () => {
                       
                       <div className="space-y-2 text-left">
                         <div className="flex justify-between">
-                          <span className="text-gray-300">Holder:</span>
-                          <span className="text-white font-medium">{verificationResult.holderName}</span>
+                          <span className="text-gray-300">ID:</span>
+                          <span className="text-white font-medium">{verificationResult.id}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-300">Type:</span>
-                          <span className="text-white font-medium">{verificationResult.certificateType}</span>
+                          <span className="text-gray-300">Name:</span>
+                          <span className="text-white font-medium">{verificationResult.name}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-300">Issued Date:</span>
-                          <span className="text-white font-medium">{verificationResult.issuanceDate}</span>
+                          <span className="text-gray-300">Role:</span>
+                          <span className="text-white font-medium">{verificationResult.role}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-300">Issuer:</span>
-                          <span className="text-white font-medium">{verificationResult.issuer}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-300">Status:</span>
-                          <span className="text-green-400 font-bold">{verificationResult.status}</span>
+                          <span className="text-gray-300">Email:</span>
+                          <span className="text-white font-medium">{verificationResult.email}</span>
                         </div>
                       </div>
+                      
+                      {verificationResult.certificateLink && (
+                        <div className="mt-6">
+                          <Button 
+                            onClick={() => window.open(verificationResult.certificateLink, '_blank')}
+                            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 rounded-full"
+                          >
+                            📄 Download Your Certificate
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 )}
