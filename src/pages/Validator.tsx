@@ -14,7 +14,7 @@ interface CertificateData {
   name: string;
   role: string;
   email: string;
-  certificateLink: string;
+  mergedDocUrl: string;
 }
 
 const Validator = () => {
@@ -47,13 +47,13 @@ const Validator = () => {
       const certificates: CertificateData[] = [];
       for (let i = 1; i < lines.length; i++) {
         const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-        if (values.length >= 4 && values[0]) {
+        if (values.length >= 5 && values[0]) {
           certificates.push({
             id: values[0],
             name: values[1] || '',
             role: values[2] || '',
             email: values[3] || '',
-            certificateLink: values[4] || ''
+            mergedDocUrl: values[4] || ''
           });
         }
       }
@@ -249,10 +249,10 @@ const Validator = () => {
                         </div>
                       </div>
                       
-                      {verificationResult.certificateLink && (
+                      {verificationResult.mergedDocUrl && (
                         <div className="mt-6">
                           <Button 
-                            onClick={() => window.open(verificationResult.certificateLink, '_blank')}
+                            onClick={() => window.open(verificationResult.mergedDocUrl, '_blank')}
                             className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 rounded-full"
                           >
                             📄 Download Your Certificate
