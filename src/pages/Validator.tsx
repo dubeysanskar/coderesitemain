@@ -47,13 +47,13 @@ const Validator = () => {
       const certificates: CertificateData[] = [];
       for (let i = 1; i < lines.length; i++) {
         const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-        if (values.length >= 5 && values[0]) {
+        if (values.length >= 6 && values[0]) {
           certificates.push({
             id: values[0],
             name: values[1] || '',
             role: values[2] || '',
             email: values[3] || '',
-            mergedDocUrl: values[4] || ''
+            mergedDocUrl: values[5] || '' // Column 6: "Merged Doc URL - CodeResite Internship Completion Certificate"
           });
         }
       }
