@@ -61,9 +61,26 @@ const Careers = () => {
     setIsSubmitting(true);
 
     try {
-      // Google Sheets integration would go here
-      // For now, simulate submission
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Google Sheets API endpoint - replace with your Google Apps Script URL
+      const scriptUrl = 'https://script.google.com/macros/s/AKfycbzYourScriptIdHere/exec';
+      
+      const response = await fetch(scriptUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          location: formData.location,
+          role: formData.role,
+          resume: formData.resume,
+          startDate: formData.startDate,
+          comments: formData.comments
+        })
+      });
       
       toast({
         title: "Application Submitted!",
@@ -232,7 +249,7 @@ const Careers = () => {
 
                     <Button
                       type="submit"
-                      className="w-full h-12 text-base md:text-lg font-semibold bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 transition-all duration-300"
+                      className="w-full h-12 text-base md:text-lg font-semibold bg-green-600 hover:bg-green-700 text-white transition-all duration-300"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? 'Submitting...' : 'Submit Application'}
