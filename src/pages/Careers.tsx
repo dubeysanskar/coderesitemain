@@ -61,8 +61,8 @@ const Careers = () => {
     setIsSubmitting(true);
 
     try {
-      // Google Sheets API endpoint - replace with your Google Apps Script URL
-      const scriptUrl = 'https://script.google.com/macros/s/AKfycbzYourScriptIdHere/exec';
+      // Google Sheets API endpoint
+      const scriptUrl = 'https://script.google.com/macros/s/AKfycbyYcJoBxVWF0y-5wA02qVWXbd2iPYXAisjbrDSssH0xEHjYt-ehouDJmwbiYpj699CZfA/exec';
       
       const response = await fetch(scriptUrl, {
         method: 'POST',
