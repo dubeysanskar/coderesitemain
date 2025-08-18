@@ -73,8 +73,9 @@ const Careers = () => {
 
       const response = await fetch(scriptUrl, {
         method: 'POST',
+        mode: 'cors',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'text/plain',
         },
         body: JSON.stringify(payload)
       });
