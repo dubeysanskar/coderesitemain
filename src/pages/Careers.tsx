@@ -71,17 +71,15 @@ const Careers = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          'Timestamp': new Date().toISOString(),
-          'Full Name': formData.name,
-          'Email': formData.email,
-          'Phone': formData.phone,
-          'Location': formData.location,
-          'Preferred Role': formData.role,
-          'Resume / Portfolio Link': formData.resume,
-          'Start Date / Notice': formData.startDate,
-          'Comments': formData.comments,
-          'Submission ID': Date.now().toString(),
-          'Source': 'Website Careers Page'
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          location: formData.location,
+          role: formData.role,
+          resume: formData.resume,
+          startDate: formData.startDate,
+          comments: formData.comments,
+          source: 'website'
         })
       });
       
