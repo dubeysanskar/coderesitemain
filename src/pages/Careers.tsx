@@ -59,25 +59,20 @@ const Careers = () => {
     try {
       const scriptUrl = 'https://script.google.com/macros/s/AKfycbyj2B9-m-QMzRgI6gHTw7w9iuGAMXZ8nfxM_t-MhB50_AwREre5QX4WgyC_7aaACLZ0/exec';
 
-      const payload = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        location: formData.location,
-        role: formData.role,
-        resume: formData.resume,
-        startDate: formData.startDate,
-        comments: formData.comments,
-        source: 'website'
-      };
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('phone', formData.phone);
+      formDataToSend.append('location', formData.location);
+      formDataToSend.append('role', formData.role);
+      formDataToSend.append('resume', formData.resume);
+      formDataToSend.append('startDate', formData.startDate);
+      formDataToSend.append('comments', formData.comments);
+      formDataToSend.append('source', 'website');
 
       const response = await fetch(scriptUrl, {
         method: 'POST',
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'text/plain',
-        },
-        body: JSON.stringify(payload)
+        body: formDataToSend
       });
 
       let json: any = null;
