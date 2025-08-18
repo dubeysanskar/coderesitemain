@@ -94,15 +94,15 @@ const Careers = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="min-h-screen">{/* Background removed - using theme default */}
         {/* Hero Section */}
-        <section className="py-20 px-4">
-          <div className="max-w-4xl mx-auto text-center">
+        <section className="pt-32 pb-16 px-4">
+          <div className="max-w-4xl mx-auto text-center">{/* Made more responsive */}
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent"
+              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent"
             >
               Get Hired at coderesite.com
             </motion.h1>
@@ -111,7 +111,7 @@ const Careers = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
+              className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
             >
               We are a coder site, building innovative solutions with passionate people. 
               Join our team of developers, creators, and strategists. Pick your role, apply, 
@@ -121,22 +121,22 @@ const Careers = () => {
         </section>
 
         {/* Application Form Section */}
-        <section className="py-16 px-4">
-          <div className="max-w-2xl mx-auto">
+        <section className="pb-16 px-4">
+          <div className="max-w-2xl mx-auto">{/* Improved spacing */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <Card className="backdrop-blur-sm bg-card/50 border-border/50 shadow-xl">
+              <Card className="backdrop-blur-sm bg-card/80 border-border/50 shadow-xl">{/* Better transparency */}
                 <CardHeader>
                   <CardTitle className="text-2xl font-bold text-center">
                     Submit Your Application
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">{/* Responsive spacing */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">{/* Responsive gaps */}
                       <div className="space-y-2">
                         <Label htmlFor="name">Full Name *</Label>
                         <Input
@@ -161,7 +161,7 @@ const Careers = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">{/* Responsive gaps */}
                       <div className="space-y-2">
                         <Label htmlFor="phone">Phone Number</Label>
                         <Input
@@ -232,7 +232,7 @@ const Careers = () => {
 
                     <Button
                       type="submit"
-                      className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 transition-all duration-300"
+                      className="w-full h-12 text-base md:text-lg font-semibold bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 transition-all duration-300"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? 'Submitting...' : 'Submit Application'}
@@ -241,16 +241,6 @@ const Careers = () => {
                 </CardContent>
               </Card>
             </motion.div>
-
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              className="text-center text-muted-foreground mt-8"
-            >
-              📌 Applications are collected in our internal spreadsheet. 
-              Interviews will be scheduled based on your selected role.
-            </motion.p>
           </div>
         </section>
       </div>
