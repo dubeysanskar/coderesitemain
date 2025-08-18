@@ -78,11 +78,11 @@ const Careers = () => {
         body: params.toString()
       });
 
-      // Attempt to read JSON:
-      let json = null;
+      let json: any = null;
       try {
         json = await response.json();
       } catch (err) {
+        // Parsing may fail in some environments; continue if response.ok
         console.warn('Could not parse JSON response:', err);
       }
 
@@ -90,7 +90,7 @@ const Careers = () => {
         const id = json && json.id ? json.id : undefined;
         toast({
           title: 'Application Submitted!',
-          description: id ? `Thanks — Submission ID: ${id}` : 'Thank you! Your application was submitted.'
+          description: id ? `Thanks — Submission ID: ${id}` : 'Thank you! Your application has been submitted. We will contact shortlisted candidates.'
         });
 
         setFormData({ name: '', email: '', phone: '', location: '', role: '', resume: '', startDate: '', comments: '' });
@@ -102,7 +102,7 @@ const Careers = () => {
       console.error('Submit error:', err);
       toast({
         title: 'Submission Failed',
-        description: err.message || 'There was a problem submitting the form. Check console/network and Apps Script logs.',
+        description: (err && err.message) ? err.message : 'There was a problem submitting your application. Check the console and Apps Script logs.',
         variant: 'destructive'
       });
     } finally {
@@ -110,11 +110,96 @@ const Careers = () => {
     }
   };
 
-  // ... UI unchanged (same as your current form). For brevity, not repeated here.
   return (
     <Layout>
-      <div className="min-h-screen">{/* ... keep the rest of your JSX identical to previous component ... */}
-        {/* Copy your full JSX here (same as before) */}
+      <div className="min-h-screen">
+        {/* Hero Section */}
+        <section className="pt-32 pb-16 px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
+              Get Hired at coderesite.com
+            </motion.h1>
+
+            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              We are a coder site, building innovative solutions with passionate people.
+              Join our team of developers, creators, and strategists. Pick your role, apply,
+              and we'll connect with you for the next steps.
+            </motion.p>
+          </div>
+        </section>
+
+        {/* Application Form Section */}
+        <section className="pb-16 px-4">
+          <div className="max-w-2xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}>
+              <Card className="backdrop-blur-sm bg-card/80 border-border/50 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-2xl font-bold text-center">Submit Your Application</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Full Name *</Label>
+                        <Input id="name" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} placeholder="Enter your full name" required />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email Address *</Label>
+                        <Input id="email" type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} placeholder="your.email@example.com" required />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Input id="phone" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} placeholder="+1 (555) 123-4567" />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="location">Location</Label>
+                        <Input id="location" value={formData.location} onChange={(e) => handleInputChange('location', e.target.value)} placeholder="City, Country" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="role">Preferred Role *</Label>
+                      <Select value={formData.role} onValueChange={(value) => handleInputChange('role', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your preferred role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {roleOptions.map((role) => <SelectItem key={role} value={role}>{role}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="resume">Portfolio / Resume Link</Label>
+                      <Input id="resume" value={formData.resume} onChange={(e) => handleInputChange('resume', e.target.value)} placeholder="https://your-portfolio.com or Google Drive link" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="startDate">How soon can you start?</Label>
+                      <Input id="startDate" value={formData.startDate} onChange={(e) => handleInputChange('startDate', e.target.value)} placeholder="e.g., Immediately, 2 weeks notice, etc." />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="comments">Do you have any questions or comments?</Label>
+                      <Textarea id="comments" value={formData.comments} onChange={(e) => handleInputChange('comments', e.target.value)} placeholder="Tell us why you'd be a great fit!" rows={4} />
+                    </div>
+
+                    <Button type="submit" className="w-full h-12 text-base md:text-lg font-semibold bg-green-600 hover:bg-green-700 text-white transition-all duration-300" disabled={isSubmitting}>
+                      {isSubmitting ? 'Submitting...' : 'Submit Application'}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        </section>
       </div>
     </Layout>
   );
