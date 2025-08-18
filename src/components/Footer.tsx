@@ -64,6 +64,14 @@ const Footer = () => {
                   Certificate Validator
                 </a>
               </li>
+              <li>
+                <a 
+                  href="/careers"
+                  className="text-gray-400 hover:text-green-400 transition-colors"
+                >
+                  Careers
+                </a>
+              </li>
             </ul>
           </motion.div>
 

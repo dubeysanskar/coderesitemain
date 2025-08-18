@@ -45,6 +45,7 @@ const Navbar = () => {
     { label: 'About Us', action: () => scrollToSection('about') },
     { label: 'Our Services', action: () => scrollToSection('services') },
     { label: 'Founders', action: () => navigate('/founders') },
+    { label: 'Get Hired', action: () => navigate('/careers') },
     { label: 'Certificate Validator', action: () => navigate('/validator') },
   ];
 
