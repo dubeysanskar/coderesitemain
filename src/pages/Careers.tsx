@@ -57,7 +57,7 @@ const Careers = () => {
     setIsSubmitting(true);
 
     try {
-      const scriptUrl = 'https://script.google.com/macros/s/AKfycbyYcJoBxVWF0y-5wA02qVWXbd2iPYXAisjbrDSssH0xEHjYt-ehouDJmwbiYpj699CZfA/exec';
+      const scriptUrl = 'https://script.google.com/macros/s/AKfycbyj2B9-m-QMzRgI6gHTw7w9iuGAMXZ8nfxM_t-MhB50_AwREre5QX4WgyC_7aaACLZ0/exec';
 
       const payload = {
         name: formData.name,
