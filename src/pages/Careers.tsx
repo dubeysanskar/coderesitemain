@@ -48,12 +48,12 @@ const Careers = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.email || !formData.role) {
       toast({
-        title: "Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Please fill in all required fields.',
+        variant: 'destructive'
       });
       return;
     }
@@ -61,49 +61,67 @@ const Careers = () => {
     setIsSubmitting(true);
 
     try {
-      // Google Sheets API endpoint
+      // Google Apps Script Web App URL (your deployed script)
       const scriptUrl = 'https://script.google.com/macros/s/AKfycbyYcJoBxVWF0y-5wA02qVWXbd2iPYXAisjbrDSssH0xEHjYt-ehouDJmwbiYpj699CZfA/exec';
-      
+
+      // Use URL-encoded body to avoid CORS preflight; Apps Script will read parameters via e.parameter
+      const params = new URLSearchParams();
+      params.append('name', formData.name);
+      params.append('email', formData.email);
+      params.append('phone', formData.phone);
+      params.append('location', formData.location);
+      params.append('role', formData.role);
+      params.append('resume', formData.resume);
+      params.append('startDate', formData.startDate);
+      params.append('comments', formData.comments);
+      params.append('source', 'website');
+
       const response = await fetch(scriptUrl, {
         method: 'POST',
-        mode: 'no-cors',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
         },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          location: formData.location,
-          role: formData.role,
-          resume: formData.resume,
-          startDate: formData.startDate,
-          comments: formData.comments,
-          source: 'website'
-        })
-      });
-      
-      toast({
-        title: "Application Submitted!",
-        description: "Thank you! Your application has been submitted. We'll get back to you soon.",
+        body: params.toString()
       });
 
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        location: '',
-        role: '',
-        resume: '',
-        startDate: '',
-        comments: ''
-      });
-    } catch (error) {
+      // Try to parse JSON; if parsing fails, fall back to treating as success when response.ok
+      let result: any = null;
+      try {
+        // Some deployments may return JSON; try to parse it
+        result = await response.json();
+      } catch (err) {
+        // parsing failed (possibly due to CORS or an opaque response) — we'll still proceed
+        console.warn('Could not parse response JSON from Apps Script:', err);
+      }
+
+      if (response.ok || (result && result.status === 'success')) {
+        const submissionId = result && result.id ? result.id : undefined;
+        toast({
+          title: 'Application Submitted!',
+          description: submissionId ? `Thank you! Submission ID: ${submissionId}` : 'Thank you! Your application has been submitted. We will get back to you soon.'
+        });
+
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          location: '',
+          role: '',
+          resume: '',
+          startDate: '',
+          comments: ''
+        });
+      } else {
+        // If server responded but not OK (and result didn't indicate success)
+        throw new Error((result && result.message) ? result.message : `Request failed with status ${response.status}`);
+      }
+    } catch (error: any) {
+      console.error('Submission error:', error);
       toast({
-        title: "Error",
-        description: "There was an error submitting your application. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'There was an error submitting your application. Please try again or contact contact@coderesite.com',
+        variant: 'destructive'
       });
     } finally {
       setIsSubmitting(false);
@@ -124,15 +142,15 @@ const Careers = () => {
             >
               Get Hired at coderesite.com
             </motion.h1>
-            
+
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
             >
-              We are a coder site, building innovative solutions with passionate people. 
-              Join our team of developers, creators, and strategists. Pick your role, apply, 
+              We are a coder site, building innovative solutions with passionate people.
+              Join our team of developers, creators, and strategists. Pick your role, apply,
               and we'll connect with you for the next steps.
             </motion.p>
           </div>
@@ -165,7 +183,7 @@ const Careers = () => {
                           required
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label htmlFor="email">Email Address *</Label>
                         <Input
@@ -189,7 +207,7 @@ const Careers = () => {
                           placeholder="+1 (555) 123-4567"
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label htmlFor="location">Location</Label>
                         <Input
