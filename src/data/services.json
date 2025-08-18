@@ -1,0 +1,92 @@
+{
+  "services": [
+    {
+      "slug": "web-development",
+      "title": "Web Development Services — MERN Stack & Modern Frameworks",
+      "description": "Full-stack web development using React, Node.js, MongoDB, and Express. Custom websites and web applications with responsive design and SEO optimization.",
+      "keywords": ["web development", "MERN stack", "react", "nodejs", "fullstack"],
+      "lastmod": "2025-08-18",
+      "starting_price_inr": 5000,
+      "features": [
+        "Modern UI/UX with TailwindCSS",
+        "Fast & scalable MERN architecture",
+        "Deployment support (Netlify, Vercel, or custom server)",
+        "Basic SEO integration"
+      ]
+    },
+    {
+      "slug": "mobile-app-development",
+      "title": "Mobile App Development — Flutter & React Native",
+      "description": "Cross-platform Android and iOS apps using Flutter and Firebase for seamless performance and real-time sync.",
+      "keywords": ["mobile app", "flutter", "react native", "android", "ios"],
+      "lastmod": "2025-08-18",
+      "starting_price_inr": 8000,
+      "features": [
+        "Native-like UI with Flutter",
+        "Firebase authentication & database",
+        "Push notifications",
+        "App Store & Play Store deployment support"
+      ]
+    },
+    {
+      "slug": "ai-chatbot-development",
+      "title": "AI Chatbot Development — Intelligent Customer Support",
+      "description": "Custom AI-powered chatbots for websites and apps, trained on your own data for better customer engagement and support automation.",
+      "keywords": ["ai chatbot", "customer support", "automation", "gemini", "openai"],
+      "lastmod": "2025-08-18",
+      "starting_price_inr": 7000,
+      "features": [
+        "Custom-trained AI with Gemini/OpenAI",
+        "Integration with Supabase/Firebase",
+        "Markdown formatting in chat",
+        "Supports Excel/JSON/Docs knowledge base"
+      ]
+    },
+    {
+      "slug": "cybersecurity-consulting",
+      "title": "Cybersecurity Consulting — Security Audits & Protection",
+      "description": "Comprehensive cybersecurity services including security audits, penetration testing, and protection strategies for businesses.",
+      "keywords": ["cybersecurity", "security audit", "penetration testing", "protection"],
+      "lastmod": "2025-08-18",
+      "starting_price_inr": 10000,
+      "features": [
+        "Security vulnerability assessment",
+        "Penetration testing",
+        "Security policy development",
+        "Incident response planning"
+      ]
+    },
+    {
+      "slug": "ai-automation",
+      "title": "AI Automation Services — Workflow Optimization",
+      "description": "Automate business workflows with AI agents, custom scripts, and intelligent process optimization to increase productivity.",
+      "keywords": ["ai automation", "workflow", "productivity", "ai agents"],
+      "lastmod": "2025-08-18",
+      "starting_price_inr": 6000,
+      "features": [
+        "Task automation and reminders",
+        "Integration with APIs & databases",
+        "LLM-powered reasoning",
+        "Cross-platform deployment"
+      ]
+    },
+    {
+      "slug": "edtech-development",
+      "title": "EdTech Platform Development — Learning Management Systems",
+      "description": "E-learning platforms with video streaming, live sessions, course management, and payment integration for educational institutions.",
+      "keywords": ["edtech", "lms", "e-learning", "education platform"],
+      "lastmod": "2025-08-18",
+      "starting_price_inr": 15000,
+      "features": [
+        "Video streaming and live classes",
+        "Course management system",
+        "Payment gateway integration",
+        "Student progress tracking"
+      ]
+    }
+  ],
+  "referral_program": {
+    "commission_percent": 10,
+    "note": "Earn 10% commission for every successful client referral."
+  }
+}

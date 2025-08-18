@@ -26,7 +26,14 @@ const Index = () => {
       </AnimatePresence>
       
       {!showSplash && (
-        <Layout>
+        <Layout
+          seoProps={{
+            title: "CodeResite — AI tools, builders & guides | Sanskar Dubey",
+            description: "CodeResite by Sanskar Dubey — practical AI generators, developer tools and step-by-step guides. Try PPT, resume & report generators.",
+            canonical: "https://coderesite.com/",
+            keywords: ["AI tools", "PPT generator", "resume builder", "report generator", "web development", "automation"]
+          }}
+        >
           <Hero />
           <About />
           <FeaturedTools />

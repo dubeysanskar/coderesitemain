@@ -3,16 +3,24 @@ import React from 'react';
 import { SparklesCore } from './ui/sparkles';
 import Navbar from './Navbar';
 import Footer from './Footer';
-import MetaHead from './MetaHead';
+import { SEOHead } from './SEOHead';
 
 interface LayoutProps {
   children: React.ReactNode;
+  seoProps?: {
+    title?: string;
+    description?: string;
+    canonical?: string;
+    ogImage?: string;
+    jsonLd?: object;
+    keywords?: string[];
+  };
 }
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC<LayoutProps> = ({ children, seoProps }) => {
   return (
     <>
-      <MetaHead />
+      <SEOHead {...seoProps} />
       <div className="min-h-screen bg-black text-white relative overflow-x-hidden">
         {/* Full-screen sparkles background */}
         <div className="fixed inset-0 z-0">
