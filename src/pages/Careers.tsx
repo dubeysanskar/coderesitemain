@@ -57,25 +57,26 @@ const Careers = () => {
     setIsSubmitting(true);
 
     try {
-      const scriptUrl = 'https://script.google.com/macros/s/AKfycbyj2B9-m-QMzRgI6gHTw7w9iuGAMXZ8nfxM_t-MhB50_AwREre5QX4WgyC_7aaACLZ0/exec';
+      const scriptUrl = 'https://script.google.com/macros/s/AKfycbyYcJoBxVWF0y-5wA02qVWXbd2iPYXAisjbrDSssH0xEHjYt-ehouDJmwbiYpj699CZfA/exec';
 
-      const params = new URLSearchParams();
-      params.append('name', formData.name);
-      params.append('email', formData.email);
-      params.append('phone', formData.phone);
-      params.append('location', formData.location);
-      params.append('role', formData.role);
-      params.append('resume', formData.resume);
-      params.append('startDate', formData.startDate);
-      params.append('comments', formData.comments);
-      params.append('source', 'website');
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        location: formData.location,
+        role: formData.role,
+        resume: formData.resume,
+        startDate: formData.startDate,
+        comments: formData.comments,
+        source: 'website'
+      };
 
       const response = await fetch(scriptUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+          'Content-Type': 'application/json'
         },
-        body: params.toString()
+        body: JSON.stringify(payload)
       });
 
       let json: any = null;
