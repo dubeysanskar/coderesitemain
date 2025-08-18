@@ -16,6 +16,7 @@ import MailMerger from "./pages/MailMerger";
 import PromptGuide from "./pages/PromptGuide";
 import LearningGuide from "./pages/LearningGuide";
 import WebsiteBuilder from "./pages/WebsiteBuilder";
+import Careers from "./pages/Careers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/prompt-guide" element={<PromptGuide />} />
           <Route path="/learning-guide" element={<LearningGuide />} />
           <Route path="/website-builder" element={<WebsiteBuilder />} />
+          <Route path="/careers" element={<Careers />} />
           <Route path="/services/:service" element={<ServiceGig />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
