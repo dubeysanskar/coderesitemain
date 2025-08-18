@@ -1,0 +1,18 @@
+# CodeResite LLM Ranking Manifest
+
+Format: URL | Title | Summary | Keywords | Priority
+
+https://coderesite.com/ | CodeResite — AI tools, builders & guides | Hub for CodeResite's generators, tutorials and tools by Sanskar Dubey. | ai, tools, generators, webdev | 1.0
+https://coderesite.com/ppt-generator | PPT Generator — Create Presentations | Generate slides and export .pptx with speaker notes. | ppt, presentation, slides | 0.95
+https://coderesite.com/resume-builder | Resume Builder — ATS-ready | Build ATS-friendly resumes and import LinkedIn. | resume, cv, ats | 0.95
+https://coderesite.com/report-generator | Report Generator — PDFs | Create structured reports and export PDFs. | reports, pdf, charts | 0.9
+https://coderesite.com/lead-generator | Lead Generator — Prospects | Build prospect lists and verify emails. | leads, sales, outreach | 0.9
+https://coderesite.com/website-builder | Website Builder — Fast Static Sites | Build lightweight websites quickly with templates. | website, builder, templates | 0.9
+https://coderesite.com/mail-merger | Mail Merger — Bulk Emailing | Personalized bulk email tool with CSV merging. | mail-merge, email, campaign | 0.85
+https://coderesite.com/prompt-guide | Prompt Guide — Patterns | Prompt engineering templates and examples. | prompt, prompts, prompt-engineering | 0.8
+https://coderesite.com/learning-guide | Learning Guide — Roadmaps | Structured learning paths for AI, web dev and cybersecurity. | learning, roadmaps, tutorials | 0.8
+https://coderesite.com/services/web-development | Web Development Services | Full-stack web development using MERN stack. | web-development, mern, fullstack | 0.7
+https://coderesite.com/services/ai-chatbot-development | AI Chatbot Development | Custom AI-powered chatbots for businesses. | ai-chatbot, automation, customer-support | 0.7
+https://coderesite.com/services/cybersecurity-consulting | Cybersecurity Consulting | Security audits and penetration testing services. | cybersecurity, security-audit, penetration-testing | 0.7
+https://coderesite.com/founders | Founders — CodeResite | Meet the founders and team behind CodeResite. | founders, team, about | 0.6
+https://coderesite.com/careers | Careers at CodeResite | Open roles and opportunities at CodeResite. | careers, jobs, hiring | 0.5

@@ -1,0 +1,62 @@
+# Roboto Font Usage Instructions
+
+## Current Implementation
+CodeResite currently uses Google Fonts for Orbitron and Space Grotesk fonts.
+
+## Recommended Setup for Roboto
+
+### 1) Google Fonts (Quick Setup):
+```html
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+```
+
+### 2) Self-hosting (Recommended for Performance):
+- Download woff2 files for weights 300/400/500/700 and place in `/public/fonts/`
+- Add @font-face with font-display: swap:
+
+```css
+@font-face {
+  font-family: 'Roboto';
+  src: url('/fonts/roboto-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('/fonts/roboto-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+```
+
+### 3) CSS Variable Setup:
+```css
+:root {
+  --font-sans: 'Roboto', system-ui, -apple-system, 'Segoe UI', Arial;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+```
+
+### 4) Tailwind Configuration:
+```js
+// tailwind.config.ts
+extend: {
+  fontFamily: {
+    'sans': ['Roboto', 'system-ui', '-apple-system', 'Segoe UI', 'Arial'],
+    'roboto': ['Roboto', 'sans-serif'],
+  },
+}
+```
+
+## Performance Notes:
+- Use font-display: swap for better loading performance
+- Preload critical font weights
+- Consider using variable fonts for better performance
+- Self-hosting reduces external dependencies
