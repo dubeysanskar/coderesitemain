@@ -1,14 +1,17 @@
-
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ReportFormData, GeneratedReport } from './report-types';
+import dotenv from 'dotenv';
 
-const API_KEY = 'AIzaSyBT2lvr1h3Wh0zHkb4hoz-5Ojpc7taOvos';
+// Load environment variables from .env
+dotenv.config();
+
+const API_KEY = process.env.GEMINI_REPORT_API_KEY;
 
 if (!API_KEY) {
   console.warn('Gemini API key not found in environment variables');
 }
 
-const genAI = new GoogleGenerativeAI(API_KEY);
+const genAI = new GoogleGenerativeAI(API_KEY!);
 
 export class ReportGeneratorService {
   private model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
@@ -77,29 +80,11 @@ export class ReportGeneratorService {
       
       Please create a well-structured academic report that includes:
       
-      1. **ABSTRACT** (150-250 words): A concise summary of the entire report
-      
-      2. **INTRODUCTION** (10-15% of word count): Background, context, objectives, and scope
-      
-      3. **MAIN BODY** (70-80% of word count): Detailed content with appropriate headings and subheadings. Include:
-         - Methodology (if applicable)
-         - Analysis/Discussion
-         - Findings/Results
-         - Use bullet points where appropriate
-         - Ensure logical flow and clear transitions
-      
-      4. **CONCLUSION** (5-10% of word count): Summary of key findings and implications
-      
-      5. **REFERENCES** (if applicable): Properly formatted citations and bibliography
-      
-      Requirements:
-      - Maintain academic writing standards
-      - Use clear, professional language
-      - Ensure content is original and plagiarism-free
-      - Follow logical structure with smooth transitions
-      - Include relevant headings and subheadings
-      - Use bullet points and numbered lists where appropriate
-      - Align with ${formData.academicLevel} level expectations
+      1. **ABSTRACT** (150-250 words)
+      2. **INTRODUCTION** (10-15% of word count)
+      3. **MAIN BODY** (70-80% of word count)
+      4. **CONCLUSION** (5-10% of word count)
+      5. **REFERENCES**
       
       Format the response with clear section markers:
       [ABSTRACT]
@@ -120,7 +105,6 @@ export class ReportGeneratorService {
       fullReport: text
     };
 
-    // Extract sections using markers
     const abstractMatch = text.match(/\[ABSTRACT\](.*?)(?=\[|$)/s);
     const introMatch = text.match(/\[INTRODUCTION\](.*?)(?=\[|$)/s);
     const mainBodyMatch = text.match(/\[MAIN_BODY\](.*?)(?=\[|$)/s);
@@ -133,7 +117,6 @@ export class ReportGeneratorService {
     if (conclusionMatch) sections.conclusion = conclusionMatch[1].trim();
     if (referencesMatch) sections.references = referencesMatch[1].trim();
 
-    // If sections weren't found with markers, try to split the text intelligently
     if (!sections.abstract && !sections.introduction) {
       const paragraphs = text.split('\n\n');
       if (paragraphs.length >= 4) {
