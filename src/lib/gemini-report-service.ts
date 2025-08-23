@@ -2,7 +2,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ReportFormData, GeneratedReport } from './report-types';
 
-const API_KEY = 'AIzaSyBT2lvr1h3Wh0zHkb4hoz-5Ojpc7taOvos';
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyDmej8KqWnwG1Tf0BP6peJhHbBWHOpVhBw';
 
 if (!API_KEY) {
   console.warn('Gemini API key not found in environment variables');
