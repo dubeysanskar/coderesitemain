@@ -28,8 +28,8 @@ interface EmailResult {
 export const sendBulkEmails = async (request: BulkEmailRequest): Promise<EmailResult[]> => {
   const results: EmailResult[] = [];
   
-  // Get API key from environment - using correct key
-  const apiKey = import.meta.env.VITE_BREVO_API_KEY || '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';
+  // Get API key from environment - using working key
+  const apiKey = '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';
   
   if (!apiKey) {
     console.error('Brevo API key not found in environment variables');
