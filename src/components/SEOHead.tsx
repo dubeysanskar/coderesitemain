@@ -87,7 +87,7 @@ export function SEOHead({
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={ogImage} />
       
-      {/* Performance: preload hero font */}
+      {/* Performance: preload hero fo */}
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       <link 
         rel="preload" 
