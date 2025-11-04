@@ -10,10 +10,12 @@ export class GeminiService {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     
     if (!apiKey) {
-      throw new Error('VITE_GEMINI_API_KEY is not set in environment variables');
+      console.warn('VITE_GEMINI_API_KEY is not set in environment variables');
+      // Create a placeholder instance to prevent app crash
+      this.genAI = new GoogleGenerativeAI('');
+    } else {
+      this.genAI = new GoogleGenerativeAI(apiKey);
     }
-    
-    this.genAI = new GoogleGenerativeAI(apiKey);
     
     this.model = this.genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
@@ -39,6 +41,10 @@ export class GeminiService {
   }
 
   async generatePresentation(topic: string, slideCount: number): Promise<Presentation> {
+    if (!import.meta.env.VITE_GEMINI_API_KEY) {
+      throw new Error('Please set VITE_GEMINI_API_KEY in your environment variables to use this feature');
+    }
+    
     const systemPrompt = `
       You are an expert presentation designer. Create a comprehensive, professionally structured presentation about "${topic}" with exactly ${slideCount} slides.
 
